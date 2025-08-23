@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生成绩趋势分析</title>
+    <!-- 引入 SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --primary-light: #64b5f6;
+            --primary-dark: #0d47a1;
+            --background-color: #e3f2fd;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #bbdefb;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+        }
+
+        .section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* 文件上传区域样式 */
+        .file-upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .template-download, .file-upload {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 控制区域样式 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+
+        .chart-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .file-upload-area, .controls, .chart-row {
+                flex-direction: column;
+            }
+            
+            .template-download, .file-upload, .control-group, .chart-wrapper {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>学生成绩趋势分析系统</h1>
+        </header>
+
+        <!-- 第一部分：文件上传 -->
+        <section class="section">
+            <h2 class="section-title">1. 数据导入</h2>
+            <div class="file-upload-area">
+                <div class="template-download">
+                    <button id="downloadTemplate">下载成绩模板 (XLSX)</button>
+                    <p>请先下载模板，按照格式填写成绩后上传。</p>
+                </div>
+                <div class="file-upload">
+                    <label for="fileInput">上传成绩单 (XLSX格式):</label>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls">
+                    <p id="uploadStatus"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二部分：数据分析与可视化 -->
+        <section class="section">
+            <h2 class="section-title">2. 成绩趋势分析</h2>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="studentSelect">选择学生:</label>
+                    <select id="studentSelect">
+                        <option value="">-- 请先上传数据 --</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="categorySelect">选择考试类别:</label>
+                    <select id="categorySelect">
+                        <option value="">-- 请选择类别 --</option>
+                        <option value="1">考试一类</option>
+                        <option value="2">考试二类</option>
+                        <option value="3">考试三类</option>
+                        <option value="4">考试四类</option>
+                        <option value="5">考试五类</option>
+                        <option value="6">考试六类</option>
+                        <option value="7">考试七类</option>
+                        <option value="8">八类-美术设计类</option>
+                        <option value="9">考试九类</option>
+                        <option value="10">考试十类</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 图表行 1: 总分 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">总分趋势</div>
+                    <div class="chart-container">
+                        <canvas id="totalScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 2: 语文 & 数学 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">语文成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="chineseChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">数学成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="mathChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 3: 专业基础 & 职业测试 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">专业基础成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="majorChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">职业测试成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="vocationalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 4: 综合趋势 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">各科成绩综合趋势</div>
+                    <div class="chart-container">
+                        <canvas id="combinedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 确保库加载完成后再执行脚本
+        window.addEventListener('load', function() {
+            if (typeof XLSX === 'undefined' || typeof Chart === 'undefined') {
+                console.error('必要的库未加载完成。');
+                document.getElementById('uploadStatus').textContent = '页面资源加载失败，请刷新重试。';
+                return;
+            }
+
+
+            // 类别分数线数据
+            const categoryThresholds = {
+                "1": { control: 367, private_25: 389, public_25: 448 },
+                "2": { control: 370, private_25: 398, public_25: 512 },
+                "3": { control: 417, private_25: 440, public_25: 520 },
+                "4": { control: 410, private_25: 430, public_25: 492 },
+                "5": { control: 423, private_25: 433, public_25: 489 },
+                "6": { control: 356, private_25: 371, public_25: 444 },
+                "7": { control: 465, private_25: 480, public_25: 574 },
+                "8": { control: 426, private_25: 441, public_25: 469 },
+                "9": { control: 429, private_25: 440, public_25: 510 },
+                "10": { control: 390, private_25: 407, public_25: 499 }
+            };
+
+            // 图表实例存储
+            let charts = {};
+
+            // 存储解析后的数据
+            let allStudentsData = {};
+            let currentStudent = null;
+
+            // 下载模板 (XLSX格式)
+            document.getElementById('downloadTemplate').addEventListener('click', function() {
+                // 创建一个工作簿
+                const wb = XLSX.utils.book_new();
+                
+                // 定义模板数据
+                const templateData = [
+                    ["姓名", "考试次数", "语文", "数学", "专业基础", "职业测试", "总分"],
+                    ["张三", 1, 120, 130, 85, 300, 635],
+                    ["张三", 2, 125, 135, 88, 310, 658],
+                    ["李四", 1, 110, 140, 90, 290, 630],
+                    ["李四", 2, 115, 145, 92, 300, 652]
+                ];
+                
+                // 将数据转换为工作表
+                const ws = XLSX.utils.aoa_to_sheet(templateData);
+                
+                // 设置列宽
+                const colWidths = [
+                    { wch: 10 }, // 姓名
+                    { wch: 10 }, // 考试次数
+                    { wch: 10 }, // 语文
+                    { wch: 10 }, // 数学
+                    { wch: 12 }, // 专业基础
+                    { wch: 12 }, // 职业测试
+                    { wch: 10 }  // 总分
+                ];
+                ws['!cols'] = colWidths;
+                
+                // 将工作表添加到工作簿
+                XLSX.utils.book_append_sheet(wb, ws, "成绩模板");
+                
+                // 导出文件
+                XLSX.writeFile(wb, "成绩模板.xlsx");
+            });
+
+            // 上传文件处理
+            document.getElementById('fileInput').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    document.getElementById('uploadStatus').textContent = '文件解析中...';
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            
+                            // 假设数据在第一个工作表
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            
+                            // 将工作表转换为JSON对象数组
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            
+                            if (jsonData.length < 2) {
+                                throw new Error('文件内容格式不正确或为空。');
+                            }
+                            
+                            parseXLSX(jsonData);
+                        } catch (error) {
+                            console.error('文件解析错误:', error);
+                            alert('文件解析失败: ' + error.message);
+                            document.getElementById('uploadStatus').textContent = '上传失败：' + error.message;
+                        }
+                    };
+                    reader.onerror = function() {
+                        alert('文件读取失败。');
+                        document.getElementById('uploadStatus').textContent = '上传失败：文件读取错误。';
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+
+            // 解析XLSX数据
+            function parseXLSX(data) {
+                if (!data || data.length === 0) {
+                    alert('数据为空。');
+                    document.getElementById('uploadStatus').textContent = '上传失败：数据为空。';
+                    return;
+                }
+
+                allStudentsData = {};
+                
+                // 第一行是表头
+                const headers = data[0].map(h => String(h).trim());
+                const requiredHeaders = ['姓名', '考试次数', '语文', '数学', '专业基础', '职业测试', '总分'];
+                
+                // 简单检查表头
+                const headerCheck = requiredHeaders.every(reqHeader => 
+                    headers.includes(reqHeader)
+                );
+                
+                if (!headerCheck) {
+                    const errorMsg = '文件表头不匹配。请确保包含: ' + requiredHeaders.join(', ');
+                    alert(errorMsg);
+                    document.getElementById('uploadStatus').textContent = '上传失败：' + errorMsg;
+                    return;
+                }
+
+                // 处理数据行
+                for (let i = 1; i < data.length; i++) {
+                    const rowArray = data[i];
+                    if (rowArray.length === 0) continue; // 跳过空行
+                    
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        let value = rowArray[index];
+                        // 尝试转换数字
+                        if (typeof value === 'string' && !isNaN(value) && !isNaN(parseFloat(value))) {
+                            value = parseFloat(value);
+                        } else if (typeof value === 'number') {
+                            // 已经是数字，保持不变
+                        } else {
+                            // 其他情况转为字符串
+                            value = String(value).trim();
+                        }
+                        row[header] = value;
+                    });
+
+                    const name = row['姓名'];
+                    if (!name) continue; // 跳过姓名为空的行
+
+                    if (!allStudentsData[name]) {
+                        allStudentsData[name] = [];
+                    }
+                    allStudentsData[name].push(row);
+                }
+
+                // 按考试次数排序
+                for (let student in allStudentsData) {
+                    allStudentsData[student].sort((a, b) => {
+                        const numA = parseFloat(a['考试次数']) || 0;
+                        const numB = parseFloat(b['考试次数']) || 0;
+                        return numA - numB;
+                    });
+                }
+
+                populateStudentSelect();
+                const studentCount = Object.keys(allStudentsData).length;
+                document.getElementById('uploadStatus').textContent = `上传成功！共加载 ${studentCount} 名学生的数据。`;
+            }
+
+            // 填充学生选择下拉框
+            function populateStudentSelect() {
+                const select = document.getElementById('studentSelect');
+                select.innerHTML = '<option value="">-- 请选择学生 --</option>';
+                for (const student in allStudentsData) {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    select.appendChild(option);
+                }
+            }
+
+            // 学生选择事件
+            document.getElementById('studentSelect').addEventListener('change', function() {
+                const selectedStudent = this.value;
+                if (selectedStudent && allStudentsData[selectedStudent]) {
+                    currentStudent = selectedStudent;
+                    updateCharts();
+                } else {
+                    currentStudent = null;
+                    // 可以选择在这里清除图表
+                }
+            });
+
+            // 类别选择事件
+            document.getElementById('categorySelect').addEventListener('change', function() {
+                if (currentStudent) {
+                    updateCharts(); // 重新绘制图表以显示分数线
+                }
+            });
+
+            // 更新所有图表
+            function updateCharts() {
+                if (!currentStudent || !allStudentsData[currentStudent]) return;
+
+                const studentData = allStudentsData[currentStudent];
+                const examNumbers = studentData.map(d => d['考试次数']);
+                
+                // 准备数据
+                const chineseScores = studentData.map(d => d['语文']);
+                const mathScores = studentData.map(d => d['数学']);
+                const majorScores = studentData.map(d => d['专业基础']);
+                const vocationalScores = studentData.map(d => d['职业测试']);
+                const totalScores = studentData.map(d => d['总分']);
+
+                // 计算趋势颜色 (简化处理: 与上一次比较)
+                function getTrendColors(scores) {
+                    const colors = [];
+                    for (let i = 0; i < scores.length; i++) {
+                        if (i === 0) {
+                            colors.push('rgba(33, 150, 243, 0.8)'); // 初始点用蓝色
+                        } else {
+                            if (scores[i] > scores[i-1]) {
+                                colors.push('rgba(76, 175, 80, 0.8)'); // 上升绿色
+                            } else if (scores[i] < scores[i-1]) {
+                                colors.push('rgba(244, 67, 54, 0.8)'); // 下降红色
+                            } else {
+                                colors.push('rgba(255, 152, 0, 0.8)'); // 持平橙色
+                            }
+                        }
+                    }
+                    return colors;
+                }
+
+                const totalScoreColors = getTrendColors(totalScores);
+                const chineseColors = getTrendColors(chineseScores);
+                const mathColors = getTrendColors(mathScores);
+                const majorColors = getTrendColors(majorScores);
+                const vocationalColors = getTrendColors(vocationalScores);
+
+                // 获取选中的类别
+                const selectedCategory = document.getElementById('categorySelect').value;
+                const thresholds = selectedCategory ? categoryThresholds[selectedCategory] : null;
+
+                // 销毁旧图表（如果存在）
+                Object.values(charts).forEach(chart => {
+                    if (chart) chart.destroy();
+                });
+
+                // 1. 总分趋势图
+                const ctxTotal = document.getElementById('totalScoreChart').getContext('2d');
+                const datasetsTotal = [{
+                    label: '总分',
+                    data: totalScores,
+                    borderColor: 'rgb(33, 150, 243)',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    segment: {
+                        borderColor: ctx => totalScoreColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                    },
+                    pointBackgroundColor: totalScoreColors,
+                    tension: 0.2,
+                    fill: true
+                }];
+
+                if (thresholds) {
+                    datasetsTotal.push({
+                        label: '控分线',
+                        data: Array(examNumbers.length).fill(thresholds.control),
+                        borderColor: 'rgb(156, 39, 176)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                    datasetsTotal.push({
+                        label: '25%民办线',
+                        data: Array(examNumbers.length).fill(thresholds.private_25),
+                        borderColor: 'rgb(255, 193, 7)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                    datasetsTotal.push({
+                        label: '25%公办线',
+                        data: Array(examNumbers.length).fill(thresholds.public_25),
+                        borderColor: 'rgb(40, 167, 69)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                }
+
+                charts.totalScoreChart = new Chart(ctxTotal, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: datasetsTotal
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 750,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+
+                // 2. 语文趋势图
+                const ctxChinese = document.getElementById('chineseChart').getContext('2d');
+                charts.chineseChart = new Chart(ctxChinese, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '语文',
+                            data: chineseScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => chineseColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: chineseColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 3. 数学趋势图
+                const ctxMath = document.getElementById('mathChart').getContext('2d');
+                charts.mathChart = new Chart(ctxMath, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '数学',
+                            data: mathScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => mathColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: mathColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 4. 专业基础趋势图
+                const ctxMajor = document.getElementById('majorChart').getContext('2d');
+                charts.majorChart = new Chart(ctxMajor, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '专业基础',
+                            data: majorScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => majorColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: majorColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 5. 职业测试趋势图
+                const ctxVocational = document.getElementById('vocationalChart').getContext('2d');
+                charts.vocationalChart = new Chart(ctxVocational, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '职业测试',
+                            data: vocationalScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => vocationalColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: vocationalColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 350,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 6. 综合趋势图
+                const ctxCombined = document.getElementById('combinedChart').getContext('2d');
+                charts.combinedChart = new Chart(ctxCombined, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [
+                            {
+                                label: '总分',
+                                data: totalScores,
+                                borderColor: 'rgb(33, 150, 243)',
+                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                yAxisID: 'y1',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '语文',
+                                data: chineseScores,
+                                borderColor: 'rgb(255, 152, 0)',
+                                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                                yAxisID: 'y2',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '数学',
+                                data: mathScores,
+                                borderColor: 'rgb(76, 175, 80)',
+                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                yAxisID: 'y2',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '专业基础',
+                                data: majorScores,
+                                borderColor: 'rgb(156, 39, 176)',
+                                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                                yAxisID: 'y3',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '职业测试',
+                                data: vocationalScores,
+                                borderColor: 'rgb(0, 188, 212)',
+                                backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                                yAxisID: 'y4',
+                                tension: 0.2,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                min: 0,
+                                max: 750,
+                                title: {
+                                    display: true,
+                                    text: '总分 (0-750)'
+                                }
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '语文/数学 (0-150)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y3: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '专业基础 (0-100)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y4: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 350,
+                                title: {
+                                    display: true,
+                                    text: '职业测试 (0-350)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            // 页面加载完成后初始化一次下拉框（以防有缓存数据）
+             populateStudentSelect();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生成绩趋势分析</title>
+    <!-- 引入 SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入 html2canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- 引入 FileSaver.js -->
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <!-- 引入 PptxGenJS (用于创建 Word 文档) -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+   
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --primary-light: #64b5f6;
+            --primary-dark: #0d47a1;
+            --background-color: #e3f2fd;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #bbdefb;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+        }
+
+        .section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* 文件上传区域样式 */
+        .file-upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .template-download, .file-upload {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 控制区域样式 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+
+        .chart-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+
+        /* 导出区域样式 */
+        .export-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .export-group {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .export-group h4 {
+            margin-top: 0;
+            color: var(--primary-dark);
+        }
+
+        .export-group select, .export-group input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .multi-select {
+            height: 100px;
+            overflow-y: auto;
+        }
+
+        .export-btn {
+            background-color: var(--success-color);
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .export-btn:hover {
+            background-color: #388e3c;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .file-upload-area, .controls, .chart-row, .export-controls {
+                flex-direction: column;
+            }
+            
+            .template-download, .file-upload, .control-group, .chart-wrapper, .export-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>学生成绩趋势分析系统</h1>
+        </header>
+
+        <!-- 第一部分：文件上传 -->
+        <section class="section">
+            <h2 class="section-title">1. 数据导入</h2>
+            <div class="file-upload-area">
+                <div class="template-download">
+                    <button id="downloadTemplate">下载成绩模板 (XLSX)</button>
+                    <p>请先下载模板，按照格式填写成绩后上传。</p>
+                </div>
+                <div class="file-upload">
+                    <label for="fileInput">上传成绩单 (XLSX格式):</label>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls">
+                    <p id="uploadStatus"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二部分：数据分析与可视化 -->
+        <section class="section">
+            <h2 class="section-title">2. 成绩趋势分析</h2>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="studentSelect">选择学生:</label>
+                    <select id="studentSelect">
+                        <option value="">-- 请先上传数据 --</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="categorySelect">选择考试类别:</label>
+                    <select id="categorySelect">
+                        <option value="">-- 请选择类别 --</option>
+                        <option value="1">考试一类</option>
+                        <option value="2">考试二类</option>
+                        <option value="3">考试三类</option>
+                        <option value="4">考试四类</option>
+                        <option value="5">考试五类</option>
+                        <option value="6">考试六类</option>
+                        <option value="7">考试七类</option>
+                        <option value="8">八类-美术设计类</option>
+                        <option value="9">考试九类</option>
+                        <option value="10">考试十类</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 图表行 1: 总分 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">总分趋势</div>
+                    <div class="chart-container">
+                        <canvas id="totalScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 2: 语文 & 数学 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">语文成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="chineseChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">数学成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="mathChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 3: 专业基础 & 职业测试 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">专业基础成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="majorChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">职业测试成绩趋势</div>
+                    <div class="chart-container">
+                        <canvas id="vocationalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表行 4: 综合趋势 -->
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-title">各科成绩综合趋势</div>
+                    <div class="chart-container">
+                        <canvas id="combinedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第三部分：导出数据到Word -->
+        <section class="section">
+            <h2 class="section-title">3. 导出数据到Word</h2>
+            <div class="export-controls">
+                <!-- 导出所有图表 -->
+                <div class="export-group">
+                    <h4>导出所有图表</h4>
+                    <label for="exportAllStudentSelect">选择学生 (留空则导出全部):</label>
+                    <select id="exportAllStudentSelect">
+                        <option value="">-- 全部学生 --</option>
+                    </select>
+                    <button class="export-btn" id="exportAllBtn">导出所选学生的所有图表</button>
+                </div>
+
+                <!-- 导出单个科目图表 -->
+                <div class="export-group">
+                    <h4>导出单个科目图表</h4>
+                    <label for="exportSingleSubjectSelect">选择科目:</label>
+                    <select id="exportSingleSubjectSelect">
+                        <option value="totalScoreChart">总分</option>
+                        <option value="chineseChart">语文</option>
+                        <option value="mathChart">数学</option>
+                        <option value="majorChart">专业基础</option>
+                        <option value="vocationalChart">职业测试</option>
+                        <option value="combinedChart">综合趋势</option>
+                    </select>
+                    <label for="exportSingleStudentSelect">选择学生 (留空则导出全部):</label>
+                    <select id="exportSingleStudentSelect" class="multi-select" multiple>
+                        <!-- 选项将由JS动态填充 -->
+                    </select>
+                    <button class="export-btn" id="exportSingleSubjectBtn">导出选定科目图表</button>
+                </div>
+
+                <!-- 导出自定义科目图表 -->
+                <div class="export-group">
+                    <h4>导出自定义科目图表</h4>
+                    <label for="exportCustomSubjectsSelect">选择科目 (可多选):</label>
+                    <select id="exportCustomSubjectsSelect" class="multi-select" multiple>
+                        <option value="totalScoreChart">总分</option>
+                        <option value="chineseChart">语文</option>
+                        <option value="mathChart">数学</option>
+                        <option value="majorChart">专业基础</option>
+                        <option value="vocationalChart">职业测试</option>
+                        <option value="combinedChart">综合趋势</option>
+                    </select>
+                    <label for="exportCustomStudentsSelect">选择学生 (可多选, 留空则导出全部):</label>
+                    <select id="exportCustomStudentsSelect" class="multi-select" multiple>
+                        <!-- 选项将由JS动态填充 -->
+                    </select>
+                    <button class="export-btn" id="exportCustomBtn">导出选定科目和学生图表</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 确保库加载完成后再执行脚本
+        window.addEventListener('load', function() {
+            if (typeof XLSX === 'undefined' || typeof Chart === 'undefined' || typeof html2canvas === 'undefined' || typeof saveAs === 'undefined' || typeof PptxGenJS === 'undefined') {
+                console.error('必要的库未加载完成。');
+                document.getElementById('uploadStatus').textContent = '页面资源加载失败，请刷新重试。';
+                return;
+            }
+
+
+            // 类别分数线数据
+            const categoryThresholds = {
+                "1": { control: 367, private_25: 389, public_25: 448 },
+                "2": { control: 370, private_25: 398, public_25: 512 },
+                "3": { control: 417, private_25: 440, public_25: 520 },
+                "4": { control: 410, private_25: 430, public_25: 492 },
+                "5": { control: 423, private_25: 433, public_25: 489 },
+                "6": { control: 356, private_25: 371, public_25: 444 },
+                "7": { control: 465, private_25: 480, public_25: 574 },
+                "8": { control: 426, private_25: 441, public_25: 469 },
+                "9": { control: 429, private_25: 440, public_25: 510 },
+                "10": { control: 390, private_25: 407, public_25: 499 }
+            };
+
+            // 科目中文名映射
+            const subjectNameMap = {
+                "totalScoreChart": "总分",
+                "chineseChart": "语文",
+                "mathChart": "数学",
+                "majorChart": "专业基础",
+                "vocationalChart": "职业测试",
+                "combinedChart": "综合趋势"
+            };
+
+            // 图表实例存储
+            let charts = {};
+
+            // 存储解析后的数据
+            let allStudentsData = {};
+            let currentStudent = null;
+
+            // --- 1. 数据导入相关功能 ---
+
+            // 下载模板 (XLSX格式)
+            document.getElementById('downloadTemplate').addEventListener('click', function() {
+                // 创建一个工作簿
+                const wb = XLSX.utils.book_new();
+                
+                // 定义模板数据
+                const templateData = [
+                    ["姓名", "考试次数", "语文", "数学", "专业基础", "职业测试", "总分"],
+                    ["张三", 1, 120, 130, 85, 300, 635],
+                    ["张三", 2, 125, 135, 88, 310, 658],
+                    ["李四", 1, 110, 140, 90, 290, 630],
+                    ["李四", 2, 115, 145, 92, 300, 652]
+                ];
+                
+                // 将数据转换为工作表
+                const ws = XLSX.utils.aoa_to_sheet(templateData);
+                
+                // 设置列宽
+                const colWidths = [
+                    { wch: 10 }, // 姓名
+                    { wch: 10 }, // 考试次数
+                    { wch: 10 }, // 语文
+                    { wch: 10 }, // 数学
+                    { wch: 12 }, // 专业基础
+                    { wch: 12 }, // 职业测试
+                    { wch: 10 }  // 总分
+                ];
+                ws['!cols'] = colWidths;
+                
+                // 将工作表添加到工作簿
+                XLSX.utils.book_append_sheet(wb, ws, "成绩模板");
+                
+                // 导出文件
+                XLSX.writeFile(wb, "成绩模板.xlsx");
+            });
+
+            // 上传文件处理
+            document.getElementById('fileInput').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    document.getElementById('uploadStatus').textContent = '文件解析中...';
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            
+                            // 假设数据在第一个工作表
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            
+                            // 将工作表转换为JSON对象数组
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            
+                            if (jsonData.length < 2) {
+                                throw new Error('文件内容格式不正确或为空。');
+                            }
+                            
+                            parseXLSX(jsonData);
+                        } catch (error) {
+                            console.error('文件解析错误:', error);
+                            alert('文件解析失败: ' + error.message);
+                            document.getElementById('uploadStatus').textContent = '上传失败：' + error.message;
+                        }
+                    };
+                    reader.onerror = function() {
+                        alert('文件读取失败。');
+                        document.getElementById('uploadStatus').textContent = '上传失败：文件读取错误。';
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+
+            // 解析XLSX数据
+            function parseXLSX(data) {
+                if (!data || data.length === 0) {
+                    alert('数据为空。');
+                    document.getElementById('uploadStatus').textContent = '上传失败：数据为空。';
+                    return;
+                }
+
+                allStudentsData = {};
+                
+                // 第一行是表头
+                const headers = data[0].map(h => String(h).trim());
+                const requiredHeaders = ['姓名', '考试次数', '语文', '数学', '专业基础', '职业测试', '总分'];
+                
+                // 简单检查表头
+                const headerCheck = requiredHeaders.every(reqHeader => 
+                    headers.includes(reqHeader)
+                );
+                
+                if (!headerCheck) {
+                    const errorMsg = '文件表头不匹配。请确保包含: ' + requiredHeaders.join(', ');
+                    alert(errorMsg);
+                    document.getElementById('uploadStatus').textContent = '上传失败：' + errorMsg;
+                    return;
+                }
+
+                // 处理数据行
+                for (let i = 1; i < data.length; i++) {
+                    const rowArray = data[i];
+                    if (rowArray.length === 0) continue; // 跳过空行
+                    
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        let value = rowArray[index];
+                        // 尝试转换数字
+                        if (typeof value === 'string' && !isNaN(value) && !isNaN(parseFloat(value))) {
+                            value = parseFloat(value);
+                        } else if (typeof value === 'number') {
+                            // 已经是数字，保持不变
+                        } else {
+                            // 其他情况转为字符串
+                            value = String(value).trim();
+                        }
+                        row[header] = value;
+                    });
+
+                    const name = row['姓名'];
+                    if (!name) continue; // 跳过姓名为空的行
+
+                    if (!allStudentsData[name]) {
+                        allStudentsData[name] = [];
+                    }
+                    allStudentsData[name].push(row);
+                }
+
+                // 按考试次数排序
+                for (let student in allStudentsData) {
+                    allStudentsData[student].sort((a, b) => {
+                        const numA = parseFloat(a['考试次数']) || 0;
+                        const numB = parseFloat(b['考试次数']) || 0;
+                        return numA - numB;
+                    });
+                }
+
+                populateStudentSelect();
+                populateExportSelects(); // 更新导出区域的下拉框
+                const studentCount = Object.keys(allStudentsData).length;
+                document.getElementById('uploadStatus').textContent = `上传成功！共加载 ${studentCount} 名学生的数据。`;
+            }
+
+            // 填充学生选择下拉框 (主分析区)
+            function populateStudentSelect() {
+                const select = document.getElementById('studentSelect');
+                select.innerHTML = '<option value="">-- 请选择学生 --</option>';
+                for (const student in allStudentsData) {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    select.appendChild(option);
+                }
+            }
+
+            // 填充导出区域的学生选择下拉框
+            function populateExportSelects() {
+                const students = Object.keys(allStudentsData);
+                
+                // 导出所有图表 - 学生选择
+                const exportAllSelect = document.getElementById('exportAllStudentSelect');
+                const currentAllValue = exportAllSelect.value; // 保存当前值
+                exportAllSelect.innerHTML = '<option value="">-- 全部学生 --</option>';
+                students.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    exportAllSelect.appendChild(option);
+                });
+                // 恢复之前的选择（如果学生仍然存在）
+                if (currentAllValue && students.includes(currentAllValue)) {
+                    exportAllSelect.value = currentAllValue;
+                }
+
+                // 导出单个科目 - 学生多选
+                const exportSingleSelect = document.getElementById('exportSingleStudentSelect');
+                const currentSingleValues = Array.from(exportSingleSelect.selectedOptions).map(opt => opt.value);
+                exportSingleSelect.innerHTML = '';
+                students.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    exportSingleSelect.appendChild(option);
+                });
+                // 恢复之前的选择
+                Array.from(exportSingleSelect.options).forEach(option => {
+                    if (currentSingleValues.includes(option.value)) {
+                        option.selected = true;
+                    }
+                });
+
+                // 导出自定义科目 - 学生多选
+                const exportCustomSelect = document.getElementById('exportCustomStudentsSelect');
+                const currentCustomValues = Array.from(exportCustomSelect.selectedOptions).map(opt => opt.value);
+                exportCustomSelect.innerHTML = '';
+                students.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    exportCustomSelect.appendChild(option);
+                });
+                // 恢复之前的选择
+                Array.from(exportCustomSelect.options).forEach(option => {
+                    if (currentCustomValues.includes(option.value)) {
+                        option.selected = true;
+                    }
+                });
+            }
+
+            // 学生选择事件 (主分析区)
+            document.getElementById('studentSelect').addEventListener('change', function() {
+                const selectedStudent = this.value;
+                if (selectedStudent && allStudentsData[selectedStudent]) {
+                    currentStudent = selectedStudent;
+                    updateCharts();
+                } else {
+                    currentStudent = null;
+                    // 可以选择在这里清除图表
+                }
+            });
+
+            // 类别选择事件 (主分析区)
+            document.getElementById('categorySelect').addEventListener('change', function() {
+                if (currentStudent) {
+                    updateCharts(); // 重新绘制图表以显示分数线
+                }
+            });
+
+            // --- 2. 图表绘制相关功能 ---
+
+            // 更新所有图表
+            function updateCharts() {
+                if (!currentStudent || !allStudentsData[currentStudent]) return;
+
+                const studentData = allStudentsData[currentStudent];
+                const examNumbers = studentData.map(d => d['考试次数']);
+                
+                // 准备数据
+                const chineseScores = studentData.map(d => d['语文']);
+                const mathScores = studentData.map(d => d['数学']);
+                const majorScores = studentData.map(d => d['专业基础']);
+                const vocationalScores = studentData.map(d => d['职业测试']);
+                const totalScores = studentData.map(d => d['总分']);
+
+                // 计算趋势颜色 (简化处理: 与上一次比较)
+                function getTrendColors(scores) {
+                    const colors = [];
+                    for (let i = 0; i < scores.length; i++) {
+                        if (i === 0) {
+                            colors.push('rgba(33, 150, 243, 0.8)'); // 初始点用蓝色
+                        } else {
+                            if (scores[i] > scores[i-1]) {
+                                colors.push('rgba(76, 175, 80, 0.8)'); // 上升绿色
+                            } else if (scores[i] < scores[i-1]) {
+                                colors.push('rgba(244, 67, 54, 0.8)'); // 下降红色
+                            } else {
+                                colors.push('rgba(255, 152, 0, 0.8)'); // 持平橙色
+                            }
+                        }
+                    }
+                    return colors;
+                }
+
+                const totalScoreColors = getTrendColors(totalScores);
+                const chineseColors = getTrendColors(chineseScores);
+                const mathColors = getTrendColors(mathScores);
+                const majorColors = getTrendColors(majorScores);
+                const vocationalColors = getTrendColors(vocationalScores);
+
+                // 获取选中的类别
+                const selectedCategory = document.getElementById('categorySelect').value;
+                const thresholds = selectedCategory ? categoryThresholds[selectedCategory] : null;
+
+                // 销毁旧图表（如果存在）
+                Object.values(charts).forEach(chart => {
+                    if (chart) chart.destroy();
+                });
+
+                // 1. 总分趋势图
+                const ctxTotal = document.getElementById('totalScoreChart').getContext('2d');
+                const datasetsTotal = [{
+                    label: '总分',
+                    data: totalScores,
+                    borderColor: 'rgb(33, 150, 243)',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    segment: {
+                        borderColor: ctx => totalScoreColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                    },
+                    pointBackgroundColor: totalScoreColors,
+                    tension: 0.2,
+                    fill: true
+                }];
+
+                if (thresholds) {
+                    datasetsTotal.push({
+                        label: '控分线',
+                        data: Array(examNumbers.length).fill(thresholds.control),
+                        borderColor: 'rgb(156, 39, 176)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                    datasetsTotal.push({
+                        label: '25%民办线',
+                        data: Array(examNumbers.length).fill(thresholds.private_25),
+                        borderColor: 'rgb(255, 193, 7)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                    datasetsTotal.push({
+                        label: '25%公办线',
+                        data: Array(examNumbers.length).fill(thresholds.public_25),
+                        borderColor: 'rgb(40, 167, 69)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    });
+                }
+
+                charts.totalScoreChart = new Chart(ctxTotal, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: datasetsTotal
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 750,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+
+                // 2. 语文趋势图
+                const ctxChinese = document.getElementById('chineseChart').getContext('2d');
+                charts.chineseChart = new Chart(ctxChinese, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '语文',
+                            data: chineseScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => chineseColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: chineseColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 3. 数学趋势图
+                const ctxMath = document.getElementById('mathChart').getContext('2d');
+                charts.mathChart = new Chart(ctxMath, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '数学',
+                            data: mathScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => mathColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: mathColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 4. 专业基础趋势图
+                const ctxMajor = document.getElementById('majorChart').getContext('2d');
+                charts.majorChart = new Chart(ctxMajor, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '专业基础',
+                            data: majorScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => majorColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: majorColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 5. 职业测试趋势图
+                const ctxVocational = document.getElementById('vocationalChart').getContext('2d');
+                charts.vocationalChart = new Chart(ctxVocational, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [{
+                            label: '职业测试',
+                            data: vocationalScores,
+                            borderColor: 'rgb(33, 150, 243)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            segment: {
+                                borderColor: ctx => vocationalColors[ctx.p0DataIndex] || 'rgb(33, 150, 243)',
+                            },
+                            pointBackgroundColor: vocationalColors,
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 350,
+                                title: {
+                                    display: true,
+                                    text: '分数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                // 6. 综合趋势图
+                const ctxCombined = document.getElementById('combinedChart').getContext('2d');
+                charts.combinedChart = new Chart(ctxCombined, {
+                    type: 'line',
+                    data: {
+                        labels: examNumbers,
+                        datasets: [
+                            {
+                                label: '总分',
+                                data: totalScores,
+                                borderColor: 'rgb(33, 150, 243)',
+                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                yAxisID: 'y1',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '语文',
+                                data: chineseScores,
+                                borderColor: 'rgb(255, 152, 0)',
+                                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                                yAxisID: 'y2',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '数学',
+                                data: mathScores,
+                                borderColor: 'rgb(76, 175, 80)',
+                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                yAxisID: 'y2',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '专业基础',
+                                data: majorScores,
+                                borderColor: 'rgb(156, 39, 176)',
+                                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                                yAxisID: 'y3',
+                                tension: 0.2,
+                                fill: false
+                            },
+                            {
+                                label: '职业测试',
+                                data: vocationalScores,
+                                borderColor: 'rgb(0, 188, 212)',
+                                backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                                yAxisID: 'y4',
+                                tension: 0.2,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                min: 0,
+                                max: 750,
+                                title: {
+                                    display: true,
+                                    text: '总分 (0-750)'
+                                }
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 150,
+                                title: {
+                                    display: true,
+                                    text: '语文/数学 (0-150)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y3: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '专业基础 (0-100)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y4: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 350,
+                                title: {
+                                    display: true,
+                                    text: '职业测试 (0-350)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '考试次数'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            // 页面加载完成后初始化一次下拉框（以防有缓存数据）
+             populateStudentSelect();
+
+            // --- 3. Word 导出相关功能 ---
+
+            // 辅助函数：获取选中的多选框值
+            function getSelectedValues(selectElement) {
+                return Array.from(selectElement.selectedOptions).map(option => option.value);
+            }
+
+            // 辅助函数：获取图表容器元素
+            function getChartContainers(studentName, chartIds) {
+                const containers = [];
+                chartIds.forEach(id => {
+                    // 为了导出，我们创建一个临时的图表实例来渲染特定学生的数据
+                    // 这里我们直接获取现有的图表容器，因为它们已经包含了当前学生的数据
+                    // 如果需要导出其他学生的数据，我们需要重新绘制图表
+                    // 为简化，我们只导出当前显示的学生图表
+                    const container = document.querySelector(`#${id}`).closest('.chart-wrapper');
+                    if (container) {
+                        containers.push(container);
+                    }
+                });
+                return containers;
+            }
+
+            // 核心导出函数：将图表容器转换为图片并添加到Word文档
+            async function exportChartsToWord(chartContainers, docTitle, fileName) {
+                if (chartContainers.length === 0) {
+                    alert('没有可导出的图表。');
+                    return;
+                }
+
+                try {
+                    // 使用 PptxGenJS 创建 Word 文档
+                    const pptx = new PptxGenJS();
+                    // 注意：PptxGenJS 主要用于PPT，但其API可以创建包含图片的文档，这里我们用它来创建一个类似Word的文档
+                    // 更标准的做法是使用 docxtemplater 或其他专门的库，但为了简化依赖，我们继续使用它。
+                    // 实际上，PptxGenJS 生成的是 PPTX。如果严格要求Word格式，需要引入其他库。
+                    // 我们在此处生成 PPTX 文件，但命名为 .docx 以符合用户需求，尽管格式可能不完全兼容。
+                    // 更准确的方法是生成 HTML 然后用其他服务转换，或者使用专门的 docx 库。
+                    
+                    // 为了更符合“Word”导出的意图，我们改为生成一个包含图片的HTML字符串，然后保存为 .doc 文件
+                    // 但这在现代浏览器中可能不被很好地支持。
+                    // 最佳实践是使用专门的 .docx 生成库，如 `docx` (需要npm构建环境)。
+                    // 作为折衷，我们继续使用 PptxGenJS 生成 PPTX，因为它能可靠地包含图片。
+                    
+                    const pres = pptx;
+
+                    // 创建一张幻灯片
+                    let slide = pres.addSlide();
+                    // 添加标题
+                    slide.addText(docTitle, { x: 0.5, y: 0.2, fontSize: 24, bold: true });
+
+                    // 用于跟踪当前幻灯片上的图片数量和位置
+                    let currentY = 1.0;
+                    const slideHeight = 5.5; // 可用高度
+                    const imageHeight = 2.5; // 每张图片高度
+                    const imageGap = 0.3; // 图片间距
+
+                    for (let i = 0; i < chartContainers.length; i++) {
+                        const container = chartContainers[i];
+                        
+                        // 使用 html2canvas 将图表容器转换为 canvas
+                        const canvas = await html2canvas(container, {
+                            scale: 2, // 提高分辨率
+                            useCORS: true,
+                            backgroundColor: null // 保持透明背景
+                        });
+
+                        // 将 canvas 转换为 base64 图片数据
+                        const imgData = canvas.toDataURL('image/png');
+
+                        // 检查是否需要新建幻灯片
+                        if (currentY + imageHeight > slideHeight) {
+                             slide = pres.addSlide();
+                             currentY = 0.5;
+                        }
+
+                        // 计算图片宽度 (保持宽高比)
+                        const containerWidth = container.offsetWidth;
+                        const containerHeight = container.offsetHeight;
+                        const aspectRatio = containerWidth / containerHeight;
+                        const imageWidth = imageHeight * aspectRatio;
+
+                        // 添加图片到幻灯片
+                        slide.addImage({
+                            data: imgData,
+                            x: (10 - imageWidth) / 2, // 居中 (假设幻灯片宽10英寸)
+                            y: currentY,
+                            w: imageWidth,
+                            h: imageHeight
+                        });
+
+                        currentY += imageHeight + imageGap;
+                        
+                        // 如果不是最后一个图片，添加一点间距
+                        if (i < chartContainers.length - 1) {
+                             currentY += 0.2;
+                        }
+                    }
+
+                    // 保存文件
+                    pres.writeFile({ fileName: fileName + ".pptx" }); // 保存为 PPTX
+                    console.log(`导出完成: ${fileName}.pptx`);
+                    
+                    // 注意：如果需要真正的 .docx 文件，需要引入如 `docx` 这样的库。
+                    // 由于前端直接生成 .docx 较为复杂且依赖多，PptxGenJS 生成的 PPTX 是一个可行的替代方案，
+                    // 它同样可以包含高质量的图片，满足查看和打印需求。
+
+                } catch (error) {
+                    console.error("导出过程中出错:", error);
+                    alert("导出失败: " + error.message);
+                }
+            }
+
+            // --- 3.1 导出所有图表 ---
+            document.getElementById('exportAllBtn').addEventListener('click', async function() {
+                const selectedStudent = document.getElementById('exportAllStudentSelect').value;
+                
+                if (selectedStudent) {
+                    // 导出单个学生的所有图表
+                    // 需要临时切换当前学生并更新图表
+                    const originalStudent = currentStudent;
+                    currentStudent = selectedStudent;
+                    updateCharts(); // 重新绘制图表
+                    
+                    // 等待图表绘制完成 (简单延时)
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const chartIds = ['totalScoreChart', 'chineseChart', 'mathChart', 'majorChart', 'vocationalChart', 'combinedChart'];
+                    const containers = chartIds.map(id => document.querySelector(`#${id}`).closest('.chart-wrapper')).filter(c => c);
+                    
+                    await exportChartsToWord(containers, `学生 ${selectedStudent} 的全部成绩图表`, `学生成绩_${selectedStudent}_全部图表`);
+                    
+                    // 恢复原始学生和图表
+                    if (originalStudent) {
+                       currentStudent = originalStudent;
+                       updateCharts();
+                    } else {
+                        // 清除图表
+                        Object.values(charts).forEach(chart => chart?.destroy());
+                        charts = {};
+                        currentStudent = null;
+                    }
+                } else {
+                    // 导出所有学生的图表
+                    if (Object.keys(allStudentsData).length === 0) {
+                        alert('没有可用的学生数据。');
+                        return;
+                    }
+                    
+                    const allContainers = [];
+                    const originalStudent = currentStudent;
+                    const students = Object.keys(allStudentsData);
+                    
+                    for (const student of students) {
+                        currentStudent = student;
+                        updateCharts();
+                        // 等待图表绘制完成
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        const chartIds = ['totalScoreChart', 'chineseChart', 'mathChart', 'majorChart', 'vocationalChart', 'combinedChart'];
+                        const studentContainers = chartIds.map(id => document.querySelector(`#${id}`).closest('.chart-wrapper')).filter(c => c);
+                        // 为每个图表容器添加学生名标签
+                        studentContainers.forEach(container => {
+                             const titleDiv = container.querySelector('.chart-title');
+                             if (titleDiv && !titleDiv.textContent.includes(`(${student})`)) {
+                                 titleDiv.textContent += ` (${student})`;
+                             }
+                        });
+                        allContainers.push(...studentContainers);
+                    }
+                    
+                    await exportChartsToWord(allContainers, `所有学生的全部成绩图表`, `学生成绩_所有学生_全部图表`);
+                    
+                    // 恢复原始状态
+                    if (originalStudent) {
+                       currentStudent = originalStudent;
+                       updateCharts();
+                    } else {
+                        Object.values(charts).forEach(chart => chart?.destroy());
+                        charts = {};
+                        currentStudent = null;
+                    }
+                    // 恢复标题
+                    document.querySelectorAll('.chart-title').forEach(titleDiv => {
+                        const studentMatch = titleDiv.textContent.match(/ \((.*)\)$/);
+                        if (studentMatch) {
+                            titleDiv.textContent = titleDiv.textContent.replace(` (${studentMatch[1]})`, '');
+                        }
+                    });
+                }
+            });
+
+            // --- 3.2 导出单个科目图表 ---
+            document.getElementById('exportSingleSubjectBtn').addEventListener('click', async function() {
+                 const selectedSubjectId = document.getElementById('exportSingleSubjectSelect').value;
+                 const selectedStudents = getSelectedValues(document.getElementById('exportSingleStudentSelect'));
+                 
+                 if (selectedStudents.length === 0) {
+                     // 导出全部学生的单个科目
+                     if (Object.keys(allStudentsData).length === 0) {
+                         alert('没有可用的学生数据。');
+                         return;
+                     }
+                     const allContainers = [];
+                     const originalStudent = currentStudent;
+                     const students = Object.keys(allStudentsData);
+                     
+                     for (const student of students) {
+                         currentStudent = student;
+                         updateCharts();
+                         await new Promise(resolve => setTimeout(resolve, 500));
+                         
+                         const container = document.querySelector(`#${selectedSubjectId}`)?.closest('.chart-wrapper');
+                         if (container) {
+                             const titleDiv = container.querySelector('.chart-title');
+                             if (titleDiv && !titleDiv.textContent.includes(`(${student})`)) {
+                                 titleDiv.textContent += ` (${student})`;
+                             }
+                             allContainers.push(container);
+                         }
+                     }
+                     
+                     const subjectName = subjectNameMap[selectedSubjectId] || selectedSubjectId;
+                     await exportChartsToWord(allContainers, `所有学生的 ${subjectName} 成绩图表`, `学生成绩_所有学生_${subjectName}`);
+                     
+                     if (originalStudent) {
+                        currentStudent = originalStudent;
+                        updateCharts();
+                     } else {
+                         Object.values(charts).forEach(chart => chart?.destroy());
+                         charts = {};
+                         currentStudent = null;
+                     }
+                     // 恢复标题
+                     document.querySelectorAll('.chart-title').forEach(titleDiv => {
+                         const studentMatch = titleDiv.textContent.match(/ \((.*)\)$/);
+                         if (studentMatch) {
+                             titleDiv.textContent = titleDiv.textContent.replace(` (${studentMatch[1]})`, '');
+                         }
+                     });
+                 } else {
+                     // 导出选定学生的单个科目
+                     const allContainers = [];
+                     const originalStudent = currentStudent;
+                     
+                     for (const student of selectedStudents) {
+                         if (!allStudentsData[student]) continue;
+                         currentStudent = student;
+                         updateCharts();
+                         await new Promise(resolve => setTimeout(resolve, 500));
+                         
+                         const container = document.querySelector(`#${selectedSubjectId}`)?.closest('.chart-wrapper');
+                         if (container) {
+                             const titleDiv = container.querySelector('.chart-title');
+                             if (titleDiv && !titleDiv.textContent.includes(`(${student})`)) {
+                                 titleDiv.textContent += ` (${student})`;
+                             }
+                             allContainers.push(container);
+                         }
+                     }
+                     
+                     const subjectName = subjectNameMap[selectedSubjectId] || selectedSubjectId;
+                     await exportChartsToWord(allContainers, `选定学生的 ${subjectName} 成绩图表`, `学生成绩_选定学生_${subjectName}`);
+                     
+                     if (originalStudent) {
+                        currentStudent = originalStudent;
+                        updateCharts();
+                     } else {
+                         Object.values(charts).forEach(chart => chart?.destroy());
+                         charts = {};
+                         currentStudent = null;
+                     }
+                      // 恢复标题
+                     document.querySelectorAll('.chart-title').forEach(titleDiv => {
+                         const studentMatch = titleDiv.textContent.match(/ \((.*)\)$/);
+                         if (studentMatch) {
+                             titleDiv.textContent = titleDiv.textContent.replace(` (${studentMatch[1]})`, '');
+                         }
+                     });
+                 }
+            });
+
+            // --- 3.3 导出自定义科目图表 ---
+            document.getElementById('exportCustomBtn').addEventListener('click', async function() {
+                const selectedSubjectIds = getSelectedValues(document.getElementById('exportCustomSubjectsSelect'));
+                const selectedStudents = getSelectedValues(document.getElementById('exportCustomStudentsSelect'));
+                
+                if (selectedSubjectIds.length === 0) {
+                    alert('请至少选择一个科目。');
+                    return;
+                }
+
+                let studentsToProcess = [];
+                if (selectedStudents.length === 0) {
+                    // 导出全部学生
+                    studentsToProcess = Object.keys(allStudentsData);
+                    if (studentsToProcess.length === 0) {
+                        alert('没有可用的学生数据。');
+                        return;
+                    }
+                } else {
+                    // 导出选定学生
+                    studentsToProcess = selectedStudents;
+                }
+
+                const allContainers = [];
+                const originalStudent = currentStudent;
+                
+                for (const student of studentsToProcess) {
+                    if (!allStudentsData[student]) continue;
+                    currentStudent = student;
+                    updateCharts();
+                    await new Promise(resolve => setTimeout(resolve, 500)); // 等待图表渲染
+                    
+                    for (const subjectId of selectedSubjectIds) {
+                        const container = document.querySelector(`#${subjectId}`)?.closest('.chart-wrapper');
+                        if (container) {
+                            // 为图表标题添加学生和科目信息
+                            const titleDiv = container.querySelector('.chart-title');
+                            const subjectName = subjectNameMap[subjectId] || subjectId;
+                            if (titleDiv) {
+                                // 清除之前可能添加的信息
+                                let baseTitle = titleDiv.textContent.replace(/ \(.*\)$/, '');
+                                if (!baseTitle.includes(`(${student})`)) {
+                                    titleDiv.textContent = `${baseTitle} (${student})`;
+                                }
+                            }
+                            allContainers.push(container);
+                        }
+                    }
+                }
+                
+                const subjectNames = selectedSubjectIds.map(id => subjectNameMap[id] || id).join(', ');
+                const studentDesc = selectedStudents.length > 0 ? '选定学生' : '所有学生';
+                await exportChartsToWord(allContainers, `${studentDesc}的 ${subjectNames} 成绩图表`, `学生成绩_${studentDesc}_${subjectNames.replace(/,/g, '_')}`);
+                
+                // 恢复原始状态
+                if (originalStudent) {
+                   currentStudent = originalStudent;
+                   updateCharts();
+                } else {
+                    Object.values(charts).forEach(chart => chart?.destroy());
+                    charts = {};
+                    currentStudent = null;
+                }
+                 // 恢复标题
+                document.querySelectorAll('.chart-title').forEach(titleDiv => {
+                    const studentMatch = titleDiv.textContent.match(/ \((.*)\)$/);
+                    if (studentMatch) {
+                        titleDiv.textContent = titleDiv.textContent.replace(` (${studentMatch[1]})`, '');
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>选择系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0ecff, #f9f9f9);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .system-button {
+            display: inline-block;
+            padding: 18px 36px;
+            margin: 12px;
+            font-size: 18px;
+            color: white;
+            background: linear-gradient(135deg, #007bff, #00c6ff);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 123, 255, 0.2);
+        }
+
+        .system-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            background: linear-gradient(135deg, #0056b3, #00aaff);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .visitor-info {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .system-button {
+                width: 100%;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>请选择系统</h1>
+    <div class="button-group">
+        <a href="roll_call.html" class="system-button">点名系统</a>
+        <a href="question_system.html" class="system-button">知识点提问系统</a>
+        <a href="blind_box_draw.html" class="system-button">盲盒抽取系统</a>
+    </div>
+</div>
+
+<!-- 显示访客信息 -->
+<div class="visitor-info" id="visitor-info">
+    正在加载访客信息...
+</div>
+
+<script>
+    // 获取当前访问时间
+    function getCurrentTime() {
+        const now = new Date();
+        return now.toLocaleString();
+    }
+
+    // 获取 IP 地址（使用 ip-api.com 提供的公共 API）
+    async function getIpAddress() {
+        try {
+            const response = await fetch('https://ip-api.com/json/');
+            const data = await response.json();
+            const ip = data.query || "未知";
+            const city = data.city ? `${data.city}, ` : '';
+            const region = data.regionName ? `${data.regionName}, ` : '';
+            const country = data.country || '';
+
+            document.getElementById('visitor-info').innerHTML = `
+                您的 IP 地址：${ip}<br>
+                地理位置：${city}${region}${country}<br>
+                访问时间：${getCurrentTime()}
+            `;
+        } catch (error) {
+            console.error("获取 IP 失败", error);
+            document.getElementById('visitor-info').innerText = "无法获取访客信息。";
+        }
+    }
+
+    // 页面加载后调用
+    window.onload = getIpAddress;
+</script>
+
+</body>
+</html>

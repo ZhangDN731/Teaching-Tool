@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>盲盒抽取系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '微软雅黑', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+        }
+
+        header {
+            background-color: #1976d2;
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        .home-link a {
+            font-size: 16px;
+            color: #1976d2;
+            text-decoration: none;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        main {
+            max-width: 90%;
+            width: 100%;
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .file-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .file-row input[type="file"] {
+            width: auto;
+        }
+
+        .file-row label {
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1259a6;
+        }
+
+        /* 抽奖结果显示区域 */
+        #result-container {
+            margin-top: 30px;
+            padding: 20px;
+            line-height: 2em;
+            font-size: 18px;
+            text-align: center;
+            min-height: 150px;
+        }
+
+        .highlight-line {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .highlight-name {
+            font-size: 26px;
+            font-weight: bold;
+            color: #e53935; /* 红色强调学生姓名 */
+        }
+
+        .highlight-topic {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32; /* 绿色强调知识点 */
+        }
+
+        .highlight-punish {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d84315; /* 橙色强调惩罚 */
+        }
+
+        /* 响应式样式 */
+        @media (max-width: 600px) {
+            header {
+                font-size: 20px;
+                padding: 15px 0;
+            }
+
+            main {
+                padding: 15px;
+            }
+
+            .file-row {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .file-row label {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 15px;
+                padding: 10px 20px;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .highlight-name,
+            .highlight-topic,
+            .highlight-punish {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>盲盒抽取系统</header>
+
+<!-- 返回首页 -->
+<div class="home-link">
+    <a href="index.html">返回首页</a>
+</div>
+
+<main>
+    <p>上传学生名单和知识点文件，点击抽奖，随机匹配一名学生和一个知识点。</p>
+
+    <!-- 文件选择放在一起 -->
+    <div class="file-row">
+        <label for="nameFile">学生名单：</label>
+        <input type="file" id="nameFile" accept=".txt" />
+        <label for="topicFile">知识点：</label>
+        <input type="file" id="topicFile" accept=".txt" />
+    </div>
+
+    <!-- 抽奖按钮 -->
+    <div>
+        <button onclick="draw()">抽奖</button>
+    </div>
+
+    <!-- 显示结果 -->
+    <div id="result-container">等待抽奖...</div>
+</main>
+
+<script>
+    let nameList = [];
+    let topicList = [];
+
+    // 惩罚列表
+    const punishList = [
+        "原地转10圈",
+        "做5个俯卧撑",
+        "唱一首歌",
+        "模仿一个动物叫",
+        "绕教室跑一圈",
+        "值日劳动",
+        "作业激怒计划（增加作业）",
+        "知识点图表",
+        "表情包配音背诵"
+    ];
+
+    document.getElementById('nameFile').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const content = e.target.result;
+            nameList = content.split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            alert("成功导入 " + nameList.length + " 名学生");
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('topicFile').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const content = e.target.result;
+            topicList = content.split('\n')
+                .map(topic => topic.trim())
+                .filter(topic => topic.length > 0);
+            alert("成功导入 " + topicList.length + " 个知识点");
+        };
+        reader.readAsText(file);
+    });
+
+    function draw() {
+        if (nameList.length === 0 || topicList.length === 0) {
+            alert("请先上传学生名单和知识点文件！");
+            return;
+        }
+
+        const randomName = nameList[Math.floor(Math.random() * nameList.length)];
+        const randomTopic = topicList[Math.floor(Math.random() * topicList.length)];
+        const randomPunish = punishList[Math.floor(Math.random() * punishList.length)];
+
+        const resultContainer = document.getElementById('result-container');
+        resultContainer.innerHTML = `
+            <div class="highlight-line">恭喜 <span class="highlight-name">${randomName}</span> 同学抽到</div>
+            <div class="highlight-line"><span class="highlight-topic">【${randomTopic}】</span>，现在请开始作答。</div>
+            <div class="highlight-line">若未完成，请完成<span class="highlight-punish">${randomPunish}</span>。</div>
+        `;
+    }
+</script>
+
+</body>
+</html>

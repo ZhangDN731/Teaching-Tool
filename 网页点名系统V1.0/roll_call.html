@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>点名系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '微软雅黑', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+        }
+
+        header {
+            background-color: #1976d2;
+            color: white;
+            width: 100%;
+            padding: 16px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 10;
+        }
+
+        .home-link a {
+            font-size: 14px;
+            color: #1976d2;
+            text-decoration: none;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        main {
+            max-width: 800px;
+            width: 95%;
+            margin-top: 20px;
+            background: white;
+            padding: 20px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        input[type="file"] {
+            margin-bottom: 16px;
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            width: auto;
+            min-width: 100px;
+        }
+
+        button:hover {
+            background-color: #1259a6;
+        }
+
+        .custom-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .custom-input input[type="number"] {
+            padding: 8px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 120px;
+            margin: 6px 0 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #result-container {
+            font-size: 18px;
+            color: #d32f2f;
+            margin-top: 20px;
+            min-height: 80px;
+            white-space: pre-wrap;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* 移动端优化：缩小部分文字大小 */
+        @media (max-width: 600px) {
+            header {
+                font-size: 18px;
+            }
+
+            .home-link a {
+                font-size: 13px;
+                padding: 5px 10px;
+            }
+
+            main {
+                padding: 16px 12px;
+            }
+
+            button {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>点名系统</header>
+
+<!-- 返回首页 -->
+<div class="home-link">
+    <a href="index.html">返回首页</a>
+</div>
+
+<main>
+    <p>这是用于课堂点名的功能页面。</p>
+
+    <!-- 文件选择 -->
+    <div>
+        <input type="file" id="fileInput" accept=".txt" />
+        <p style="margin-top: 8px; font-size: 14px;">请选择一个包含学生名单的 .txt 文件（每行一个名字）</p>
+    </div>
+
+    <!-- 抽取按钮和输入框放在一起 -->
+    <div class="action-row">
+        <button onclick="drawNames(1)">抽1人</button>
+        <button onclick="drawRandom()">随机抽取（1~10）</button>
+        <div class="custom-input">
+            <input type="number" id="customCount" placeholder="人数" value="5" min="1" max="10" />
+            <button onclick="drawCustom()" style="margin-top: 8px;">自定义抽取</button>
+        </div>
+    </div>
+
+    <!-- 显示结果 -->
+    <div id="result-container">等待抽取...</div>
+</main>
+
+<script>
+    let studentList = [];
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const content = e.target.result;
+            studentList = content.split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            alert("成功导入 " + studentList.length + " 名学生");
+        };
+        reader.readAsText(file);
+    });
+
+    // === 抽取指定人数的核心函数 ===
+    function drawNames(count) {
+        if (studentList.length === 0) {
+            alert("请先导入学生名单！");
+            return;
+        }
+
+        if (count > studentList.length) {
+            alert("当前名单人数不足，请重新选择数量。");
+            return;
+        }
+
+        const selected = [...studentList].sort(() => 0.5 - Math.random()).slice(0, count);
+        document.getElementById('result-container').textContent = selected.join(', ');
+    }
+
+    // === 随机抽取 1~10 人 ===
+    function drawRandom() {
+        if (studentList.length === 0) {
+            alert("请先导入学生名单！");
+            return;
+        }
+
+        const maxCount = Math.min(studentList.length, 10); // 最多抽10人
+        const count = Math.floor(Math.random() * maxCount) + 1;
+        drawNames(count);
+    }
+
+    // === 自定义抽取 ===
+    function drawCustom() {
+        if (studentList.length === 0) {
+            alert("请先导入学生名单！");
+            return;
+        }
+
+        const input = document.getElementById('customCount');
+        let count = parseInt(input.value);
+
+        if (isNaN(count) || count <= 0) {
+            alert("请输入有效的正整数！");
+            return;
+        }
+
+        count = Math.min(count, 10); // 限制最多10人
+        if (count > studentList.length) {
+            alert("当前名单人数不足，请重新输入数量。");
+            return;
+        }
+
+        drawNames(count);
+    }
+</script>
+
+</body>
+</html>

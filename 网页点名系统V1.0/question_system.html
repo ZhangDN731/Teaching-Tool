@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>知识点提问系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: '微软雅黑', Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #1976d2;
+            color: white;
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .home-link a {
+            font-size: 14px;
+            color: #fff;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .home-link a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        main {
+            max-width: 90%;
+            width: 100%;
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .file-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .file-section p {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .buttons,
+        .punish-button {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .buttons button,
+        .punish-button button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            flex: 1 1 auto;
+            min-width: 120px;
+            max-width: 100%;
+        }
+
+        .buttons button:hover,
+        .punish-button button:hover {
+            background-color: #1259a6;
+        }
+
+        #result-container {
+            font-size: 18px;
+            color: #d32f2f;
+            margin-top: 30px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            text-align: left;
+            line-height: 1.5;
+            padding: 15px;
+            background: #fff8e1;
+            border-radius: 8px;
+            border: 1px solid #fedeaa;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .buttons button,
+            .punish-button button {
+                width: 100%;
+            }
+
+            main {
+                padding: 15px;
+            }
+
+            #result-container {
+                font-size: 16px;
+            }
+
+            header {
+                flex-direction: row;
+                padding: 10px 15px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="home-link">
+        <a href="index.html">返回首页</a>
+    </div>
+    <h1>知识点提问系统</h1>
+    <div style="width: 60px;"></div> <!-- 占位，让标题居中 -->
+</header>
+
+<main>
+    <p>这是用于根据知识点进行提问的功能页面。</p>
+
+    <!-- 文件选择 -->
+    <div class="file-section">
+        <input type="file" id="fileInput" accept=".txt" />
+        <p>请选择一个包含知识点的 .txt 文件（每行一个知识点）</p>
+    </div>
+
+    <!-- 抽取按钮 -->
+    <div class="buttons">
+        <button onclick="drawItems(1, 'normal')">抽1条</button>
+        <button onclick="drawItems(5, 'normal')">抽5条</button>
+    </div>
+
+    <!-- 惩罚按钮 -->
+    <div class="punish-button">
+        <button onclick="showPunishment()">惩罚</button>
+    </div>
+
+    <!-- 显示结果 -->
+    <div id="result-container">等待抽取...</div>
+</main>
+
+<script>
+    let knowledgeList = [];
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const content = e.target.result;
+            knowledgeList = content.split('\n')
+                .map(item => item.trim())
+                .filter(item => item.length > 0);
+            alert("成功导入 " + knowledgeList.length + " 条知识点");
+        };
+        reader.readAsText(file);
+    });
+
+    function drawItems(count, effect) {
+        const container = document.getElementById('result-container');
+
+        if (knowledgeList.length === 0) {
+            alert("请先导入知识点列表！");
+            return;
+        }
+
+        if (count > knowledgeList.length) {
+            alert("当前知识点数量不足，请重新选择数量。");
+            return;
+        }
+
+        const selected = [...knowledgeList].sort(() => 0.5 - Math.random()).slice(0, count);
+
+        if (effect === 'char') {
+            showCharByChar(selected);
+        } else {
+            container.textContent = selected.join('\n');
+        }
+    }
+
+    // === 效果二：逐字显示 ===
+    function showCharByChar(items) {
+        const maxLength = Math.max(...items.map(n => n.length));
+        const resultDiv = document.getElementById('result-container');
+        let currentCharIndex = 0;
+
+        resultDiv.innerHTML = '';
+
+        const intervalId = setInterval(() => {
+            let displayText = '';
+            for (let i = 0; i < items.length; i++) {
+                let displayedItem = items[i].substring(0, currentCharIndex);
+                for (let j = displayedItem.length; j < maxLength; j++) {
+                    displayedItem += ' ';
+                }
+                displayText += displayedItem + '\n';
+            }
+            resultDiv.textContent = displayText;
+
+            if (currentCharIndex >= maxLength) {
+                clearInterval(intervalId);
+            }
+
+            currentCharIndex++;
+        }, 500); // 每隔 0.5 秒更新一次
+    }
+
+    // === 惩罚功能 ===
+    function showPunishment() {
+        const commonPunishments = [
+            "原地转10圈",
+            "做5个俯卧撑",
+            "唱一首歌",
+            "模仿一个动物叫",
+            "绕教室跑一圈",
+            "值日劳动",
+            "作业激怒计划（增加作业）",
+            "知识点图表",
+            "表情包配音背诵"
+        ];
+
+        const englishOnlyPunishment = "英语趣味演绎（仅限英语专业基础）";
+        const rolePlayPunishment = "角色扮演背诵法";
+
+        let availablePunishments = [...commonPunishments, rolePlayPunishment];
+
+        // 判断是否是英语教师（可手动修改）
+        const isEnglishTeacher = false;
+        if (isEnglishTeacher) {
+            availablePunishments.push(englishOnlyPunishment);
+        }
+
+        // 随机打乱并选前3个
+        const selected = availablePunishments
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3);
+
+        alert("今日幸运惩罚如下：\n\n" + selected.join("\n"));
+    }
+</script>
+
+</body>
+</html>

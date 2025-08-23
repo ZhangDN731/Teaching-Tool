@@ -1,0 +1,422 @@
+
+<!-- smart_seat_arrangement/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智能座位编排系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        .seat {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+        .seat:hover {
+            transform: scale(1.05);
+        }
+        .aisle {
+            background-color: #e5e7eb;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .aisle-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+            background-color: #3b82f6;
+            cursor: pointer;
+        }
+        .aisle-preview.selected {
+            background-color: #1d4ed8;
+            transform: scale(1.1);
+        }
+        .preview-seat {
+            width: 15px;
+            height: 15px;
+            border-radius: 2px;
+            background-color: #e5e7eb;
+        }
+        .preview-aisle {
+            width: 15px;
+            height: 15px;
+            border-radius: 2px;
+            background-color: #3b82f6;
+        }
+        .status-message {
+            transition: all 0.3s ease;
+        }
+        .status-error {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .file-requirements {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        .file-error {
+            border-color: #ef4444 !important;
+        }
+        .score-distribution-info {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+        details[open] summary ~ * {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        summary {
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        summary:hover {
+            color: #1d4ed8;
+        }
+        summary::marker {
+            color: #3b82f6;
+        }
+        .subject-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .subject-highlight {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .subject-scroll-container {
+            max-height: 120px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .subject-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .subject-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+        .preview-cell {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preview-cell:hover {
+            transform: scale(1.1);
+        }
+        .preview-cell.aisle {
+            background-color: #3b82f6;
+        }
+        .preview-cell.selected {
+            background-color: #1d4ed8;
+            transform: scale(1.1);
+        }
+        .student-data-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .student-data-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div id="particles-js"></div>
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-blue-800 mb-2">智能座位编排系统</h1>
+            <p class="text-lg text-blue-600">基于学生成绩和特殊需求的智能排座解决方案</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 第一步：上传Excel -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold text-blue-700 mb-4">1. 上传学生数据</h2>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">上传Excel文件</label>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100">
+                    <div class="file-requirements mt-1">
+                        <p>• 仅支持 .xlsx 或 .xls 格式</p>
+                        <p>• 必须包含"姓名"列</p>
+                        <p>• 自动识别成绩列(语文、数学等)</p>
+                    </div>
+                    <div id="statusMessage" class="status-message text-sm mt-2 hidden"></div>
+                    <div id="subjectContainer" class="hidden">
+                        <div class="font-medium text-blue-600 mb-1">识别出的科目:</div>
+                        <div class="subject-scroll-container">
+                            <div id="subjectList" class="flex flex-wrap"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">* 系统将确保同一科目高分学生不会相邻超过2个</div>
+                    </div>
+                </div>
+                <button id="parseBtn" class="btn-primary py-2 px-6 rounded-md font-medium w-full">解析数据</button>
+                <div id="studentList" class="mt-4 max-h-60 overflow-y-auto hidden">
+                    <h3 class="font-medium text-blue-600 mb-2">学生列表</h3>
+                    <ul id="studentListItems" class="space-y-1"></ul>
+                </div>
+            </div>
+
+            <!-- 第二步：班级布局设置 -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold text-blue-700 mb-4">2. 班级布局设置</h2>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">行数</label>
+                        <input type="number" id="rowsInput" min="1" max="10" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">列数</label>
+                        <input type="number" id="colsInput" min="1" max="10" value="6" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">过道设置</label>
+                    <div class="flex flex-wrap gap-2 mb-2" id="aislePreviewContainer">
+                        <!-- 动态生成过道预览 -->
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="addAisleBtn" class="bg-blue-100 text-blue-700 py-1 px-3 rounded-md text-sm">添加过道</button>
+                        <button id="clearAislesBtn" class="bg-red-100 text-red-700 py-1 px-3 rounded-md text-sm">清空过道</button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">布局预览</label>
+                    <div id="layoutPreview" class="grid gap-1 p-2 bg-gray-100 rounded-md">
+                        <!-- 动态生成布局预览 -->
+                    </div>
+                </div>
+                <button id="saveLayoutBtn" class="btn-primary py-2 px-6 rounded-md font-medium w-full mb-2">保存布局模板</button>
+                <button id="loadLayoutBtn" class="bg-gray-200 text-gray-700 py-2 px-6 rounded-md font-medium w-full">加载模板</button>
+            </div>
+
+            <!-- 第三步：特殊设置 -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold text-blue-700 mb-4">3. 特殊设置</h2>
+                
+                <div id="scoreDistributionInfo" class="score-distribution-info hidden">
+                    <h3 class="font-medium text-blue-600 mb-1">分数分布控制</h3>
+                    <p class="text-sm text-gray-600">系统已自动识别成绩列，将确保同一科目高分学生不会集中分布</p>
+                    <p class="text-xs text-gray-500 mt-1">* 高分定义：高于该科目平均分</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="enableSpecialSettings" class="rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm font-medium text-gray-700">启用特殊设置</span>
+                    </label>
+                </div>
+
+                <details id="specialSettingsDetails" class="border border-gray-200 rounded-lg p-2">
+                    <summary class="px-2 py-1 font-medium text-blue-600">展开特殊设置选项</summary>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">禁止同桌/前后桌</label>
+                        <div class="flex space-x-2">
+                            <select id="studentA" class="flex-1 px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="">选择学生A</option>
+                            </select>
+                            <select id="studentB" class="flex-1 px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="">选择学生B</option>
+                            </select>
+                        </div>
+                        <button id="addRestrictionBtn" class="btn-primary py-2 px-6 rounded-md font-medium w-full mt-2">添加限制</button>
+                    </div>
+                    <div class="mb-4 mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">前排限制</label>
+                        <div class="flex space-x-2">
+                            <select id="frontRestrictStudent" class="flex-1 px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="">选择学生</option>
+                            </select>
+                            <input type="number" id="frontRows" min="1" max="10" value="2" class="w-20 px-3 py-2 border border-gray-300 rounded-md" placeholder="排数">
+                        </div>
+                        <button id="addFrontRestrictBtn" class="btn-primary py-2 px-6 rounded-md font-medium w-full mt-2">添加限制</button>
+                    </div>
+                    <div id="restrictionsList" class="mt-4 max-h-40 overflow-y-auto">
+                        <h3 class="font-medium text-blue-600 mb-2">当前限制</h3>
+                        <ul id="restrictionsItems" class="space-y-1 text-sm"></ul>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- 生成按钮 -->
+        <div class="text-center my-8">
+            <button id="generateBtn" class="btn-primary py-3 px-12 rounded-full font-medium text-lg shadow-lg">生成座位表</button>
+        </div>
+
+        <!-- 座位表展示区 -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-xl font-semibold text-blue-700 mb-4">座位表预览</h2>
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <span class="text-sm text-gray-600">拖拽学生可调整座位</span>
+                </div>
+                <button id="exportBtn" class="btn-primary py-2 px-6 rounded-md font-medium">导出Excel</button>
+            </div>
+            <div id="classroomContainer" class="flex justify-center">
+                <div id="classroomGrid" class="grid gap-2 p-4 bg-gray-50 rounded-lg"></div>
+            </div>
+        </div>
+
+        <!-- 开发中提示 -->
+        <div id="devAlert" class="fixed bottom-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 hidden" role="alert">
+            <p class="font-bold">功能开发中</p>
+            <p>该功能正在开发中，敬请期待！</p>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#93c5fd", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "grab" },
+                        onclick: { enable: true, mode: "push" }
+                    },
+                    modes: {
+                        grab: { distance: 140, line_linked: { opacity: 1 } },
+                        push: { particles_nb: 4 }
+                    }
+                }
+            });
+
+            // 特殊设置开关事件
+            const enableSpecialSettings = document.getElementById('enableSpecialSettings');
+            const specialSettingsDetails = document.getElementById('specialSettingsDetails');
+            
+            enableSpecialSettings.addEventListener('change', function() {
+                specialSettingsDetails.open = this.checked;
+            });
+
+            // 开发中提示
+            document.querySelectorAll('button').forEach(btn => {
+                if(this.id === 'parseBtn' || this.id === 'generateBtn' || this.id === 'exportBtn') return;
+                btn.addEventListener('click', function() {
+                    document.getElementById('devAlert').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('devAlert').classList.add('hidden');
+                    }, 3000);
+                });
+            });
+
+            // 文件输入变化时重置状态
+            document.getElementById('excelFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const fileName = file.name.toLowerCase();
+                const isValidType = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+                
+                if (!isValidType) {
+                    this.classList.add('file-error');
+                    document.getElementById('statusMessage').textContent = '请上传.xlsx或.xls格式的文件';
+                    document.getElementById('statusMessage').classList.remove('hidden');
+                    document.getElementById('statusMessage').classList.add('status-error');
+                    return;
+                }
+                
+                this.classList.remove('file-error');
+                document.getElementById('statusMessage').classList.add('hidden');
+                document.getElementById('scoreDistributionInfo').classList.add('hidden');
+                document.getElementById('subjectContainer').classList.add('hidden');
+                document.getElementById('subjectList').innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>
