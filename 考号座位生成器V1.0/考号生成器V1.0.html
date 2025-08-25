@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考号生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1890ff;
+            --primary-hover-color: #40a9ff;
+            --primary-active-color: #096dd9;
+            --border-color: #d9d9d9;
+            --background-color: #f0f2f5;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --success-bg: #f6ffed;
+            --success-border: #b7eb8f;
+            --success-text: #52c41a;
+            --error-bg: #fff2f0;
+            --error-border: #ffccc7;
+            --error-text: #ff4d4f;
+            --warning-bg: #fffbe6;
+            --warning-border: #ffe58f;
+            --warning-text: #faad14;
+            --table-header-bg: #fafafa;
+            --table-row-hover: #f5f5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 1.2em;
+        }
+
+        h4 {
+            font-size: 1.1em;
+            margin-top: 0;
+        }
+
+        .step {
+            margin-bottom: 25px;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+        }
+
+        button:active:not(:disabled) {
+            background-color: var(--primary-active-color);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #f0faff;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+        }
+
+        .error {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+        }
+
+        .warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .table-container table {
+            margin-top: 0;
+            border: none;
+        }
+
+        .exam-room-settings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-item label {
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="number"], select {
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 120px;
+        }
+
+        input[type="checkbox"] {
+             width: 16px;
+             height: 16px;
+             margin-right: 8px;
+             vertical-align: middle;
+        }
+
+        .room-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .room-item {
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 6px;
+            background-color: #fafcff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .layout-inputs {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .layout-inputs > div {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .layout-inputs label {
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .room-layout-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        .combined-class-select {
+            margin-top: 15px;
+        }
+
+        .combined-class-select label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .combined-class-select select {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .download-buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        p.info {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #1890ff;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* 滚动条样式 (Webkit) */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>考号生成器</h1>
+
+        <!-- 第一步 -->
+        <div class="step" id="step1">
+            <h2>第一步：上传成绩数据</h2>
+            <div class="file-input-container">
+                <button id="downloadTemplateBtn" class="btn-secondary">下载Excel模板</button>
+                <input type="file" id="fileInput" accept=".xlsx, .xls">
+                <button id="uploadBtn">上传成绩数据</button>
+            </div>
+            <div id="uploadFeedback" class="feedback"></div>
+            <div class="table-container" id="previewTableContainer" style="display:none;">
+                <h3>数据预览 (前10行)</h3>
+                <table id="previewTable">
+                    <thead id="previewThead"></thead>
+                    <tbody id="previewTbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二步 -->
+    <div class="card step" id="step2" style="display:none;">
+        <h2>第二步：设置考场</h2>
+        <div class="exam-room-settings">
+            <div class="setting-item">
+                <label for="numRooms">考场数量:</label>
+                <input type="number" id="numRooms" min="1" value="17">
+            </div>
+            <div class="setting-item">
+                <label for="defaultRows">默认行数:</label>
+                <input type="number" id="defaultRows" min="1" value="8">
+            </div>
+            <div class="setting-item">
+                <label for="defaultCols">默认列数:</label>
+                <input type="number" id="defaultCols" min="1" value="6">
+            </div>
+            <div class="setting-item">
+                <label for="enableCombinedClass" style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="enableCombinedClass" checked>
+                    启用合班考试
+                </label>
+            </div>
+            <button id="applySettingsBtn">应用设置</button>
+        </div>
+        
+        <div id="roomConfigContainer" class="room-config" style="display:none;">
+            <!-- 动态生成考场配置 -->
+        </div>
+    </div>
+
+    <!-- 第三步 -->
+    <div class="card step" id="step3" style="display:none;">
+        <h2>第三步：生成考号</h2>
+        <p class="info"><strong>考场布局:</strong> 每个考场的座位按其设置的行和列排列。<br>
+        <strong>合班规则:</strong> 合班考场中，每一列只分配一个类别的学生，相邻列为不同类别。</p>
+        <button id="generateBtn">一键生成考号</button>
+        <div class="table-container">
+             <table id="resultTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>大类</th>
+                        <th>班级</th>
+                        <th>姓名</th>
+                        <th>总成绩</th>
+                        <th>考场号</th>
+                        <th>座位号</th>
+                        <th>考号</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTbody">
+                    <!-- 结果将在这里显示 -->
+                </tbody>
+            </table>
+        </div>
+        <div class="download-buttons">
+            <button id="downloadResultBtn" style="display:none;">下载考号结果</button>
+            <button id="downloadSeatChartBtn" style="display:none;">下载考试座位表</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 全局变量 ---
+    let rawData = []; // 存储从Excel读取的原始数据
+    let processedData = []; // 存储处理后的数据，包含考号等
+    const defaultRooms = 17;
+    const defaultRows = 8;
+    const defaultCols = 6;
+    let numRooms = defaultRooms;
+    let enableCombinedClass = true;
+    let roomConfigs = []; // 存储每个考场的配置
+
+    // DOM 元素
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadFeedback = document.getElementById('uploadFeedback');
+    const previewTableContainer = document.getElementById('previewTableContainer');
+    const previewThead = document.getElementById('previewThead');
+    const previewTbody = document.getElementById('previewTbody');
+
+    const step2 = document.getElementById('step2');
+    const numRoomsInput = document.getElementById('numRooms');
+    const defaultRowsInput = document.getElementById('defaultRows');
+    const defaultColsInput = document.getElementById('defaultCols');
+    const enableCombinedClassCheckbox = document.getElementById('enableCombinedClass');
+    const applySettingsBtn = document.getElementById('applySettingsBtn');
+    const roomConfigContainer = document.getElementById('roomConfigContainer');
+
+    const step3 = document.getElementById('step3');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultTable = document.getElementById('resultTable');
+    const resultTbody = document.getElementById('resultTbody');
+    const downloadResultBtn = document.getElementById('downloadResultBtn');
+    const downloadSeatChartBtn = document.getElementById('downloadSeatChartBtn');
+
+    // --- 事件监听器 ---
+
+    downloadTemplateBtn.addEventListener('click', () => {
+        const templateData = [
+            ["大类", "班级", "姓名", "语文成绩", "数学成绩", "专业基础成绩", "职业测试成绩", "文化课成绩", "职业技能成绩", "总成绩"]
+        ];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        XLSX.utils.book_append_sheet(wb, ws, "成绩模板");
+        XLSX.writeFile(wb, "成绩导入模板.xlsx");
+    });
+
+    uploadBtn.addEventListener('click', () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            showFeedback(uploadFeedback, '请先选择一个Excel文件。', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                if (rawData.length < 2) {
+                    throw new Error('Excel文件内容为空或格式不正确。');
+                }
+
+                const headers = rawData[0];
+                const requiredHeaders = ["大类", "班级", "姓名", "语文成绩", "数学成绩", "专业基础成绩", "职业测试成绩", "文化课成绩", "职业技能成绩", "总成绩"];
+                const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+                if (missingHeaders.length > 0) {
+                    throw new Error(`Excel文件缺少以下列: ${missingHeaders.join(', ')}`);
+                }
+
+                const dataRows = rawData.slice(1);
+                processedData = dataRows.map(row => {
+                    const obj = {};
+                    headers.forEach((key, index) => {
+                        let value = row[index];
+                        if (key.includes('成绩') && key !== '大类' && key !== '班级' && key !== '姓名') {
+                            value = parseFloat(value);
+                            if (isNaN(value)) value = 0;
+                        }
+                        obj[key] = value;
+                    });
+                    return obj;
+                });
+
+                showFeedback(uploadFeedback, `数据上传成功！共读取到 ${processedData.length} 条记录。`, 'success');
+                previewData(processedData.slice(0, 10));
+                step2.style.display = 'block';
+            } catch (error) {
+                console.error('文件处理错误:', error);
+                showFeedback(uploadFeedback, `文件处理失败: ${error.message}`, 'error');
+                previewTableContainer.style.display = 'none';
+                step2.style.display = 'none';
+                step3.style.display = 'none';
+            }
+        };
+
+        reader.onerror = function() {
+            showFeedback(uploadFeedback, '文件读取出错。', 'error');
+            previewTableContainer.style.display = 'none';
+            step2.style.display = 'none';
+            step3.style.display = 'none';
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+
+    applySettingsBtn.addEventListener('click', () => {
+        numRooms = parseInt(numRoomsInput.value) || defaultRooms;
+        const defRows = parseInt(defaultRowsInput.value) || defaultRows;
+        const defCols = parseInt(defaultColsInput.value) || defaultCols;
+        enableCombinedClass = enableCombinedClassCheckbox.checked;
+
+        if (numRooms < 1 || defRows < 1 || defCols < 1) {
+            alert('考场数量、行数、列数必须大于0');
+            return;
+        }
+
+        roomConfigs = [];
+        const uniqueCategories = [...new Set(processedData.map(item => item['大类']))];
+
+        for (let i = 1; i <= numRooms; i++) {
+            roomConfigs.push({
+                roomId: i,
+                rows: defRows,
+                cols: defCols,
+                combinedClassEnabled: enableCombinedClass,
+                combinedCategories: enableCombinedClass && uniqueCategories.length >= 2 ? [uniqueCategories[0], uniqueCategories[1]] : []
+            });
+        }
+
+        renderRoomConfig(uniqueCategories);
+        roomConfigContainer.style.display = 'grid';
+        step3.style.display = 'block';
+    });
+
+
+    generateBtn.addEventListener('click', () => {
+        if (processedData.length === 0) {
+            alert('请先上传并确认成绩数据。');
+            return;
+        }
+
+        try {
+            generateExamNumbers();
+            displayResults();
+            // 生成考号后，显示两个下载按钮
+            downloadResultBtn.style.display = 'inline-block';
+            downloadSeatChartBtn.style.display = 'inline-block';
+        } catch (error) {
+            console.error('生成考号时出错:', error);
+            alert('生成考号失败: ' + error.message);
+        }
+    });
+
+    downloadResultBtn.addEventListener('click', () => {
+        if (processedData.length === 0) {
+            alert('没有可下载的数据。');
+            return;
+        }
+
+        const exportData = processedData.map(item => ({
+            '大类': item['大类'],
+            '班级': item['班级'],
+            '姓名': item['姓名'],
+            '语文成绩': item['语文成绩'],
+            '数学成绩': item['数学成绩'],
+            '专业基础成绩': item['专业基础成绩'],
+            '职业测试成绩': item['职业测试成绩'],
+            '文化课成绩': item['文化课成绩'],
+            '职业技能成绩': item['职业技能成绩'],
+            '总成绩': item['总成绩'],
+            '考场号': item.考场号 || 'N/A',
+            '座位号': item.座位号 || 'N/A',
+            '考号': item.考号 || 'N/A'
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const colWidths = [
+            { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+            { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 10 },
+            { wch: 10 }, { wch: 10 }, { wch: 12 }
+        ];
+        ws['!cols'] = colWidths;
+        XLSX.utils.book_append_sheet(wb, ws, "考号结果");
+        XLSX.writeFile(wb, "考号生成结果.xlsx");
+    });
+
+    downloadSeatChartBtn.addEventListener('click', () => {
+        if (processedData.length === 0 || roomConfigs.length === 0) {
+            alert('请先生成考号。');
+            return;
+        }
+        downloadSeatChart();
+    });
+
+    // --- 辅助函数 ---
+
+    function showFeedback(element, message, type) {
+        element.textContent = message;
+        element.className = 'feedback ' + type;
+        element.style.display = 'block';
+    }
+
+    function previewData(data) {
+        if (!data || data.length === 0) {
+            previewTableContainer.style.display = 'none';
+            return;
+        }
+        previewTableContainer.style.display = 'block';
+        previewThead.innerHTML = '';
+        previewTbody.innerHTML = '';
+
+        const headers = Object.keys(data[0]);
+        const headerRow = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        previewThead.appendChild(headerRow);
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                td.textContent = row[header];
+                tr.appendChild(td);
+            });
+            previewTbody.appendChild(tr);
+        });
+    }
+
+    function renderRoomConfig(categories) {
+        roomConfigContainer.innerHTML = '';
+        roomConfigs.forEach(config => {
+            const roomDiv = document.createElement('div');
+            roomDiv.className = 'room-item';
+            roomDiv.innerHTML = `
+                <h4>考场 ${config.roomId}</h4>
+                <div class="layout-inputs">
+                     <div>
+                        <label for="rows-${config.roomId}">行数:</label>
+                        <input type="number" id="rows-${config.roomId}" class="room-rows" data-room="${config.roomId}" min="1" value="${config.rows}">
+                    </div>
+                    <div>
+                        <label for="cols-${config.roomId}">列数:</label>
+                        <input type="number" id="cols-${config.roomId}" class="room-cols" data-room="${config.roomId}" min="1" value="${config.cols}">
+                    </div>
+                </div>
+                <div class="room-layout-info">容量: ${config.rows * config.cols} 人</div>
+                <div>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="combined-class-toggle" data-room="${config.roomId}" ${config.combinedClassEnabled ? 'checked' : ''}>
+                        启用合班考试
+                    </label>
+                </div>
+                <div class="combined-class-select" id="combined-select-${config.roomId}" style="display: ${config.combinedClassEnabled ? 'block' : 'none'};">
+                    <label for="class1-${config.roomId}">类别1:</label>
+                    <select id="class1-${config.roomId}" class="class-select">
+                        ${categories.map(cat => `<option value="${cat}" ${config.combinedCategories[0] === cat ? 'selected' : ''}>${cat}</option>`).join('')}
+                    </select>
+                    <label for="class2-${config.roomId}">类别2:</label>
+                    <select id="class2-${config.roomId}" class="class-select">
+                         ${categories.map(cat => `<option value="${cat}" ${config.combinedCategories[1] === cat ? 'selected' : ''}>${cat}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+            roomConfigContainer.appendChild(roomDiv);
+        });
+
+        document.querySelectorAll('.room-rows, .room-cols').forEach(input => {
+            input.addEventListener('change', function() {
+                const roomId = parseInt(this.dataset.room);
+                const config = roomConfigs.find(r => r.roomId === roomId);
+                if (config) {
+                    if (this.classList.contains('room-rows')) {
+                        config.rows = parseInt(this.value) || defaultRows;
+                    } else if (this.classList.contains('room-cols')) {
+                        config.cols = parseInt(this.value) || defaultCols;
+                    }
+                    // 更新容量显示
+                    const infoDiv = this.closest('.room-item').querySelector('.room-layout-info');
+                    if (infoDiv) {
+                        infoDiv.textContent = `容量: ${config.rows * config.cols} 人`;
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.combined-class-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const roomId = parseInt(this.dataset.room);
+                const selectDiv = document.getElementById(`combined-select-${roomId}`);
+                const config = roomConfigs.find(r => r.roomId === roomId);
+                if (config) {
+                    config.combinedClassEnabled = this.checked;
+                    selectDiv.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+        });
+
+        document.querySelectorAll('.class-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const roomId = parseInt(this.id.match(/\d+/)[0]);
+                const class1Select = document.getElementById(`class1-${roomId}`);
+                const class2Select = document.getElementById(`class2-${roomId}`);
+                const config = roomConfigs.find(r => r.roomId === roomId);
+                if (config && class1Select && class2Select) {
+                    config.combinedCategories = [class1Select.value, class2Select.value];
+                }
+            });
+        });
+    }
+
+    // --- 修改后的核心逻辑函数 ---
+
+    /**
+     * 计算座位号 (基于考场具体行数和列数)
+     * @param {number} rowIndex - 行索引 (0-based)
+     * @param {number} colIndex - 列索引 (0-based)
+     * @param {number} totalCols - 考场总列数
+     * @returns {string} - 2位数的座位号 (e.g., '01', '12')
+     */
+    function calculateSeatNumber(rowIndex, colIndex, totalCols) {
+        // 座位号从1开始，按行优先，列从左到右
+        const seatNumber = rowIndex * totalCols + colIndex + 1;
+        return String(seatNumber).padStart(2, '0');
+    }
+
+    /**
+     * 生成考号 (基于独立考场布局)
+     */
+    function generateExamNumbers() {
+        const groupedData = {};
+        processedData.forEach(item => {
+            const category = item['大类'];
+            if (!groupedData[category]) {
+                groupedData[category] = [];
+            }
+            groupedData[category].push({...item});
+        });
+
+        for (const category in groupedData) {
+            groupedData[category].sort((a, b) => (b['总成绩'] || 0) - (a['总成绩'] || 0));
+        }
+
+        processedData.forEach(item => {
+            delete item.考场号;
+            delete item.座位号;
+            delete item.考号;
+        });
+        
+        const roomSlots = roomConfigs.map(config => {
+            const slots = Array(config.rows).fill(null).map(() => Array(config.cols).fill(null));
+            return { ...config, slots };
+        });
+        
+        roomSlots.filter(r => r.combinedClassEnabled).forEach(room => {
+            const cat1Students = [...(groupedData[room.combinedCategories[0]] || [])];
+            const cat2Students = [...(groupedData[room.combinedCategories[1]] || [])];
+
+            for (let colIndex = 0; colIndex < room.cols; colIndex++) {
+                const currentCategoryStudents = colIndex % 2 === 0 ? cat1Students : cat2Students;
+                
+                for (let rowIndex = 0; rowIndex < room.rows && currentCategoryStudents.length > 0; rowIndex++) {
+                    const student = currentCategoryStudents.shift();
+                    if (student && !student.考号) {
+                        student.考场号 = room.roomId;
+                        student.座位号 = calculateSeatNumber(rowIndex, colIndex, room.cols);
+                        student.考号 = `${String(room.roomId).padStart(2, '0')}${student.座位号}`;
+                        
+                        room.slots[rowIndex][colIndex] = student;
+                        
+                        const originalItem = processedData.find(item => 
+                            item['大类'] === student['大类'] &&
+                            item['姓名'] === student['姓名'] &&
+                            item['班级'] === student['班级']
+                        );
+                        if (originalItem) {
+                            originalItem.考场号 = student.考场号;
+                            originalItem.座位号 = student.座位号;
+                            originalItem.考号 = student.考号;
+                        }
+                    }
+                }
+            }
+            
+            groupedData[room.combinedCategories[0]] = cat1Students;
+            groupedData[room.combinedCategories[1]] = cat2Students;
+        });
+        
+        const unassignedStudents = [];
+        Object.values(groupedData).forEach(students => {
+            unassignedStudents.push(...students.filter(s => !s.考号));
+        });
+
+        let studentIndex = 0;
+        const totalUnassigned = unassignedStudents.length;
+        
+        while(studentIndex < totalUnassigned) {
+            let assignedInThisPass = false;
+            
+            for(const room of roomSlots) {
+                outerLoop: for (let rowIndex = 0; rowIndex < room.rows; rowIndex++) {
+                    for (let colIndex = 0; colIndex < room.cols; colIndex++) {
+                        if (!room.slots[rowIndex][colIndex] && studentIndex < totalUnassigned) {
+                            const student = unassignedStudents[studentIndex];
+                            student.考场号 = room.roomId;
+                            student.座位号 = calculateSeatNumber(rowIndex, colIndex, room.cols);
+                            student.考号 = `${String(room.roomId).padStart(2, '0')}${student.座位号}`;
+                            
+                            room.slots[rowIndex][colIndex] = student;
+                            
+                            const originalItem = processedData.find(item => 
+                                item['大类'] === student['大类'] &&
+                                item['姓名'] === student['姓名'] &&
+                                item['班级'] === student['班级']
+                            );
+                            if (originalItem) {
+                                originalItem.考场号 = student.考场号;
+                                originalItem.座位号 = student.座位号;
+                                originalItem.考号 = student.考号;
+                            }
+                            
+                            studentIndex++;
+                            assignedInThisPass = true;
+                            break outerLoop;
+                        }
+                    }
+                }
+            }
+            
+            if (!assignedInThisPass) {
+                 console.warn("考场座位可能不足，部分学生未被分配。");
+                 showFeedback(uploadFeedback, "警告：考场座位可能不足，部分学生未被分配。", 'warning');
+                 for(let i = studentIndex; i < totalUnassigned; i++) {
+                      const student = unassignedStudents[i];
+                      student.考场号 = '未分配';
+                      student.座位号 = '未分配';
+                      student.考号 = '未分配';
+                       const originalItem = processedData.find(item => 
+                            item['大类'] === student['大类'] &&
+                            item['姓名'] === student['姓名'] &&
+                            item['班级'] === student['班级']
+                        );
+                        if (originalItem) {
+                            originalItem.考场号 = student.考场号;
+                            originalItem.座位号 = student.座位号;
+                            originalItem.考号 = student.考号;
+                        }
+                 }
+                 break;
+            }
+        }
+    }
+
+    function displayResults() {
+        resultTbody.innerHTML = '';
+        if (processedData.length === 0) {
+            resultTable.style.display = 'none';
+            return;
+        }
+        resultTable.style.display = 'table';
+
+        processedData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item['大类']}</td>
+                <td>${item['班级']}</td>
+                <td>${item['姓名']}</td>
+                <td>${item['总成绩'] || 0}</td>
+                <td>${item.考场号 || 'N/A'}</td>
+                <td>${item.座位号 || 'N/A'}</td>
+                <td>${item.考号 || 'N/A'}</td>
+            `;
+            resultTbody.appendChild(row);
+        });
+    }
+
+    /**
+     * 导出考试座位表
+     */
+    function downloadSeatChart() {
+        const wb = XLSX.utils.book_new();
+
+        // 根据考场配置和分配结果生成每个考场的座位表
+        roomConfigs.forEach(config => {
+            const roomId = config.roomId;
+            const rows = config.rows;
+            const cols = config.cols;
+
+            // 创建一个二维数组来存储座位信息，初始化为空字符串
+            const chartData = Array(rows + 1).fill(null).map(() => Array(cols + 1).fill(''));
+
+            // 填充行列标题
+            for (let r = 1; r <= rows; r++) {
+                chartData[r][0] = r; // 行号
+            }
+            for (let c = 1; c <= cols; c++) {
+                chartData[0][c] = c; // 列号
+            }
+            chartData[0][0] = '行/列'; // 左上角标题
+
+            // 查找分配到此考场的学生并填充到对应位置
+            const studentsInRoom = processedData.filter(s => s.考场号 === roomId);
+            studentsInRoom.forEach(student => {
+                // 根据座位号反推行列索引
+                const seatNum = parseInt(student.座位号, 10);
+                if (!isNaN(seatNum) && seatNum > 0) {
+                    // 座位号是按行优先排列的 (1, 2, ..., cols, cols+1, ...)
+                    const rowIndex = Math.floor((seatNum - 1) / cols) + 1; // 转换为1-based，并考虑标题行
+                    const colIndex = ((seatNum - 1) % cols) + 1;  // 转换为1-based，并考虑标题列
+
+                    // 确保索引在有效范围内再填充
+                    if (rowIndex <= rows && colIndex <= cols) {
+                        chartData[rowIndex][colIndex] = student['姓名'] || '';
+                    }
+                }
+            });
+
+            // 使用aoa_to_sheet创建worksheet
+            const ws = XLSX.utils.aoa_to_sheet(chartData);
+            
+            // 可选：设置列宽
+            const colWidths = [{wch: 8}]; // 第一列（行号列）宽度
+            for(let i = 1; i <= cols; i++) {
+                colWidths.push({wch: 12}); // 其他列宽度
+            }
+            ws['!cols'] = colWidths;
+
+            // 将worksheet添加到workbook
+            XLSX.utils.book_append_sheet(wb, ws, `考场${roomId}`);
+        });
+
+        // 下载文件
+        XLSX.writeFile(wb, "考试座位表.xlsx");
+    }
+
+</script>
+
+</body>
+</html>

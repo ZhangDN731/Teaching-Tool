@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监考排班小程序</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1E88E5;
+            --primary-dark: #1565C0;
+            --primary-light: #64B5F6;
+            --secondary-color: #E3F2FD;
+            --text-color: #333;
+            --border-color: #BBDEFB;
+            --success-color: #43A047;
+            --error-color: #E53935;
+            --warning-color: #FFB300;
+            --card-bg: #ffffff;
+            --page-bg: #f0f4f8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--secondary-color), var(--page-bg));
+            color: var(--text-color);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .config-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .preview-column {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 16px rgba(30, 136, 229, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 12px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card h2::before {
+            content: attr(data-step);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 6px 3px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #downloadTemplateBtn {
+            background-color: #0D47A1;
+        }
+
+        #downloadTemplateBtn:hover {
+            background-color: #0B3D91;
+        }
+
+        #exportBtn {
+            background-color: #0277BD;
+            font-size: 18px;
+            padding: 15px 30px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #exportBtn:hover {
+            background-color: #026AA7;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper .btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: normal;
+        }
+
+        .file-input-wrapper .btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-light);
+            color: white;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+            position: relative; /* For drag placeholder */
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: var(--error-color);
+            border: 1px solid #ffcdd2;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            border: 1px solid #c8e6c9;
+        }
+
+        .info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .warning {
+            background-color: #fff8e1;
+            color: var(--warning-color);
+            border: 1px solid #ffecb3;
+        }
+
+        #previewTableContainer {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #previewTableHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #previewTitle {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        #previewTable {
+            flex-grow: 1;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+
+        /* Session Time Inputs Table */
+        .session-times-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: separate;
+            border-spacing: 0 5px;
+        }
+
+        .session-times-table th,
+        .session-times-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .session-times-table th {
+            background-color: var(--primary-light);
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .session-times-table input[type="time"] {
+            width: 100%;
+            padding: 8px;
+            margin: 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .session-times-table .remove-session-btn {
+            background: none;
+            border: none;
+            color: var(--error-color);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            margin: 0;
+            width: auto;
+        }
+
+        .instructions {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Drag and Drop Styles */
+        .draggable {
+            cursor: move;
+            user-select: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            border: 1px dashed #90caf9;
+            display: inline-block;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .draggable:hover {
+            background-color: #bbdefb;
+            border-color: #64b5f6;
+        }
+
+        .drag-over {
+            background-color: #d1e7ff !important;
+            border: 2px dashed var(--primary-color) !important;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background-color: #bbdefb;
+        }
+
+        /* Scrollbar styling */
+        #previewTable::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #previewTable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #previewTable::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+
+        #previewTable::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>监考排班小程序</h1>
+        <p class="subtitle">支持多场次时间设置</p>
+    </header>
+
+    <div class="main-content">
+        <div class="config-column">
+            <!-- Step 1: Data Upload -->
+            <div class="card">
+                <h2 data-step="1">数据准备</h2>
+                <button id="downloadTemplateBtn" class="btn">下载Excel模板</button>
+                <br><br>
+                <label for="uploadData">上传Excel数据文件:</label>
+                <div class="file-input-wrapper">
+                    <span class="btn">选择文件</span>
+                    <input type="file" id="uploadData" accept=".xlsx, .xls">
+                </div>
+                <div id="uploadStatus" class="status-message" style="display:none;"></div>
+            </div>
+
+            <!-- Step 2 & 3: Exam Settings -->
+            <div class="card">
+                <h2 data-step="2&3">考场与时间设置</h2>
+                
+                <label for="numRooms">考场数量:</label>
+                <input type="number" id="numRooms" min="1" value="17">
+                <p class="instructions">说明：监考安排规则为每个考场1位班主任（主监考）+ 1位任课老师。</p>
+
+                <label for="examDate">考试日期:</label>
+                <input type="date" id="examDate">
+
+                <label>考试时间:</label>
+                <table class="session-times-table" id="sessionTimesTable">
+                    <thead>
+                        <tr>
+                            <th>场次</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTimesBody">
+                        <!-- Rows will be added by JS -->
+                    </tbody>
+                </table>
+                <button id="addSessionBtn" class="btn">添加场次</button>
+                <div id="timeFormatError" class="status-message error" style="display:none;"></div>
+            </div>
+
+             <!-- Step 4: Auto-assign Setting -->
+             <div class="card">
+                <h2 data-step="4">自动安排设置</h2>
+                <label>
+                    <input type="checkbox" id="autoAssignPrev" checked>
+                    自动按照前一场监考人员进行安排
+                </label>
+                <p class="instructions">说明：当前版本仅支持单场次导出。此选项为未来多场次功能预留。</p>
+            </div>
+        </div>
+
+        <div class="preview-column">
+            <!-- Step 5: Preview & Export -->
+            <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; height: 100%;">
+                <div id="previewTableHeader">
+                    <h2 data-step="5">预览与导出</h2>
+                </div>
+                <div id="previewTableContainer">
+                    <div id="previewInstructions" class="info status-message">
+                        请先上传数据并设置考场数量。
+                    </div>
+                    <div id="previewTable"></div>
+                </div>
+                <br>
+                <button id="exportBtn" class="btn" disabled>导出考场安排Excel文件</button>
+                <div id="exportStatus" class="status-message" style="display:none; margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 监考排班小程序. 多场次版本.</p>
+    </footer>
+</div>
+
+<script>
+    // Global variables to store data
+    let teacherData = [];
+    let numRooms = 17;
+    let numProctors = 2; // 1 head + 1 subject
+    let examDate = '';
+    let sessions = [
+        { name: '第一场', startTime: '09:00', endTime: '11:00' }
+    ]; // Stores session data
+    let autoAssignPrev = true;
+    let assignments = []; // Stores current assignments for preview
+
+    // --- Step 1: Download Template & Upload Data ---
+    document.getElementById('downloadTemplateBtn').addEventListener('click', function () {
+        const wb = XLSX.utils.book_new();
+        const ws_data = [
+            ["班主任", "任课教师"],
+            ["张老师", "李老师"],
+            ["李老师", "王老师"],
+            ["王老师", "张老师"],
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, "监考人员模板");
+        XLSX.writeFile(wb, "监考人员模板.xlsx");
+    });
+
+    document.getElementById('uploadData').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        const statusEl = document.getElementById('uploadStatus');
+        const previewEl = document.getElementById('previewTable');
+        const instructionsEl = document.getElementById('previewInstructions');
+
+        statusEl.style.display = 'none';
+        previewEl.innerHTML = '';
+        instructionsEl.style.display = 'block';
+
+        if (!file) {
+            statusEl.textContent = '未选择文件。';
+            statusEl.className = 'status-message error';
+            statusEl.style.display = 'block';
+            teacherData = [];
+            updatePreviewAndExport();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length < 2) {
+                    statusEl.textContent = '文件内容不正确，至少需要包含标题行和一行数据。';
+                    statusEl.className = 'status-message error';
+                    statusEl.style.display = 'block';
+                    teacherData = [];
+                    updatePreviewAndExport();
+                    return;
+                }
+
+                const headers = jsonData[0];
+                if (headers.length < 2 || headers[0] !== '班主任' || headers[1] !== '任课教师') {
+                    statusEl.textContent = '文件格式不正确，请使用下载的模板。';
+                    statusEl.className = 'status-message error';
+                    statusEl.style.display = 'block';
+                    teacherData = [];
+                    updatePreviewAndExport();
+                    return;
+                }
+
+                teacherData = [];
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (row.length === 0) continue;
+                    const headteacher = row[0];
+                    const subjectTeacher = row[1];
+
+                    if (!headteacher) {
+                        console.warn(`第${i + 1}行缺少班主任信息，已跳过。`);
+                        continue;
+                    }
+
+                    let existingEntry = teacherData.find(t => t.headteacher === headteacher);
+                    if (existingEntry) {
+                        if(subjectTeacher && !existingEntry.subjectTeachers.includes(subjectTeacher)) {
+                             existingEntry.subjectTeachers.push(subjectTeacher);
+                        }
+                    } else {
+                        const subjectTeachers = subjectTeacher ? [subjectTeacher] : [];
+                        teacherData.push({
+                            headteacher: headteacher,
+                            subjectTeachers: subjectTeachers
+                        });
+                    }
+                }
+
+                statusEl.textContent = `数据上传成功！共加载 ${teacherData.length} 位班主任及其关联的任课教师。`;
+                statusEl.className = 'status-message success';
+                statusEl.style.display = 'block';
+                instructionsEl.style.display = 'none';
+                generateAssignments(); // Generate initial assignments
+                updatePreviewAndExport();
+
+            } catch (err) {
+                console.error('处理Excel文件时出错:', err);
+                statusEl.textContent = '处理文件时发生错误，请检查文件格式。';
+                statusEl.className = 'status-message error';
+                statusEl.style.display = 'block';
+                teacherData = [];
+                updatePreviewAndExport();
+            }
+        };
+        reader.onerror = function () {
+            statusEl.textContent = '读取文件时发生错误。';
+            statusEl.className = 'status-message error';
+            statusEl.style.display = 'block';
+            teacherData = [];
+            updatePreviewAndExport();
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // --- Step 2 & 3: Set Exam Parameters & Time ---
+    document.getElementById('numRooms').addEventListener('change', function () {
+        numRooms = parseInt(this.value) || 17;
+        this.value = numRooms;
+        generateAssignments(); // Regenerate assignments
+        updatePreviewAndExport();
+    });
+
+    document.getElementById('examDate').addEventListener('change', function () {
+        examDate = this.value;
+        // Date doesn't affect assignments, just export
+        updatePreviewAndExport();
+    });
+
+    // --- Session Time Management ---
+    function addSessionRow(session = { name: '', startTime: '09:00', endTime: '11:00' }, index = null) {
+        const tbody = document.getElementById('sessionTimesBody');
+        const row = document.createElement('tr');
+        const rowIndex = index !== null ? index : tbody.children.length;
+
+        row.innerHTML = `
+            <td><input type="text" class="session-name" value="${session.name || `第${rowIndex + 1}场`}"></td>
+            <td><input type="time" class="session-start" value="${session.startTime}"></td>
+            <td><input type="time" class="session-end" value="${session.endTime}"></td>
+            <td><button class="remove-session-btn" title="删除场次">&times;</button></td>
+        `;
+        tbody.appendChild(row);
+
+        // Add event listeners to new inputs
+        row.querySelector('.session-start').addEventListener('change', validateAllSessions);
+        row.querySelector('.session-end').addEventListener('change', validateAllSessions);
+        row.querySelector('.session-name').addEventListener('input', updateSessionNames);
+        row.querySelector('.remove-session-btn').addEventListener('click', function() {
+            tbody.removeChild(row);
+            updateSessionNames(); // Renumber remaining sessions
+            validateAllSessions(); // Re-validate
+        });
+    }
+
+    function updateSessionNames() {
+        const rows = document.querySelectorAll('#sessionTimesBody tr');
+        rows.forEach((row, index) => {
+            const nameInput = row.querySelector('.session-name');
+            if (!nameInput.value || nameInput.value.startsWith('第')) {
+                nameInput.value = `第${index + 1}场`;
+            }
+        });
+        collectSessionData(); // Update internal session data
+    }
+
+    function collectSessionData() {
+        const rows = document.querySelectorAll('#sessionTimesBody tr');
+        sessions = [];
+        rows.forEach(row => {
+            const name = row.querySelector('.session-name').value;
+            const startTime = row.querySelector('.session-start').value;
+            const endTime = row.querySelector('.session-end').value;
+            if (name && startTime && endTime) {
+                sessions.push({ name, startTime, endTime });
+            }
+        });
+    }
+
+    // Time validation
+    function validateAllSessions() {
+        collectSessionData(); // Get latest data from inputs
+        const errorEl = document.getElementById('timeFormatError');
+        errorEl.style.display = 'none';
+
+        if (sessions.length === 0) {
+            errorEl.textContent = '请至少添加一个考试场次。';
+            errorEl.style.display = 'block';
+            updatePreviewAndExport(false);
+            return false;
+        }
+
+        for (let i = 0; i < sessions.length; i++) {
+            const s = sessions[i];
+            const [startH, startM] = s.startTime.split(':').map(Number);
+            const [endH, endM] = s.endTime.split(':').map(Number);
+
+            if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM) ||
+                startH < 0 || startH > 23 || startM < 0 || startM > 59 ||
+                endH < 0 || endH > 23 || endM < 0 || endM > 59) {
+                errorEl.textContent = `${s.name} 时间格式无效，请输入 HH:MM 格式。`;
+                errorEl.style.display = 'block';
+                updatePreviewAndExport(false);
+                return false;
+            }
+
+            if (startH > endH || (startH === endH && startM >= endM)) {
+                errorEl.textContent = `${s.name} 开始时间必须早于结束时间。`;
+                errorEl.style.display = 'block';
+                updatePreviewAndExport(false);
+                return false;
+            }
+        }
+        // All validations passed
+        generateAssignments();
+        updatePreviewAndExport();
+        return true;
+    }
+
+    document.getElementById('addSessionBtn').addEventListener('click', function() {
+        addSessionRow();
+        updateSessionNames(); // Renumber and collect data
+        validateAllSessions(); // Validate the new row
+    });
+
+    // Initialize with default 4 sessions
+    function initSessions() {
+        const defaultSessions = [
+            { name: '第一场', startTime: '09:00', endTime: '11:00' },
+            { name: '第二场', startTime: '14:00', endTime: '16:00' },
+            { name: '第三场', startTime: '09:00', endTime: '11:00' },
+            { name: '第四场', startTime: '14:00', endTime: '16:00' }
+        ];
+        defaultSessions.forEach(session => addSessionRow(session));
+        updateSessionNames();
+        validateAllSessions();
+    }
+
+    // --- Step 4: Auto-assign checkbox ---
+    document.getElementById('autoAssignPrev').addEventListener('change', function () {
+        autoAssignPrev = this.checked;
+        // Logic for auto-assign would go here in a multi-session version
+        // For now, it's just a flag
+    });
+
+    // --- Step 5: Preview & Export Logic ---
+    function generateAssignments() {
+        if (teacherData.length === 0 || numRooms <= 0 || sessions.length === 0) {
+            assignments = [];
+            return;
+        }
+
+        try {
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            let headteachers = teacherData.map(t => t.headteacher);
+            let subjectTeachersPool = [];
+            teacherData.forEach(t => {
+                subjectTeachersPool.push(...t.subjectTeachers);
+            });
+
+            headteachers = shuffle([...headteachers]);
+            subjectTeachersPool = shuffle([...subjectTeachersPool]);
+
+            assignments = [];
+            const usedHeadteachers = new Set();
+            const usedSubjectTeachers = new Set();
+
+            for (let room = 1; room <= numRooms; room++) {
+                let proctors = [];
+                let assignedHeadteacher = null;
+                if (headteachers.length > 0) {
+                    let availableHeadteacherIndex = headteachers.findIndex(h => !usedHeadteachers.has(h));
+                    if (availableHeadteacherIndex !== -1) {
+                        assignedHeadteacher = headteachers.splice(availableHeadteacherIndex, 1)[0];
+                    } else {
+                        // If no unused headteacher, try to get one from subject pool
+                        if (subjectTeachersPool.length > 0) {
+                            let availableSubjectTeacherIndex = subjectTeachersPool.findIndex(s => !usedHeadteachers.has(s));
+                            if (availableSubjectTeacherIndex !== -1) {
+                                assignedHeadteacher = subjectTeachersPool.splice(availableSubjectTeacherIndex, 1)[0];
+                            } else {
+                                assignedHeadteacher = subjectTeachersPool.pop();
+                            }
+                        } else {
+                            // If subject pool is also empty, reuse a headteacher
+                            assignedHeadteacher = headteachers.pop();
+                        }
+                    }
+                    usedHeadteachers.add(assignedHeadteacher);
+                } else {
+                    // Fallback if headteachers list was empty initially
+                    if (subjectTeachersPool.length > 0) {
+                        assignedHeadteacher = subjectTeachersPool.pop();
+                    } else {
+                        assignedHeadteacher = "[无可用教师]";
+                    }
+                }
+                proctors.push(assignedHeadteacher);
+
+                // Assign one subject teacher
+                let assignedSubjectTeacher = null;
+                if (subjectTeachersPool.length > 0) {
+                    let availableSubjectTeacherIndex = subjectTeachersPool.findIndex(s => !usedSubjectTeachers.has(s));
+                    if (availableSubjectTeacherIndex !== -1) {
+                        assignedSubjectTeacher = subjectTeachersPool.splice(availableSubjectTeacherIndex, 1)[0];
+                    } else {
+                         // If no unused subject teacher, try to find an associated one
+                        const headteacherObj = teacherData.find(t => t.headteacher === assignedHeadteacher);
+                        if (headteacherObj) {
+                            const availableAssocSubjectTeacherIndex = headteacherObj.subjectTeachers.findIndex(s => !usedSubjectTeachers.has(s));
+                            if (availableAssocSubjectTeacherIndex !== -1) {
+                                assignedSubjectTeacher = headteacherObj.subjectTeachers[availableAssocSubjectTeacherIndex];
+                                const poolIndex = subjectTeachersPool.indexOf(assignedSubjectTeacher);
+                                if (poolIndex !== -1) subjectTeachersPool.splice(poolIndex, 1);
+                            }
+                        }
+                        // If still no associated one, just take one from pool
+                        if (!assignedSubjectTeacher && subjectTeachersPool.length > 0) {
+                            assignedSubjectTeacher = subjectTeachersPool.pop();
+                        }
+                    }
+                }
+                // If still no subject teacher found
+                if (!assignedSubjectTeacher) {
+                    assignedSubjectTeacher = "[无]";
+                }
+                
+                if (assignedSubjectTeacher !== "[无]") {
+                    usedSubjectTeachers.add(assignedSubjectTeacher);
+                }
+                proctors.push(assignedSubjectTeacher);
+
+                assignments.push({
+                    room: room,
+                    proctors: proctors
+                });
+            }
+        } catch (err) {
+            console.error('生成监考安排时出错:', err);
+            assignments = [];
+        }
+    }
+
+    function updatePreviewAndExport(isValidTime = true) {
+        const exportBtn = document.getElementById('exportBtn');
+        const previewEl = document.getElementById('previewTable');
+        const instructionsEl = document.getElementById('previewInstructions');
+        const previewHeader = document.querySelector('#previewTableHeader h2');
+
+        if (teacherData.length === 0 || numRooms <= 0 || sessions.length === 0 || !isValidTime) {
+            previewEl.innerHTML = '';
+            if (teacherData.length === 0) {
+                 instructionsEl.textContent = '请先上传有效的数据文件。';
+            } else if (numRooms <= 0) {
+                 instructionsEl.textContent = '请设置有效的考场数量。';
+            } else if (sessions.length === 0 || !isValidTime) {
+                 instructionsEl.textContent = '请修正时间设置，至少需要一个有效场次。';
+            }
+            instructionsEl.style.display = 'block';
+            exportBtn.disabled = true;
+            previewHeader.textContent = '预览与导出';
+            return;
+        }
+
+        instructionsEl.style.display = 'none';
+        exportBtn.disabled = false;
+        previewHeader.textContent = `预览与导出 (共 ${assignments.length} 个考场)`;
+
+        // --- Render Preview Table ---
+        previewEl.innerHTML = '';
+        const table = document.createElement('table');
+        
+        // Table Header
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const roomHeader = document.createElement('th');
+        roomHeader.textContent = '考场号';
+        headerRow.appendChild(roomHeader);
+        for (let i = 1; i <= numProctors; i++) {
+            const th = document.createElement('th');
+            if (i === 1) {
+                th.textContent = '主监考(班主任)';
+            } else {
+                th.textContent = `监考教师${i}`;
+            }
+            headerRow.appendChild(th);
+        }
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Table Body
+        const tbody = document.createElement('tbody');
+        assignments.forEach((assignment, index) => {
+            const row = document.createElement('tr');
+            row.dataset.roomIndex = index; // For drag-and-drop
+
+            const roomCell = document.createElement('td');
+            roomCell.textContent = assignment.room;
+            row.appendChild(roomCell);
+
+            assignment.proctors.forEach((proctor, pIndex) => {
+                const cell = document.createElement('td');
+                cell.dataset.roomIndex = index;
+                cell.dataset.proctorIndex = pIndex;
+                
+                if (proctor !== "[无]") {
+                    const span = document.createElement('span');
+                    span.className = 'draggable';
+                    span.textContent = proctor;
+                    span.draggable = true;
+                    span.dataset.teacher = proctor;
+                    cell.appendChild(span);
+                } else {
+                    cell.textContent = proctor;
+                }
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        previewEl.appendChild(table);
+
+        // Setup Drag and Drop after rendering
+        setupDragAndDrop();
+    }
+
+    function setupDragAndDrop() {
+        const draggables = document.querySelectorAll('.draggable');
+        const dropZones = document.querySelectorAll('#previewTable td:not(:first-child)'); // Exclude room number cells
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => {
+                draggable.classList.add('dragging');
+            });
+
+            draggable.addEventListener('dragend', () => {
+                draggable.classList.remove('dragging');
+                // After drag ends, we might want to update the internal assignments array
+                // based on the new DOM state, but for simplicity, we'll just let the DOM reflect the change.
+                // A more robust solution would sync the DOM back to the assignments array.
+            });
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault(); // Necessary to allow drop
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                const draggable = document.querySelector('.dragging');
+                if (draggable) {
+                    // Clear the target cell
+                    zone.innerHTML = '';
+                    // Move the dragged element
+                    zone.appendChild(draggable);
+                    
+                    // Optional: Update internal assignments array to reflect change
+                    // This is complex and often not necessary for simple UI changes.
+                    // The exported data will be based on the final DOM state.
+                }
+            });
+
+            // Allow dropping on top of an existing draggable (swap)
+            zone.addEventListener('dragover', e => {
+                 if (zone.querySelector('.draggable') && e.target !== zone) {
+                     e.preventDefault();
+                     zone.classList.add('drag-over');
+                 }
+            });
+        });
+    }
+
+    // --- Export ---
+    document.getElementById('exportBtn').addEventListener('click', function () {
+        if (teacherData.length === 0 || assignments.length === 0 || sessions.length === 0) {
+            showStatusMessage('exportStatus', '请先生成有效的安排。', 'error');
+            return;
+        }
+
+        showStatusMessage('exportStatus', '正在生成安排...', 'info');
+
+        try {
+            // --- Prepare Export Data with Session Info ---
+            const exportData = [];
+            
+            // Find the first session for export (as per current requirement)
+            const firstSession = sessions[0];
+            let sessionTimeStr = `${firstSession.name} ${firstSession.startTime}-${firstSession.endTime}`;
+            
+            // Header
+            const headers = ['考场号'];
+            for (let i = 1; i <= numProctors; i++) {
+                if (i === 1) {
+                    headers.push(`主监考(班主任)`);
+                } else {
+                    headers.push(`监考教师${i}`);
+                }
+            }
+            headers.push('考试场次/时间');
+            if(examDate) {
+                headers.push('考试日期');
+            }
+            exportData.push(headers);
+
+            // Rows - Read from the current preview table to get any manual adjustments
+            const rows = document.querySelectorAll('#previewTable tbody tr');
+            rows.forEach(row => {
+                const rowData = [row.cells[0].textContent]; // Room number
+                for (let i = 1; i <= numProctors; i++) {
+                    const cell = row.cells[i];
+                    const draggable = cell.querySelector('.draggable');
+                    if (draggable) {
+                        rowData.push(draggable.textContent);
+                    } else {
+                        rowData.push(cell.textContent);
+                    }
+                }
+                rowData.push(sessionTimeStr);
+                if(examDate) {
+                    rowData.push(examDate);
+                }
+                exportData.push(rowData);
+            });
+
+            // Export to Excel
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, "考场安排");
+            
+            let filename = "考场安排";
+            if(examDate) filename += `_${examDate}`;
+            filename += ".xlsx";
+            
+            XLSX.writeFile(wb, filename);
+
+            showStatusMessage('exportStatus', `导出成功: ${filename}`, 'success');
+
+        } catch (err) {
+            console.error('导出时发生错误:', err);
+            showStatusMessage('exportStatus', '导出过程中发生错误。', 'error');
+        }
+    });
+
+    function showStatusMessage(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        el.textContent = message;
+        el.className = `status-message ${type}`;
+        el.style.display = 'block';
+        // Auto-hide success messages after a while
+        if (type === 'success') {
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    // --- Initialize ---
+    function init() {
+         // Set today's date as default
+         const today = new Date().toISOString().split('T')[0];
+         document.getElementById('examDate').value = today;
+         examDate = today;
+         
+         // Initialize session times
+         initSessions();
+    }
+    init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试监考安排系统</title>
+    <!-- 引入 SheetJS (XLSX) 库用于处理Excel文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #1565c0;
+            --background-color: #e3f2fd;
+            --card-bg: #ffffff;
+            --border-color: #bbdefb;
+            --text-color: #333333;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            /* 简单背景特效 */
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 20%);
+            animation: bg-animation 20s infinite alternate;
+        }
+
+        @keyframes bg-animation {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .module {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .module-title {
+            margin: 0;
+            font-size: 1.4em;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        input, select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f9ff;
+        }
+
+        .time-input {
+            width: 80px;
+        }
+
+        .preview-table th, .preview-table td {
+            text-align: center;
+            padding: 8px;
+            min-width: 100px;
+        }
+
+        .preview-table th.room-header {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 15px 5px;
+        }
+
+        .draggable {
+            cursor: move;
+            padding: 5px 10px;
+            margin: 2px;
+            background-color: #e3f2fd;
+            border: 1px dashed #90caf9;
+            border-radius: 4px;
+            display: inline-block;
+            user-select: none; /* 防止拖拽时选中文本 */
+        }
+
+        .droppable {
+            min-height: 30px;
+            padding: 5px;
+            background-color: #fafafa;
+            border: 1px dotted #bbdefb;
+            border-radius: 4px;
+        }
+
+        .droppable.over {
+            border: 2px dashed var(--primary-color);
+            background-color: #d1e7ff;
+        }
+
+        .unassigned-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #fafafa;
+            min-height: 50px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-input-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .rules-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 30px;">考试监考安排系统</h1>
+
+        <!-- 模块 1: 数据管理 -->
+        <div class="module">
+            <div class="module-header">
+                <h2 class="module-title">1. 数据管理</h2>
+                <div class="module-actions">
+                    <button id="downloadTemplateBtn">下载Excel模板</button>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-button">上传Excel数据</div>
+                        <input type="file" id="uploadExcelInput" accept=".xlsx, .xls">
+                    </div>
+                </div>
+            </div>
+            <p>请上传包含“班主任名单”和“任课教师名单”两列的Excel文件。</p>
+        </div>
+
+        <!-- 模块 2: 考场与时间设置 -->
+        <div class="module">
+            <div class="module-header">
+                <h2 class="module-title">2. 考场与时间设置</h2>
+                <div class="module-actions">
+                    <label for="roomCountInput">考场数量:</label>
+                    <input type="number" id="roomCountInput" min="1" value="17">
+                    <button id="updateRoomsBtn">更新考场</button>
+                </div>
+            </div>
+            
+            <h3>考试时间安排</h3>
+            <table id="timeTable">
+                <thead>
+                    <tr>
+                        <th>场次</th>
+                        <th>日期</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="timeTableBody">
+                    <!-- 默认时间将通过JS添加 -->
+                </tbody>
+            </table>
+            <button id="addSessionBtn" style="margin-top: 10px;">添加场次</button>
+        </div>
+
+        <!-- 模块 3: 监考安排规则设置 -->
+        <div class="module">
+            <div class="module-header">
+                <h2 class="module-title">3. 监考安排规则设置</h2>
+            </div>
+            <div class="rules-container" id="rulesContainer">
+                <!-- 规则复选框将通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 模块 4: 结果预览与导出 -->
+        <div class="module">
+            <div class="module-header">
+                <h2 class="module-title">4. 结果预览与导出</h2>
+                <div class="module-actions">
+                    <button id="generateScheduleBtn">生成排班</button>
+                    <button id="exportExcelBtn">导出Excel</button>
+                </div>
+            </div>
+            <h3>监考安排预览</h3>
+            <div id="previewArea">
+                <p>请先上传数据并生成排班。</p>
+                <table class="preview-table" id="schedulePreviewTable" style="display: none;">
+                    <thead id="schedulePreviewThead">
+                        <!-- 表头将通过JS生成 -->
+                    </thead>
+                    <tbody id="schedulePreviewTbody">
+                        <!-- 表体将通过JS生成 -->
+                    </tbody>
+                </table>
+            </div>
+            <h3>未安排教师</h3>
+            <div id="unassignedArea">
+                <div class="unassigned-list" id="unassignedList">
+                    <!-- 未安排教师将通过JS添加 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 数据存储 ---
+        let headTeachers = [];
+        let subjectTeachers = [];
+        let allTeachers = []; // 合并所有老师，用于拖拽
+        let examSessions = [
+            { name: "第一场", date: "", start: "09:00", end: "10:00" },
+            { name: "第二场", date: "", start: "10:15", end: "11:15" },
+            { name: "第三场", date: "", start: "14:30", end: "15:30" },
+            { name: "第四场", date: "", start: "15:45", end: "17:45" }
+        ];
+        let roomCount = 17;
+        let scheduleData = []; // 存储生成的排班数据
+        let carryOverRules = {}; // 存储每个考场的沿用规则
+
+        // --- DOM 元素 ---
+        const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+        const uploadExcelInput = document.getElementById('uploadExcelInput');
+        const roomCountInput = document.getElementById('roomCountInput');
+        const updateRoomsBtn = document.getElementById('updateRoomsBtn');
+        const timeTableBody = document.getElementById('timeTableBody');
+        const addSessionBtn = document.getElementById('addSessionBtn');
+        const rulesContainer = document.getElementById('rulesContainer');
+        const generateScheduleBtn = document.getElementById('generateScheduleBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const schedulePreviewTable = document.getElementById('schedulePreviewTable');
+        const schedulePreviewThead = document.getElementById('schedulePreviewThead');
+        const schedulePreviewTbody = document.getElementById('schedulePreviewTbody');
+        const unassignedList = document.getElementById('unassignedList');
+
+        // --- 初始化 ---
+        function init() {
+            renderTimeTable();
+            updateRoomCountDisplay();
+            updateRulesDisplay();
+        }
+
+        // --- 模块 1: 数据管理 ---
+        downloadTemplateBtn.addEventListener('click', () => {
+            // 创建一个工作簿
+            const wb = XLSX.utils.book_new();
+            
+            // 创建工作表数据
+            const ws_data = [
+                ["班主任名单", "任课教师名单"],
+                // 可以添加示例行
+                // ["张老师", "李老师"],
+                // ["王老师", "赵老师"]
+            ];
+            
+            // 将数据转换为工作表
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            
+            // 将工作表添加到工作簿
+            XLSX.utils.book_append_sheet(wb, ws, "教师名单");
+            
+            // 导出文件
+            XLSX.writeFile(wb, "监考教师名单模板.xlsx");
+        });
+
+        uploadExcelInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+
+                // 假设数据在第一个工作表
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // 将工作表转换为JSON对象数组
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                if (jsonData.length < 2) {
+                    alert("Excel文件格式不正确或无数据。");
+                    return;
+                }
+
+                // 清空旧数据
+                headTeachers = [];
+                subjectTeachers = [];
+
+                // 从第二行开始读取数据（跳过标题行）
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    const headTeacher = row[0];
+                    const subjectTeacher = row[1];
+
+                    if (headTeacher) headTeachers.push(headTeacher);
+                    if (subjectTeacher) subjectTeachers.push(subjectTeacher);
+                }
+
+                allTeachers = [...new Set([...headTeachers, ...subjectTeachers])]; // 合并并去重
+
+                console.log("班主任:", headTeachers);
+                console.log("任课教师:", subjectTeachers);
+                alert(`数据上传成功！\n班主任: ${headTeachers.length}人\n任课教师: ${subjectTeachers.length}人`);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+
+        // --- 模块 2: 考场与时间设置 ---
+        function renderTimeTable() {
+            timeTableBody.innerHTML = '';
+            examSessions.forEach((session, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${session.name}</td>
+                    <td><input type="date" class="session-date" data-index="${index}" value="${session.date}"></td>
+                    <td><input type="time" class="time-input session-start" data-index="${index}" value="${session.start}"></td>
+                    <td><input type="time" class="time-input session-end" data-index="${index}" value="${session.end}"></td>
+                    <td><button class="delete-session-btn" data-index="${index}" ${index < 4 ? 'disabled' : ''}>删除</button></td>
+                `;
+                timeTableBody.appendChild(row);
+            });
+
+            // 为动态添加的元素绑定事件
+            document.querySelectorAll('.session-date, .session-start, .session-end').forEach(input => {
+                input.addEventListener('change', handleTimeChange);
+            });
+            document.querySelectorAll('.delete-session-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteSession);
+            });
+        }
+
+        function handleTimeChange(event) {
+            const index = parseInt(event.target.dataset.index);
+            const className = event.target.className;
+            if (className.includes('session-date')) {
+                examSessions[index].date = event.target.value;
+            } else if (className.includes('session-start')) {
+                examSessions[index].start = event.target.value;
+            } else if (className.includes('session-end')) {
+                examSessions[index].end = event.target.value;
+            }
+            console.log("时间已更新:", examSessions);
+        }
+
+        function handleDeleteSession(event) {
+            const index = parseInt(event.target.dataset.index);
+            if (index >= 4) { // 不允许删除默认场次
+                examSessions.splice(index, 1);
+                renderTimeTable(); // 重新渲染表格
+                updateRulesDisplay(); // 场次变化可能影响规则显示
+            }
+        }
+
+        addSessionBtn.addEventListener('click', () => {
+            const newSessionNumber = examSessions.length + 1;
+            examSessions.push({
+                name: `第${newSessionNumber}场`,
+                date: "",
+                start: "00:00",
+                end: "00:00"
+            });
+            renderTimeTable();
+            updateRulesDisplay();
+        });
+
+        updateRoomsBtn.addEventListener('click', () => {
+            const newCount = parseInt(roomCountInput.value);
+            if (newCount > 0) {
+                roomCount = newCount;
+                updateRoomCountDisplay();
+                updateRulesDisplay(); // 考场数量变化影响规则显示
+                console.log("考场数量已更新为:", roomCount);
+            } else {
+                alert("请输入有效的考场数量。");
+                roomCountInput.value = roomCount;
+            }
+        });
+
+        function updateRoomCountDisplay() {
+            roomCountInput.value = roomCount;
+        }
+
+
+        // --- 模块 3: 监考安排规则设置 ---
+        function updateRulesDisplay() {
+            rulesContainer.innerHTML = '';
+            for (let i = 1; i <= roomCount; i++) {
+                const roomId = `room${i}`;
+                // 如果规则不存在，则默认为 true (沿用)
+                if (carryOverRules[roomId] === undefined) {
+                    carryOverRules[roomId] = true;
+                }
+
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'rule-item';
+                ruleItem.innerHTML = `
+                    <label for="carryOver_${roomId}">考场 ${i}:</label>
+                    <select id="carryOver_${roomId}" data-room="${roomId}">
+                        <option value="true" ${carryOverRules[roomId ? 'selected' : '']}>自动沿用前一场</option>
+                        <option value="false" ${!carryOverRules[roomId] ? 'selected' : ''}>不沿用</option>
+                    </select>
+                `;
+                rulesContainer.appendChild(ruleItem);
+            }
+
+            // 为下拉框绑定事件
+            document.querySelectorAll('#rulesContainer select').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const room = e.target.dataset.room;
+                    carryOverRules[room] = e.target.value === 'true';
+                    console.log(`考场 ${room} 规则更新:`, carryOverRules[room]);
+                });
+            });
+        }
+
+
+        // --- 模块 4: 结果预览与导出 ---
+        generateScheduleBtn.addEventListener('click', () => {
+            if (headTeachers.length === 0 && subjectTeachers.length === 0) {
+                alert("请先上传教师数据。");
+                return;
+            }
+            if (examSessions.length === 0) {
+                alert("请至少设置一场考试。");
+                return;
+            }
+
+            generateSchedule();
+            renderSchedulePreview();
+            renderUnassignedList();
+        });
+
+        function generateSchedule() {
+            scheduleData = [];
+            // 为每次考试创建一个空的考场安排
+            for (let s = 0; s < examSessions.length; s++) {
+                const sessionSchedule = { session: examSessions[s].name, rooms: {} };
+                for (let r = 1; r <= roomCount; r++) {
+                    sessionSchedule.rooms[`room${r}`] = [];
+                }
+                scheduleData.push(sessionSchedule);
+            }
+
+            const allTeachersCopy = [...allTeachers]; // 创建副本用于分配和跟踪
+            let teacherIndex = 0; // 用于循环分配老师
+
+            // 为每场考试安排监考
+            for (let s = 0; s < examSessions.length; s++) {
+                const session = examSessions[s];
+                const currentSessionSchedule = scheduleData[s];
+
+                // 确定本场可用的老师（未在本场任何考场的老师）
+                const occupiedTeachersThisSession = new Set();
+
+                for (let r = 1; r <= roomCount; r++) {
+                    const roomId = `room${r}`;
+                    let assignedTeachers = [];
+
+                    // 检查是否需要沿用上一场
+                    const shouldCarryOver = carryOverRules[roomId] !== false && s > 0;
+                    if (shouldCarryOver) {
+                        const previousSessionSchedule = scheduleData[s - 1];
+                        const previousTeachers = previousSessionSchedule.rooms[roomId] || [];
+                        // 检查上一场的老师是否在本轮可用
+                        const availableFromPrevious = previousTeachers.filter(t => !occupiedTeachersThisSession.has(t));
+                        
+                        if (availableFromPrevious.length > 0) {
+                            // 优先沿用主监考（班主任）
+                            const previousHead = availableFromPrevious.find(t => headTeachers.includes(t));
+                            if (previousHead) {
+                                assignedTeachers.push(previousHead);
+                                occupiedTeachersThisSession.add(previousHead);
+                                const idx = allTeachersCopy.indexOf(previousHead);
+                                if (idx > -1) allTeachersCopy.splice(idx, 1);
+                            } else {
+                                // 如果没有班主任，沿用第一个可用的
+                                const teacherToCarry = availableFromPrevious[0];
+                                assignedTeachers.push(teacherToCarry);
+                                occupiedTeachersThisSession.add(teacherToCarry);
+                                const idx = allTeachersCopy.indexOf(teacherToCarry);
+                                if (idx > -1) allTeachersCopy.splice(idx, 1);
+                            }
+                        }
+                    }
+
+                    // 如果沿用后监考人数不足2人，则继续分配
+                    while (assignedTeachers.length < 2) {
+                        if (allTeachersCopy.length === 0) {
+                            console.warn(`老师数量不足，无法为 ${session.name} 考场 ${r} 完成分配。`);
+                            break; // 没有更多老师可分配
+                        }
+
+                        // 寻找一个未被占用的老师
+                        let found = false;
+                        let attempts = 0;
+                        while (!found && attempts < allTeachersCopy.length) {
+                            const teacher = allTeachersCopy[teacherIndex % allTeachersCopy.length];
+                            if (!occupiedTeachersThisSession.has(teacher)) {
+                                assignedTeachers.push(teacher);
+                                occupiedTeachersThisSession.add(teacher);
+                                // 从本轮待分配列表中移除
+                                const idx = allTeachersCopy.indexOf(teacher);
+                                if (idx > -1) allTeachersCopy.splice(idx, 1);
+                                found = true;
+                            }
+                            teacherIndex++;
+                            attempts++;
+                        }
+
+                        if (!found) {
+                             console.warn(`无法为 ${session.name} 考场 ${r} 找到足够的未占用老师。`);
+                             break;
+                        }
+                    }
+
+                    // 将分配结果存入 scheduleData
+                    currentSessionSchedule.rooms[roomId] = assignedTeachers;
+                }
+            }
+            console.log("生成的排班数据:", scheduleData);
+        }
+
+        function renderSchedulePreview() {
+            if (scheduleData.length === 0) {
+                schedulePreviewTable.style.display = 'none';
+                document.querySelector('#previewArea p').style.display = 'block';
+                return;
+            }
+
+            schedulePreviewTable.style.display = 'table';
+            document.querySelector('#previewArea p').style.display = 'none';
+
+            // 渲染表头
+            let theadHTML = '<tr><th>场次</th>';
+            for (let r = 1; r <= roomCount; r++) {
+                theadHTML += `<th class="room-header">考场 ${r}</th>`;
+            }
+            theadHTML += '</tr>';
+            schedulePreviewThead.innerHTML = theadHTML;
+
+            // 渲染表体
+            schedulePreviewTbody.innerHTML = '';
+            scheduleData.forEach((sessionData, sIndex) => {
+                const row = document.createElement('tr');
+                let rowHTML = `<td>${sessionData.session}</td>`;
+
+                for (let r = 1; r <= roomCount; r++) {
+                    const roomId = `room${r}`;
+                    const teachers = sessionData.rooms[roomId] || [];
+                    const cellId = `cell-${sIndex}-${r}`; // 用于拖放识别
+                    // 至少创建两个空的可放置区域
+                    const droppableHTML = `
+                        <div class="droppable" data-session-index="${sIndex}" data-room-id="${roomId}" data-teacher-index="0">
+                            ${teachers[0] ? `<span class="draggable" draggable="true" data-teacher="${teachers[0]}">${teachers[0]}</span>` : ''}
+                        </div>
+                        <div class="droppable" data-session-index="${sIndex}" data-room-id="${roomId}" data-teacher-index="1">
+                            ${teachers[1] ? `<span class="draggable" draggable="true" data-teacher="${teachers[1]}">${teachers[1]}</span>` : ''}
+                        </div>
+                    `;
+                    rowHTML += `<td id="${cellId}">${droppableHTML}</td>`;
+                }
+                row.innerHTML = rowHTML;
+                schedulePreviewTbody.appendChild(row);
+            });
+
+            // 绑定拖放事件
+            bindDragAndDropEvents();
+        }
+
+        function renderUnassignedList() {
+            // 确定已被安排的老师
+            const assignedTeachers = new Set();
+            scheduleData.forEach(session => {
+                Object.values(session.rooms).forEach(teachers => {
+                    teachers.forEach(t => assignedTeachers.add(t));
+                });
+            });
+
+            // 计算未安排的老师
+            const unassignedTeachers = allTeachers.filter(t => !assignedTeachers.has(t));
+
+            unassignedList.innerHTML = '';
+            if (unassignedTeachers.length === 0) {
+                unassignedList.innerHTML = '<p>所有老师均已安排。</p>';
+            } else {
+                unassignedTeachers.forEach(teacher => {
+                    const teacherSpan = document.createElement('span');
+                    teacherSpan.className = 'draggable';
+                    teacherSpan.draggable = true;
+                    teacherSpan.dataset.teacher = teacher;
+                    teacherSpan.textContent = teacher;
+                    unassignedList.appendChild(teacherSpan);
+                });
+            }
+            // 为新添加的 draggable 元素绑定事件
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+            });
+        }
+
+        // --- 拖放功能实现 ---
+        let draggedTeacher = null;
+
+        function handleDragStart(e) {
+            draggedTeacher = e.target.dataset.teacher;
+            e.dataTransfer.setData('text/plain', draggedTeacher); // 兼容性备用
+            e.target.style.opacity = '0.75';
+        }
+
+        function handleDragEnd(e) {
+            e.target.style.opacity = '';
+            draggedTeacher = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // 必须阻止默认行为才能触发 drop
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (e.target.classList && e.target.classList.contains('droppable')) {
+                e.target.classList.add('over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList && e.target.classList.contains('droppable')) {
+                e.target.classList.remove('over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const droppable = e.target.classList.contains('droppable') ? e.target : e.target.closest('.droppable');
+            if (droppable) {
+                droppable.classList.remove('over');
+                const sessionIndex = parseInt(droppable.dataset.sessionIndex);
+                const roomId = droppable.dataset.roomId;
+                const teacherIndex = parseInt(droppable.dataset.teacherIndex);
+
+                if (draggedTeacher) {
+                    // 更新 scheduleData
+                    if (!scheduleData[sessionIndex].rooms[roomId]) {
+                        scheduleData[sessionIndex].rooms[roomId] = [];
+                    }
+                    scheduleData[sessionIndex].rooms[roomId][teacherIndex] = draggedTeacher;
+                    
+                    // 更新UI
+                    droppable.innerHTML = `<span class="draggable" draggable="true" data-teacher="${draggedTeacher}">${draggedTeacher}</span>`;
+                    
+                    // 重新绑定新添加的 draggable 元素的事件
+                    droppable.querySelector('.draggable').addEventListener('dragstart', handleDragStart);
+                    droppable.querySelector('.draggable').addEventListener('dragend', handleDragEnd);
+
+                    // 重新渲染未安排列表
+                    renderUnassignedList();
+                }
+            }
+        }
+
+        function bindDragAndDropEvents() {
+            // 为所有现有的 draggable 元素绑定事件
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+
+            // 为所有现有的 droppable 元素绑定事件
+            document.querySelectorAll('.droppable').forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        // --- 导出 Excel ---
+        exportExcelBtn.addEventListener('click', () => {
+            if (scheduleData.length === 0) {
+                alert("请先生成排班。");
+                return;
+            }
+
+            // 创建一个工作簿
+            const wb = XLSX.utils.book_new();
+
+            // 1. 创建排班表工作表
+            // 准备表头
+            const scheduleHeaders = ['场次'];
+            for (let r = 1; r <= roomCount; r++) {
+                scheduleHeaders.push(`考场${r}`);
+            }
+
+            // 准备数据行
+            const scheduleRows = scheduleData.map(sessionData => {
+                const row = [sessionData.session];
+                for (let r = 1; r <= roomCount; r++) {
+                    const roomId = `room${r}`;
+                    const teachers = sessionData.rooms[roomId] || [];
+                    // 将老师名单合并成一个字符串
+                    row.push(teachers.join(', '));
+                }
+                return row;
+            });
+
+            // 合并表头和数据
+            const scheduleWSData = [scheduleHeaders, ...scheduleRows];
+            const scheduleWS = XLSX.utils.aoa_to_sheet(scheduleWSData);
+            XLSX.utils.book_append_sheet(wb, scheduleWS, "监考安排表");
+
+            // 2. 创建未安排教师名单工作表
+            const assignedTeachers = new Set();
+            scheduleData.forEach(session => {
+                Object.values(session.rooms).forEach(teachers => {
+                    teachers.forEach(t => assignedTeachers.add(t));
+                });
+            });
+            const unassignedTeachers = allTeachers.filter(t => !assignedTeachers.has(t));
+
+            const unassignedWSData = [["未安排教师名单"], ...unassignedTeachers.map(name => [name])];
+            const unassignedWS = XLSX.utils.aoa_to_sheet(unassignedWSData);
+            XLSX.utils.book_append_sheet(wb, unassignedWS, "未安排教师");
+
+            // 导出文件
+            XLSX.writeFile(wb, "考试监考安排.xlsx");
+        });
+
+        // 启动应用
+        window.onload = init;
+    </script>
+</body>
+</html>
