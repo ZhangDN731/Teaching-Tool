@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>聚会游戏大厅 🎉</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: var(--text); height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* 导航栏 */
+        nav { display: flex; overflow-x: auto; background: #000; padding: 8px; gap: 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex-shrink: 0; }
+        nav::-webkit-scrollbar { display: none; }
+        .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; background: var(--card); color: #94a3b8; font-size: 14px; white-space: nowrap; cursor: pointer; transition: 0.3s; }
+        .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+
+        /* 游戏区域 */
+        .game-container { flex: 1; padding: 20px; padding-top: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; width: 100%; }
+        .game-view { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.3s ease; }
+        .game-view.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { margin: 0; font-size: 24px; color: var(--primary); }
+        .display-box { font-size: 60px; font-weight: 800; margin: 20px 0; min-height: 80px; line-height: 1; word-break: break-all; max-width: 100%; overflow-wrap: break-word; }
+        .sub-text { color: #94a3b8; font-size: 14px; margin-bottom: 10px; }
+
+        /* 通用按钮 */
+        .btn { padding: 16px 32px; border-radius: 16px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; max-width: 300px; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+
+        /* 输入框 */
+        input { background: var(--card); border: 2px solid #334155; border-radius: 12px; padding: 15px; color: white; font-size: 20px; text-align: center; width: 100%; outline: none; }
+        input:focus { border-color: var(--primary); }
+
+        /* 时间炸弹特效 */
+        .timer-circle { width: 200px; max-width: 70vw; height: 200px; max-height: 70vw; border-radius: 50%; border: 8px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; transition: border-color 0.5s; }
+        .timer-circle.exploding { border-color: var(--danger); animation: shake 0.2s infinite; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+        /* 谁是卧底/真话假话 卡片 */
+        .secret-card { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 40px; border-radius: 20px; font-size: 32px; font-weight: bold; width: 100%; min-height: 150px; max-width: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow-wrap: break-word; }
+        .secret-card.hidden-word { background: var(--card); border: 2px dashed #475569; color: #475569; font-size: 20px; }
+
+        /* 设置面板 */
+        .settings { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;}
+        .chip { padding: 8px 16px; background: var(--card); border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+        .chip.selected { border-color: var(--primary); background: rgba(99,102,241,0.2); color: var(--primary); }
+
+        /* 历史记录/提示区 */
+        .history { width: 100%; max-height: 100px; overflow-y: auto; font-size: 12px; color: #64748b; margin-top: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; text-align: left; }
+        .history p { margin: 4px 0; }
+
+        /* 遮罩层 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; top: env(safe-area-inset-top); left: env(safe-area-inset-left); right: env(safe-area-inset-right); bottom: env(safe-area-inset-bottom); background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(5px); display: none; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background: var(--card); padding: 40px; border-radius: 24px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 90%; max-width: 450px; margin: 0 auto; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-icon { font-size: 60px; margin-bottom: 15px; }
+        .modal-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .modal-desc { color: #94a3b8; margin-bottom: 25px; }
+
+    
+        /* 课堂乐园游戏 - 暗色适配 */
+        .panic-btn {
+            padding: 8px 14px;
+            background: rgba(239,68,68,0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+        .panic-btn:hover { background: rgba(239,68,68,0.25); }
+        .study-mode {
+            position: fixed; inset: 0;
+            background: #0f172a;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .study-mode.active { display: flex; }
+        .study-mode h1 { color: #64748b; font-size: 24px; margin-bottom: 10px; }
+        .study-mode p { color: #64748b; font-size: 16px; }
+        .study-hint { color: #475569; font-size: 14px; margin-top: 2rem; }
+        .size-btn {
+            padding: 6px 14px;
+            border: 1px solid #475569;
+            background: var(--card);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+        .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;--text: #f8fafc;
+            --text-light: #6b7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        header {
+            background: #0f172a;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+        
+        .nav-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+        
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-btn:hover:not(.active) { background: #334155; }
+
+        .panic-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(239,68,68,0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.4);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .panic-btn:hover { background: #fecaca; }
+
+        /* 游戏区域 - 强制居中 */
+        .game-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .game-panel {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #0f172a;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+            margin: auto;
+        }
+
+        .game-panel.active { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { margin-bottom: 0.5rem; }
+        p.desc { color: var(--text-light); margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+        /* 通用按钮 */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+        }
+        .btn:hover { background: var(--primary-hover); }
+
+        /* 1. 手速游戏 */
+        .click-area {
+            width: 200px; height: 200px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin: 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+        .click-area:active { transform: scale(0.95); }
+
+        /* 2. 记忆翻牌 */
+        .memory-grid {
+            display: grid;
+            gap: 10px;
+            margin: 1rem 0;
+            width: 100%;
+        }
+        .card {
+            aspect-ratio: 1;
+            background: #334155;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .card.flipped, .card.matched { background: var(--primary); color: white; }
+        .card.matched { background: #10b981; pointer-events: none; }
+
+        .size-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .size-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #475569;
+            background: #0f172a;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* 3. 反应测试 */
+        .reaction-box {
+            width: 100%; height: 200px;
+            background: #ef4444;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .reaction-box.waiting { background: #ef4444; }
+        .reaction-box.ready { background: #10b981; }
+        .reaction-box.result { background: #3b82f6; cursor: default; }
+
+        /* 4. 打字躲避 */
+        .typing-area {
+            position: relative;
+            width: 100%; height: 300px;
+            background: #0f172a;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+        .falling-letter {
+            position: absolute;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            transition: top 0.1s linear;
+        }
+        .score-board { font-size: 1.2rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
+
+        /* 上课模式遮罩 */
+        .study-mode {
+            position: fixed; inset: 0;
+            background: #0f172a;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .study-mode.active { display: flex; }
+        .fake-book { font-size: 4rem; margin-bottom: 1rem; }
+        .study-hint { color: #64748b; font-size: 0.875rem; margin-top: 2rem; }
+
+    
+
+        /* ========== 响应式适配 - 手机端/平板端/电脑端/大屏幕 ========== */
+        
+        /* 手机端 (max-width: 767px) */
+        @media screen and (max-width: 767px) {
+            /* 导航栏 - 全宽滚动 */
+            nav {
+                padding: 6px 8px;
+                gap: 6px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 16px;
+            }
+            
+            /* 游戏区域 - 全宽利用 */
+            .game-container {
+                padding: 12px;
+            }
+            .game-view {
+                max-width: 100%;
+            }
+            
+            /* 标题 - 缩小 */
+            h2 {
+                font-size: 20px;
+            }
+            
+            /* 显示框 - 自适应 */
+            .display-box {
+                font-size: 40px;
+                margin: 15px 0;
+                min-height: 60px;
+            }
+            
+            /* 按钮 - 适合手指点击 */
+            .btn {
+                padding: 12px 24px;
+                font-size: 16px;
+                border-radius: 12px;
+                max-width: 100%;
+            }
+            
+            /* 输入框 */
+            input {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            /* 时间炸弹圆圈 */
+            .timer-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 36px;
+                border-width: 6px;
+            }
+            
+            /* 秘密卡片 */
+            .secret-card {
+                padding: 25px;
+                font-size: 24px;
+                min-height: 120px;
+            }
+            .secret-card.hidden-word {
+                font-size: 16px;
+            }
+            
+            /* 手速点击区域 */
+            .click-area {
+                width: 120px;
+                height: 120px;
+                font-size: 2rem;
+            }
+            
+            /* 记忆翻牌格子 */
+            .memory-grid {
+                gap: 6px;
+            }
+            .card {
+                font-size: 1.2rem;
+            }
+            
+            /* 反应测试框 */
+            .reaction-box {
+                height: 150px;
+                font-size: 1.2rem;
+            }
+            
+            /* 打字区域 */
+            .typing-area {
+                height: 220px;
+            }
+            .falling-letter {
+                font-size: 1.2rem;
+                width: 32px;
+                height: 32px;
+            }
+            
+            /* 弹窗 */
+            .modal-content {
+                padding: 25px;
+                margin: 20px;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 350px;
+            }
+            .modal-icon {
+                font-size: 48px;
+            }
+            .modal-title {
+                font-size: 22px;
+            }
+            
+            /* 设置标签 */
+            .chip {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            /* 历史记录 */
+            .history {
+                max-height: 80px;
+                font-size: 11px;
+            }
+            
+            /* 副文本 */
+            .sub-text {
+                font-size: 12px;
+            }
+            
+            /* 分数板 */
+            .score-board {
+                font-size: 14px;
+            }
+        }
+        
+        /* 平板端 (768px - 1023px) */
+        @media screen and (min-width: 768px) and (max-width: 1023px) {
+            nav {
+                padding: 8px 12px;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .nav-btn {
+                padding: 7px 14px;
+                font-size: 13px;
+            }
+            
+            .game-container {
+                padding: 16px;
+            }
+            .game-view {
+                max-width: 550px;
+            }
+            
+            h2 {
+                font-size: 22px;
+            }
+            
+            .display-box {
+                font-size: 50px;
+            }
+            
+            .btn {
+                padding: 14px 28px;
+                font-size: 17px;
+            }
+            
+            input {
+                padding: 13px;
+                font-size: 18px;
+            }
+            
+            .timer-circle {
+                width: 170px;
+                height: 170px;
+                font-size: 42px;
+            }
+            
+            .secret-card {
+                padding: 30px;
+                font-size: 28px;
+            }
+            
+            .click-area {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .reaction-box {
+                height: 170px;
+            }
+            
+            .typing-area {
+                height: 260px;
+            }
+            
+            .modal-content {
+                padding: 30px;
+                width: 85%;
+                max-width: 400px;
+            }
+        }
+        
+        /* 电脑端 (1024px - 1439px) - 默认样式已覆盖 */
+        @media screen and (min-width: 1024px) and (max-width: 1439px) {
+            .game-container {
+                padding: 24px;
+            }
+            .game-view {
+                max-width: 580px;
+            }
+        }
+        
+        /* 大屏幕 (>= 1440px) */
+        @media screen and (min-width: 1440px) {
+            nav {
+                padding: 12px 24px;
+                gap: 12px;
+            }
+            .nav-btn {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+            
+            .game-container {
+                padding: 32px;
+            }
+            .game-view {
+                max-width: 700px;
+            }
+            
+            h2 {
+                font-size: 28px;
+            }
+            
+            .display-box {
+                font-size: 72px;
+                margin: 25px 0;
+            }
+            
+            .btn {
+                padding: 18px 36px;
+                font-size: 20px;
+            }
+            
+            input {
+                padding: 18px;
+                font-size: 22px;
+            }
+            
+            .timer-circle {
+                width: 240px;
+                height: 240px;
+                font-size: 56px;
+                border-width: 10px;
+            }
+            
+            .secret-card {
+                padding: 50px;
+                font-size: 36px;
+                min-height: 180px;
+            }
+            
+            .click-area {
+                width: 200px;
+                height: 200px;
+                font-size: 4rem;
+            }
+            
+            .memory-grid {
+                gap: 12px;
+            }
+            .card {
+                font-size: 2rem;
+            }
+            
+            .reaction-box {
+                height: 240px;
+                font-size: 2rem;
+            }
+            
+            .typing-area {
+                height: 360px;
+            }
+            .falling-letter {
+                font-size: 2rem;
+                width: 50px;
+                height: 50px;
+            }
+            
+            .modal-content {
+                padding: 50px;
+                width: 80%;
+                max-width: 500px;
+            }
+            .modal-icon {
+                font-size: 80px;
+            }
+            .modal-title {
+                font-size: 32px;
+            }
+            
+            .chip {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .sub-text {
+                font-size: 16px;
+            }
+            
+            .score-board {
+                font-size: 18px;
+            }
+        }
+        
+        /* 超宽大屏幕 (>= 1920px) */
+        @media screen and (min-width: 1920px) {
+            .game-container {
+                padding: 40px;
+            }
+            .game-view {
+                max-width: 800px;
+            }
+            
+            h2 {
+                font-size: 32px;
+            }
+            
+            .display-box {
+                font-size: 80px;
+            }
+            
+            .btn {
+                padding: 20px 40px;
+                font-size: 22px;
+            }
+            
+            .timer-circle {
+                width: 280px;
+                height: 280px;
+                font-size: 64px;
+            }
+            
+            .secret-card {
+                padding: 60px;
+                font-size: 42px;
+            }
+            
+            .click-area {
+                width: 220px;
+                height: 220px;
+                font-size: 5rem;
+            }
+            
+            .typing-area {
+                height: 400px;
+            }
+            
+            .modal-content {
+                padding: 60px;
+                max-width: 600px;
+            }
+        }
+        
+        /* 竖屏手机优化 (portrait) */
+        @media screen and (max-width: 767px) and (orientation: portrait) {
+            body {
+                height: 100dvh; /* 使用动态视口高度 */
+            }
+            .game-container {
+                padding: 10px;
+            }
+            .display-box {
+                font-size: 36px;
+                margin: 12px 0;
+            }
+            /* 打字区域在竖屏手机上缩小 */
+            .typing-area {
+                height: 200px;
+            }
+            /* 手速点击区域 */
+            .click-area {
+                width: 100px;
+                height: 100px;
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* 横屏手机/平板优化 */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            nav {
+                padding: 4px 12px;
+                gap: 4px;
+            }
+            .nav-btn {
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+            .game-container {
+                padding: 8px 16px;
+            }
+            .display-box {
+                font-size: 32px;
+                margin: 8px 0;
+                min-height: 40px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            .timer-circle {
+                width: 100px;
+                height: 100px;
+                font-size: 28px;
+            }
+            .secret-card {
+                padding: 15px;
+                font-size: 18px;
+                min-height: 80px;
+            }
+            .typing-area {
+                height: 160px;
+            }
+            .reaction-box {
+                height: 100px;
+                font-size: 1rem;
+            }
+            .click-area {
+                width: 80px;
+                height: 80px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* 打印样式 */
+        @media print {
+            nav { display: none; }
+            .game-container { padding: 0; }
+            body { background: white; color: black; }
+        }
+        
+        /* 高对比度模式支持 */
+        @media (prefers-contrast: high) {
+            .btn { border: 2px solid currentColor; }
+            .nav-btn { border: 1px solid #fff; }
+        }
+        
+        /* 减少动画偏好支持 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* 触摸设备优化 - 更大的点击区域 */
+        @media (pointer: coarse) {
+            .nav-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            .btn {
+                min-height: 48px;
+            }
+            .chip {
+                min-height: 36px;
+            }
+            .card {
+                min-height: 50px;
+            }
+        }
+    </style>
+    </style>
+</head>
+<body>
+
+<nav id="navBar">
+	<button class="nav-btn active" onclick="switchGame('numBomb')">💣 数字炸弹</button>
+	<button class="nav-btn" onclick="switchGame('clicker')">⚡ 手速挑战</button>
+	<button class="nav-btn" onclick="switchGame('memory')">🧠 记忆翻牌</button>
+	<button class="nav-btn" onclick="switchGame('reaction')">⚡ 反应测试</button>
+	<button class="nav-btn" onclick="switchGame('typing')">⌨️ 打字躲避</button>
+	<button class="nav-btn" onclick="toggleStudyMode()" style="background:rgba(239,68,68,0.15);color:#fca5a5;">🚨 上课模式</button>
+
+    <!--
+    <button class="nav-btn" onclick="switchGame('timeBomb')">⏱️ 时间炸弹</button>
+    <button class="nav-btn" onclick="switchGame('expandSent')">📝 扩句</button>
+    <button class="nav-btn" onclick="switchGame('reverseCmd')">🙅 反向指令</button>
+    <button class="nav-btn" onclick="switchGame('guessWord')">🎯 你画我猜</button>
+    <button class="nav-btn" onclick="switchGame('locBomb')">📍 地点炸弹</button>
+    <button class="nav-btn" onclick="switchGame('reverseSay')">🔄 颠倒说</button>
+    <button class="nav-btn" onclick="switchGame('truthLie')">🤥 真假话</button>
+    <button class="nav-btn" onclick="switchGame('spy')">🕵️ 谁是卧底</button>
+    <button class="nav-btn" onclick="switchGame('garden')">🥬 逛三园</button>
+    <button class="nav-btn" onclick="switchGame('passSeven')">✋ 逢七过</button>
+    <button class="nav-btn" onclick="switchGame('lyrics')">🎤 歌词接龙</button>
+    <button class="nav-btn" onclick="switchGame('liarsDice')">🎲 吹牛骰子</button>
+    <button class="nav-btn" onclick="switchGame('lottery')">🎰 幸运抽奖</button>
+    <button class="nav-btn" onclick="switchGame('danmaku')">🎯 弹幕吐槽</button>
+    <button class="nav-btn" onclick="switchGame('quiz')">🙋 极速抢答</button> 
+-->
+
+
+
+
+
+</nav>
+
+<div class="game-container">
+    <!-- 14. 幸运抽奖机 -->
+    <div id="game-lottery" class="game-view">
+        <h2>🎰 幸运抽奖机</h2>
+        <div class="sub-text">点击开始，再点击停止，看看谁是幸运儿！</div>
+        <div class="display-box" id="lt-display" style="font-size:50px; color:var(--primary);">准备...</div>
+        <textarea id="lt-names" placeholder="输入参与者名字，用逗号或换行隔开（如：张三,李四,王五）" style="width:100%; height:80px; background:var(--card); border:1px solid #334155; border-radius:10px; padding:10px; color:white; font-size:14px; resize:none; margin-bottom:15px; outline:none;"></textarea>
+        <button class="btn btn-primary" id="lt-btn" onclick="toggleLottery()">开始滚动</button>
+    </div>
+
+    <!-- 15. 弹幕大吐槽 -->
+    <div id="game-danmaku" class="game-view">
+        <h2>🎯 弹幕大吐槽</h2>
+        <div class="sub-text">台下观众发送消息，实时上墙！</div>
+        <div style="width:100%; height:250px; background:#000; border-radius:15px; overflow:hidden; position:relative; border:2px solid var(--card);" id="dm-stage"></div>
+        <div style="display:flex; gap:10px; width:100%; margin-top:15px;">
+            <input type="text" id="dm-input" placeholder="输入弹幕内容..." style="flex:1;">
+            <button class="btn btn-primary" onclick="sendDanmaku()" style="max-width:120px;">发射</button>
+        </div>
+        <button class="btn btn-outline" onclick="clearDanmaku()" style="margin-top:10px; font-size:14px; padding:10px;">清空屏幕</button>
+    </div>
+
+    <!-- 16. 极速抢答器 -->
+    <div id="game-quiz" class="game-view">
+        <h2>🙋 极速抢答</h2>
+        <div class="sub-text">主持人出题，台下抢答，点击计分</div>
+        <div class="display-box" id="qz-timer" style="color:var(--danger); font-size:80px;">10</div>
+        <input type="text" id="qz-question" placeholder="输入题目（可选）" style="margin-bottom:10px;">
+        <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;" id="qz-scoreboard"></div>
+        <div style="display:flex; gap:10px; width:100%; margin-top:15px;">
+            <button class="btn btn-primary" onclick="quizStart()" style="flex:1;">开始答题</button>
+            <button class="btn btn-danger" onclick="quizStop()" style="flex:1;">时间到</button>
+        </div>
+        <button class="btn btn-outline" onclick="quizInit()" style="margin-top:10px; font-size:14px; padding:10px;">重置计分板</button>
+    </div>
+    <!-- 10. 逢七过 -->
+    <div id="game-passSeven" class="game-view">
+        <h2>✋ 逢七过</h2>
+        <div class="sub-text">遇到 7 或 7 的倍数，请拍手（或点击按钮）</div>
+        <div class="display-box" id="ps-num" style="color:var(--primary);">1</div>
+        <div style="display:flex; gap:10px; width:100%; max-width:300px;">
+            <button class="btn btn-primary" onclick="passSevenNext()" style="flex:1;">下一个</button>
+            <button class="btn btn-danger" onclick="passSevenClap()" style="flex:1;">拍手!</button>
+        </div>
+        <button class="btn btn-outline" onclick="passSevenInit()" style="margin-top:10px; font-size:14px; padding:10px;">重置游戏</button>
+    </div>
+
+    <!-- 11. 歌词接龙 -->
+    <div id="game-lyrics" class="game-view">
+        <h2>🎤 歌词接龙</h2>
+        <div class="sub-text">唱出包含该字的歌词，接不上受罚</div>
+        <div class="display-box" id="ly-char" style="color:var(--success); font-size:80px;">字</div>
+        <button class="btn btn-primary" onclick="lyricsNext()">换字</button>
+        <div class="sub-text" style="margin-top:20px; font-size:12px; opacity:0.6;">提示：可以是任何流行歌曲的歌词</div>
+    </div>
+
+    <!-- 12. 你画我猜 -->
+    <div id="game-guessWord" class="game-view">
+        <h2>🎯 你画我猜</h2>
+        <div class="sub-text">描述者看词，其他人猜</div>
+        <div class="secret-card hidden-word" id="gw-card" onclick="revealGuessWord()">点击看词</div>
+        <button class="btn btn-outline" onclick="guessWordInit()" style="margin-top:15px; font-size:14px; padding:10px;">换词</button>
+    </div>
+
+    <!-- 13. 吹牛骰子 -->
+    <div id="game-liarsDice" class="game-view">
+        <h2>🎲 吹牛骰子</h2>
+        <div class="sub-text">摇骰子，叫号或质疑</div>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0;" id="ld-dice"></div>
+        <div class="display-box" id="ld-call" style="font-size:24px; color:#94a3b8;">等待叫号...</div>
+        <div style="display:flex; gap:10px; width:100%; max-width:300px;">
+            <button class="btn btn-primary" onclick="liarsDiceRoll()" style="flex:1;">摇骰子</button>
+            <button class="btn btn-danger" onclick="liarsDiceOpen()" style="flex:1;">开！</button>
+        </div>
+        <div class="settings" style="margin-top:15px;">
+            <div class="chip selected" onclick="setLdCount(this, 5)">5颗</div>
+            <div class="chip" onclick="setLdCount(this, 6)">6颗</div>
+        </div>
+    </div>
+    <!-- 1. 数字炸弹 -->
+    <div id="game-numBomb" class="game-view active">
+        <h2>💣 数字炸弹</h2>
+        <div class="sub-text">范围 1-100，踩中即输</div>
+        <div class="display-box" id="nb-range">1 ~ 100</div>
+        <input type="number" id="nb-input" placeholder="输入数字..." min="1" max="100">
+        <button class="btn btn-primary" onclick="numBombGuess()">确认报数</button>
+        <button class="btn btn-outline" onclick="numBombInit()" style="margin-top:10px; font-size:14px; padding:10px;">重置游戏</button>
+        <div class="history" id="nb-history"></div>
+    </div>
+
+    <!-- 2. 时间炸弹 -->
+    <div id="game-timeBomb" class="game-view">
+        <h2>⏱️ 时间炸弹</h2>
+        <div class="sub-text" id="tb-status">设置时长后开始，不知道何时爆炸</div>
+        <div class="timer-circle" id="tb-circle">?</div>
+        <div class="settings">
+            <div class="chip selected" onclick="setTimeRange(this, 15, 45)">15-45秒</div>
+            <div class="chip" onclick="setTimeRange(this, 30, 60)">30-60秒</div>
+            <div class="chip" onclick="setTimeRange(this, 60, 120)">1-2分钟</div>
+        </div>
+        <button class="btn btn-danger" id="tb-btn" onclick="toggleTimeBomb()">开始传递</button>
+    </div>
+
+    <!-- 3. 地点炸弹 -->
+    <div id="game-locBomb" class="game-view">
+        <h2>📍 地点炸弹</h2>
+        <div class="sub-text">猜中具体地点即输</div>
+        <div class="display-box" id="lb-hint" style="font-size:30px; color:#94a3b8;">点击下方开始</div>
+        <input type="text" id="lb-input" placeholder="输入地点（如：北京、石家庄）">
+        <button class="btn btn-primary" onclick="locBombGuess()">确认地点</button>
+        <button class="btn btn-outline" onclick="locBombInit()" style="margin-top:10px; font-size:14px; padding:10px;">重置游戏</button>
+        <div class="history" id="lb-history"></div>
+    </div>
+
+    <!-- 4. 颠倒说 -->
+    <div id="game-reverseSay" class="game-view">
+        <h2>🔄 颠倒说</h2>
+        <div class="sub-text">把词语倒着说出来</div>
+        <div class="display-box" id="rs-word" style="color:var(--primary);">准备...</div>
+        <button class="btn btn-primary" onclick="reverseSayNext()">下一题</button>
+        <div class="settings" style="margin-top:20px;">
+            <div class="chip selected" onclick="setRsLen(this, 3, 4)">3-4字</div>
+            <div class="chip" onclick="setRsLen(this, 5, 6)">5-6字</div>
+            <div class="chip" onclick="setRsLen(this, 7, 9)">地狱模式</div>
+        </div>
+    </div>
+
+    <!-- 5. 扩句大挑战 -->
+    <div id="game-expandSent" class="game-view">
+        <h2>📝 扩句大挑战</h2>
+        <div class="sub-text">轮流加修饰词，不能改原字</div>
+        <div class="display-box" id="es-sent" style="font-size:28px; line-height:1.4; min-height:100px;">小猫跑。</div>
+        <input type="text" id="es-input" placeholder="输入扩写后的完整句子">
+        <button class="btn btn-primary" onclick="expandSentCheck()">确认扩写</button>
+        <button class="btn btn-outline" onclick="expandSentInit()" style="margin-top:10px; font-size:14px; padding:10px;">重置句子</button>
+        <div class="history" id="es-history"></div>
+    </div>
+
+    <!-- 6. 反向指令 -->
+    <div id="game-reverseCmd" class="game-view">
+        <h2>🙅 反向指令</h2>
+        <div class="sub-text">做相反动作！</div>
+        <div class="display-box" id="rc-cmd" style="color:var(--danger); font-size:40px;">准备...</div>
+        <button class="btn btn-primary" onclick="reverseCmdNext()">下一个指令</button>
+        <div class="sub-text" style="margin-top:20px; font-size:12px; opacity:0.6;">提示：举左→举右，蹲下→站起，向前→向后</div>
+    </div>
+
+    <!-- 7. 三句话真话假话 -->
+    <div id="game-truthLie" class="game-view">
+        <h2>🤥 三句话真话假话</h2>
+        <div class="sub-text">两真一假，猜猜哪句假</div>
+        <div style="width:100%; display:flex; flex-direction:column; gap:10px;" id="tl-cards">
+            <div class="secret-card hidden-word">点击生成题目</div>
+        </div>
+        <button class="btn btn-primary" onclick="truthLieGen()">生成新题目</button>
+        <div class="sub-text" style="margin-top:10px;">* 仅供主持人参考，请勿给玩家看答案</div>
+    </div>
+
+    <!-- 8. 谁是卧底 -->
+    <div id="game-spy" class="game-view">
+        <h2>🕵️ 谁是卧底</h2>
+        <div class="sub-text">点击卡片查看身份，轮流描述</div>
+        <div class="settings" id="spy-setup">
+            <div class="chip selected" onclick="setSpyCount(this, 5)">5人</div>
+            <div class="chip" onclick="setSpyCount(this, 6)">6人</div>
+            <div class="chip" onclick="setSpyCount(this, 8)">8人</div>
+            <div class="chip" onclick="setSpyCount(this, 10)">10人</div>
+        </div>
+        <div class="secret-card hidden-word" id="spy-card" onclick="revealSpy()">点击开始发牌</div>
+        <div class="sub-text" id="spy-progress"></div>
+        <button class="btn btn-outline" onclick="spyInit()" style="font-size:14px; padding:10px;">重新发牌</button>
+    </div>
+
+    <!-- 9. 逛三园 -->
+    <div id="game-garden" class="game-view">
+        <h2>🥬 逛三园</h2>
+        <div class="sub-text">不能重复，卡顿即输</div>
+        <div class="display-box" id="gd-theme" style="font-size:30px; color:var(--success);">准备...</div>
+        <input type="text" id="gd-input" placeholder="输入物品...">
+        <button class="btn btn-primary" onclick="gardenGuess()">确认</button>
+        <button class="btn btn-outline" onclick="gardenInit()" style="margin-top:10px; font-size:14px; padding:10px;">换主题</button>
+        <div class="history" id="gd-history"></div>
+    </div>
+
+        <!-- 17. 手速大挑战 -->
+        <div id="game-clicker" class="game-view">
+            <h2>⚡ 手速大挑战</h2>
+            <div class="sub-text">10秒内尽可能多点！看看你的手速有多快</div>
+            <div class="score-board" style="font-size:16px;font-weight:bold;color:var(--primary);margin-bottom:15px;">剩余时间: <span id="click-time">10</span>s | 得分: <span id="click-score">0</span></div>
+            <div id="click-target" class="click-area" onclick="handleClick()" style="width:150px;height:150px;font-size:2rem;background:var(--primary);border-radius:50%;margin:15px auto;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;cursor:pointer;transition:transform 0.1s;">GO</div>
+            <button class="btn btn-primary" onclick="startClicker()">开始游戏</button>
+        </div>
+
+        <!-- 18. 记忆翻牌 -->
+        <div id="game-memory" class="game-view">
+            <h2>🧠 记忆翻牌</h2>
+            <div class="sub-text">找出所有配对，步数越少越厉害</div>
+            <div class="settings" style="margin-bottom:15px;">
+                <div class="chip active" onclick="setMemorySize(4, this)" style="border:1px solid var(--primary);background:rgba(99,102,241,0.2);color:var(--primary);">4×4</div>
+                <div class="chip" onclick="setMemorySize(6, this)">6×6</div>
+                <div class="chip" onclick="setMemorySize(8, this)">8×8</div>
+            </div>
+            <div class="score-board" style="font-size:16px;font-weight:bold;color:var(--primary);margin-bottom:15px;">步数: <span id="memory-moves">0</span> | 配对: <span id="memory-pairs">0</span>/<span id="memory-total">8</span></div>
+            <div id="memory-grid" class="memory-grid" style="display:grid;gap:8px;margin:10px 0;width:100%;max-width:400px;justify-content:center;"></div>
+            <button class="btn btn-outline" onclick="initMemory()" style="font-size:14px;padding:10px;">重新开始</button>
+        </div>
+
+        <!-- 19. 反应力测试 -->
+        <div id="game-reaction" class="game-view">
+            <h2>⚡ 反应力测试</h2>
+            <div class="sub-text">红灯停，绿灯行！变绿瞬间点击</div>
+            <div id="reaction-box" class="reaction-box" onclick="handleReaction()" style="width:100%;height:180px;background:var(--danger);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:bold;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+                点击开始
+            </div>
+            <div class="score-board" style="font-size:16px;font-weight:bold;color:var(--primary);margin-top:15px;">最佳记录: <span id="reaction-best">-</span> ms</div>
+        </div>
+
+        <!-- 20. 打字躲避 -->
+        <div id="game-typing" class="game-view">
+            <h2>⌨️ 打字躲避</h2>
+            <div class="sub-text">字母掉下来时按下对应键，别让它落地！</div>
+            <div class="score-board" style="font-size:16px;font-weight:bold;color:var(--primary);margin-bottom:10px;">得分: <span id="typing-score">0</span> | 生命: <span id="typing-lives">3</span></div>
+            <div id="typing-area" style="position:relative;width:100%;height:280px;background:#0a0f1a;border-radius:12px;overflow:hidden;margin-bottom:10px;flex-shrink:0;"></div>
+            <button class="btn btn-primary" onclick="startTyping()">开始游戏</button>
+        </div>
+
+
+<!-- 通用弹窗 -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-content">
+        <div class="modal-icon" id="modal-icon">💥</div>
+        <div class="modal-title" id="modal-title">游戏结束</div>
+        <div class="modal-desc" id="modal-desc">接受惩罚吧！</div>
+        <button class="btn btn-primary" onclick="closeModal()">好的</button>
+    </div>
+</div>
+
+<script>
+    // --- 全局工具 ---
+    const $ = id => document.getElementById(id);
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    
+    function showModal(icon, title, desc) {
+        $('modal-icon').textContent = icon;
+        $('modal-title').textContent = title;
+        $('modal-desc').textContent = desc;
+        $('modal').classList.add('show');
+        if(navigator.vibrate) navigator.vibrate(200);
+    }
+    function closeModal() { $('modal').classList.remove('show'); }
+
+    function switchGame(name) {
+        document.querySelectorAll('.game-view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        $(`game-${name}`).classList.add('active');
+        event.target.classList.add('active');
+        // 停止时间炸弹
+        if(name !== 'timeBomb' && tbTimer) { clearInterval(tbTimer); tbTimer = null; }
+        // 停止手速挑战
+        if(name !== 'clicker' && clickerInterval) { clearInterval(clickerInterval); clickerInterval = null; clickerActive = false; }
+        // 停止反应测试
+        if(name !== 'reaction' && reactionTimeout) { clearTimeout(reactionTimeout); reactionTimeout = null; }
+        // 停止打字躲避
+        if(name !== 'typing' && typingActive) { typingActive = false; if(typingFrame) cancelAnimationFrame(typingFrame); }
+    }
+    // --- 14. 幸运抽奖机 ---
+    let ltTimer = null, ltNames = [], ltRunning = false;
+    function toggleLottery() {
+        const raw = $('lt-names').value.trim();
+        if(!raw) return alert('请先输入参与者名字！');
+        ltNames = raw.split(/[,，\n\s]+/).filter(n => n.trim() !== '');
+        
+        if(ltRunning) {
+            // 停止
+            clearInterval(ltTimer);
+            ltRunning = false;
+            $('lt-btn').textContent = '开始滚动';
+            $('lt-display').style.color = 'var(--success)';
+            showModal('🎉', '恭喜！', `幸运儿是：${$('lt-display').textContent}`);
+        } else {
+            // 开始
+            ltRunning = true;
+            $('lt-btn').textContent = '停止！';
+            $('lt-display').style.color = 'var(--primary)';
+            ltTimer = setInterval(() => {
+                const randName = ltNames[rand(0, ltNames.length-1)];
+                $('lt-display').textContent = randName;
+            }, 80);
+        }
+    }
+
+    // --- 15. 弹幕大吐槽 ---
+    const dmColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+    function sendDanmaku() {
+        const val = $('dm-input').value.trim();
+        if(!val) return;
+        const el = document.createElement('div');
+        el.textContent = val;
+        el.style.cssText = `position:absolute; white-space:nowrap; font-size:${rand(20,35)}px; font-weight:bold; color:${dmColors[rand(0,dmColors.length-1)]}; right:-300px; top:${rand(10, 210)}px; transition: left 5s linear; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);`;
+        $('dm-stage').appendChild(el);
+        requestAnimationFrame(() => { el.style.left = '-500px'; });
+        setTimeout(() => el.remove(), 5500);
+        $('dm-input').value = '';
+    }
+    function clearDanmaku() { $('dm-stage').innerHTML = ''; }
+    $('dm-input').addEventListener('keydown', e => { if(e.key==='Enter') sendDanmaku(); });
+
+    // --- 16. 极速抢答器 ---
+    let qzTimer = null, qzTimeLeft = 10, qzPlayers = ['A队', 'B队', 'C队', 'D队'], qzScores = [0,0,0,0];
+    function quizInit() {
+        qzScores = [0,0,0,0];
+        renderQzBoard();
+        $('qz-timer').textContent = '10';
+        $('qz-question').value = '';
+    }
+    function renderQzBoard() {
+        let html = '';
+        qzPlayers.forEach((p, i) => {
+            html += `<button class="btn btn-outline" onclick="quizAddScore(${i})" style="flex:1; min-width:80px; font-size:14px; padding:10px;">${p}<br><span style="font-size:24px; font-weight:bold;">${qzScores[i]}</span></button>`;
+        });
+        $('qz-scoreboard').innerHTML = html;
+    }
+    function quizAddScore(idx) {
+        qzScores[idx]++;
+        renderQzBoard();
+    }
+    function quizStart() {
+        if(qzTimer) return;
+        qzTimeLeft = 10;
+        $('qz-timer').textContent = qzTimeLeft;
+        $('qz-timer').style.color = 'var(--success)';
+        qzTimer = setInterval(() => {
+            qzTimeLeft--;
+            $('qz-timer').textContent = qzTimeLeft;
+            if(qzTimeLeft <= 3) $('qz-timer').style.color = 'var(--danger)';
+            if(qzTimeLeft <= 0) quizStop();
+        }, 1000);
+    }
+    function quizStop() {
+        clearInterval(qzTimer);
+        qzTimer = null;
+        $('qz-timer').style.color = '#94a3b8';
+        // 找出最高分
+        const maxScore = Math.max(...qzScores);
+        const winners = qzPlayers.filter((p, i) => qzScores[i] === maxScore);
+        if(maxScore > 0) showModal('🏆', '答题结束！', `恭喜 ${winners.join('、')} 获胜！`);
+    }
+    quizInit();
+
+    // --- 1. 数字炸弹 ---
+    let nbMin = 1, nbMax = 100, nbBomb = 0;
+    function numBombInit() {
+        nbMin = 1; nbMax = 100;
+        nbBomb = rand(1, 100);
+        $('nb-range').textContent = `${nbMin} ~ ${nbMax}`;
+        $('nb-range').style.color = 'var(--text)';
+        $('nb-input').value = '';
+        $('nb-history').innerHTML = '';
+    }
+    function numBombGuess() {
+        const val = parseInt($('nb-input').value);
+        if(isNaN(val) || val < nbMin || val > nbMax) return alert(`请输入 ${nbMin}-${nbMax} 之间的数字`);
+        
+        if(val === nbBomb) {
+            $('nb-range').textContent = `💥 ${nbBomb}`;
+            $('nb-range').style.color = 'var(--danger)';
+            showModal('💥', 'BOOM！', `炸弹数字是 ${nbBomb}，接受惩罚！`);
+            numBombInit(); // 自动重置
+        } else {
+            const p = document.createElement('p');
+            if(val < nbBomb) {
+                nbMin = val + 1;
+                p.textContent = `✅ ${val} → 小了！范围：${nbMin}~${nbMax}`;
+            } else {
+                nbMax = val - 1;
+                p.textContent = `✅ ${val} → 大了！范围：${nbMin}~${nbMax}`;
+            }
+            $('nb-range').textContent = `${nbMin} ~ ${nbMax}`;
+            $('nb-history').prepend(p);
+            $('nb-input').value = '';
+            $('nb-input').focus();
+        }
+    }
+    $('nb-input').addEventListener('keydown', e => { if(e.key==='Enter') numBombGuess(); });
+    numBombInit();
+
+    // --- 2. 时间炸弹 ---
+    let tbTimer = null, tbTimeLeft = 0, tbMin=15, tbMax=45;
+    function setTimeRange(el, min, max) {
+        document.querySelectorAll('#game-timeBomb .chip').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+        tbMin = min; tbMax =
+            tbMax = max;
+        }
+        function toggleTimeBomb() {
+            if(tbTimer) {
+                // 暂停/停止
+                clearInterval(tbTimer);
+                tbTimer = null;
+                $('tb-btn').textContent = '开始传递';
+                $('tb-status').textContent = '已暂停，点击继续';
+                $('tb-circle').classList.remove('exploding');
+            } else {
+                // 开始
+                if(!$('tb-circle').textContent || $('tb-circle').textContent === '?') {
+                    tbTimeLeft = rand(tbMin, tbMax);
+                }
+                $('tb-btn').textContent = '紧急停止';
+                $('tb-status').textContent = '正在传递...';
+                tbTimer = setInterval(() => {
+                    tbTimeLeft--;
+                    $('tb-circle').textContent = tbTimeLeft;
+                    if(tbTimeLeft <= 5) $('tb-circle').classList.add('exploding');
+                    if(tbTimeLeft <= 0) {
+                        clearInterval(tbTimer);
+                        tbTimer = null;
+                        $('tb-circle').textContent = '💥';
+                        showModal('💣', 'BOOM！时间到！', '物品在谁手上，谁接受惩罚！');
+                        setTimeout(() => {
+                            $('tb-circle').textContent = '?';
+                            $('tb-circle').classList.remove('exploding');
+                            $('tb-btn').textContent = '开始传递';
+                            $('tb-status').textContent = '设置时长后开始';
+                        }, 2000);
+                    }
+                }, 1000);
+            }
+        }
+
+        // --- 3. 地点炸弹 ---
+        let locBombTarget = '', locUsed = [];
+        const locDB = [
+            {name:'北京', lat:39.9, lng:116.4}, {name:'上海', lat:31.2, lng:121.5},
+            {name:'广州', lat:23.1, lng:113.3}, {name:'深圳', lat:22.5, lng:114.1},
+            {name:'成都', lat:30.6, lng:104.1}, {name:'武汉', lat:30.6, lng:114.3},
+            {name:'西安', lat:34.3, lng:108.9}, {name:'杭州', lat:30.3, lng:120.2},
+            {name:'南京', lat:32.1, lng:118.8}, {name:'重庆', lat:29.6, lng:106.5},
+            {name:'天津', lat:39.1, lng:117.2}, {name:'苏州', lat:31.3, lng:120.6},
+            {name:'长沙', lat:28.2, lng:112.9}, {name:'郑州', lat:34.7, lng:113.6},
+            {name:'青岛', lat:36.1, lng:120.4}, {name:'大连', lat:38.9, lng:121.6},
+            {name:'厦门', lat:24.5, lng:118.1}, {name:'昆明', lat:25.0, lng:102.7},
+            {name:'哈尔滨', lat:45.8, lng:126.5}, {name:'沈阳', lat:41.8, lng:123.4},
+            {name:'拉萨', lat:29.6, lng:91.1}, {name:'乌鲁木齐', lat:43.8, lng:87.6},
+            {name:'石家庄', lat:38.0, lng:114.5}, {name:'太原', lat:37.9, lng:112.5},
+            {name:'济南', lat:36.7, lng:117.0}, {name:'福州', lat:26.1, lng:119.3},
+            {name:'合肥', lat:31.8, lng:117.3}, {name:'南昌', lat:28.7, lng:115.9},
+            {name:'贵阳', lat:26.6, lng:106.7}, {name:'南宁', lat:22.8, lng:108.3},
+            {name:'海口', lat:20.0, lng:110.3}, {name:'呼和浩特', lat:40.8, lng:111.7}
+        ];
+        function locBombInit() {
+            locBombTarget = locDB[rand(0, locDB.length-1)];
+            locUsed = [];
+            $('lb-hint').textContent = '请输入地点';
+            $('lb-hint').style.color = '#94a3b8';
+            $('lb-input').value = '';
+            $('lb-history').innerHTML = '';
+        }
+        function locBombGuess() {
+            const val = $('lb-input').value.trim();
+            if(!val) return;
+            const found = locDB.find(l => l.name.includes(val) || val.includes(l.name));
+            const p = document.createElement('p');
+            
+            if(found && found.name === locBombTarget.name) {
+                $('lb-hint').textContent = `💥 ${locBombTarget.name}`;
+                $('lb-hint').style.color = 'var(--danger)';
+                showModal('📍', '踩雷了！', `炸弹地点是：${locBombTarget.name}`);
+                locBombInit();
+            } else if(found) {
+                let hint = '';
+                if(found.lat > locBombTarget.lat) hint += '更北 ⬆️ ';
+                else if(found.lat < locBombTarget.lat) hint += '更南 ⬇️ ';
+                if(found.lng > locBombTarget.lng) hint += '更东 ➡️';
+                else if(found.lng < locBombTarget.lng) hint += '更西 ⬅️';
+                
+                p.textContent = `📍 ${found.name} → ${hint}`;
+                $('lb-hint').textContent = hint;
+                $('lb-hint').style.color = 'var(--primary)';
+                $('lb-history').prepend(p);
+            } else {
+                p.textContent = `❓ ${val} → 不在数据库内，换词试试`;
+                p.style.color = 'var(--danger)';
+                $('lb-history').prepend(p);
+            }
+            $('lb-input').value = '';
+            $('lb-input').focus();
+        }
+        $('lb-input').addEventListener('keydown', e => { if(e.key==='Enter') locBombGuess(); });
+        locBombInit();
+
+        // --- 4. 颠倒说 ---
+        const rsWords = ['吃西瓜','看电视','打游戏','写作业','洗衣服','打篮球','踢足球','弹钢琴','骑自行车','滑滑板','放风筝','堆雪人','吃火锅','喝奶茶','买衣服','看电影','听音乐','拍照片','画图画','写日记','去旅行','坐地铁','等公交','过马路','系鞋带','梳头发','刷牙洗脸','穿衣服','脱袜子','关窗户','开门锁','按电梯','按门铃','打电话','发微信','回邮件','查字典','翻书本','折纸鹤','剪指甲','擦桌子','扫地拖地','倒垃圾','浇花草','喂小猫','遛小狗','下象棋','打扑克','吹气球','放烟花'];
+        let rsMin=3, rsMax=4;
+        function setRsLen(el, min, max) {
+            document.querySelectorAll('#game-reverseSay .chip').forEach(c=>c.classList.remove('selected'));
+            el.classList.add('selected');
+            rsMin = min; rsMax = max;
+            reverseSayNext();
+        }
+        function reverseSayNext() {
+            // 简单模拟：从词库随机取，如果长度不符就拼凑
+            let word = rsWords[rand(0, rsWords.length-1)];
+            if(word.length < rsMin) {
+                const w2 = rsWords[rand(0, rsWords.length-1)];
+                word = word + w2.substring(0, rsMin - word.length);
+            }
+            if(word.length > rsMax) word = word.substring(0, rsMax);
+            
+            $('rs-word').textContent = word;
+            $('rs-word').style.color = 'var(--primary)';
+        }
+        reverseSayNext();
+
+        // --- 5. 扩句大挑战 ---
+        const esBase = ['小猫跑。','花儿开。','鸟儿飞。','太阳升。','下雨了。','风儿吹。','树叶落。','河水淌。'];
+        let esCurrent = '';
+        function expandSentInit() {
+            esCurrent = esBase[rand(0, esBase.length-1)];
+            $('es-sent').textContent = esCurrent;
+            $('es-input').value = '';
+            $('es-history').innerHTML = '<p>🏁 初始句子已生成</p>';
+        }
+        function expandSentCheck() {
+            const val = $('es-input').value.trim();
+            if(!val) return;
+            // 简单校验：原句子的字必须按顺序出现在新句子中
+            let checkIdx = 0;
+            for(let char of esCurrent) {
+                const found = val.indexOf(char, checkIdx);
+                if(found === -1) {
+                    showModal('❌', '修改了原句！', '扩句不能改动或删除原有文字哦');
+                    return;
+                }
+                checkIdx = found + 1;
+            }
+            if(val.length <= esCurrent.length) {
+                showModal('❌', '没有扩写！', '新句子必须比原来更长');
+                return;
+            }
+            esCurrent = val;
+            $('es-sent').textContent = esCurrent;
+            const p = document.createElement('p');
+            p.textContent = `✅ ${val}`;
+            $('es-history').prepend(p);
+            $('es-input').value = '';
+        }
+        $('es-input').addEventListener('keydown', e => { if(e.key==='Enter') expandSentCheck(); });
+        expandSentInit();
+
+        // --- 6. 反向指令 ---
+        const rcCmds = [
+            {say:'举左手', do:'举右手'}, {say:'举右手', do:'举左手'},
+            {say:'蹲下', do:'站起'}, {say:'站起', do:'蹲下'},
+            {say:'向前一步', do:'向后一步'}, {say:'向后一步', do:'向前一步'},
+            {say:'抬头', do:'低头'}, {say:'低头', do:'抬头'},
+            {say:'睁眼', do:'闭眼'}, {say:'闭眼', do:'睁眼'},
+            {say:'张嘴', do:'闭嘴'}, {say:'闭嘴', do:'张嘴'},
+            {say:'举左手', do:'举右手'}, {say:'摸左耳', do:'摸右耳'},
+            {say:'摸右耳', do:'摸左耳'}, {say:'抬左脚', do:'抬右脚'},
+            {say:'抬右脚', do:'抬左脚'}, {say:'点头', do:'摇头'}
+        ];
+        function reverseCmdNext() {
+            const cmd = rcCmds[rand(0, rcCmds.length-1)];
+            $('rc-cmd').textContent = cmd.say;
+            $('rc-cmd').style.color = 'var(--danger)';
+        }
+        reverseCmdNext();
+
+        // --- 7. 三句话真话假话 ---
+        const tlTemplates = [
+            ['我养过猫', '我去过日本', '我不会游泳', '我不会游泳'],
+            ['我吃过榴莲', '我跳过伞', '我拿过奖学金', '我拿过奖学金'],
+            ['我会弹吉他', '我见过极光', '我晕车', '我晕车'],
+            ['我考过驾照一次过', '我中过彩票', '我不吃香菜', '我不吃香菜'],
+            ['我学过跆拳道', '我坐过直升机', '我怕黑', '我怕黑'],
+            ['我染过头发', '我出过国', '我睡觉打呼噜', '我睡觉打呼噜'],
+            ['我会做红烧肉', '我跑过马拉松', '我对花粉过敏', '我对花粉过敏'],
+            ['我打过耳洞', '我看过极光', '我不喝牛奶', '我不喝牛奶']
+        ];
+        function truthLieGen() {
+            const set = tlTemplates[rand(0, tlTemplates.length-1)];
+            const fake = set[3];
+            const reals = set.slice(0,3).sort(() => Math.random()-0.5);
+            // 把假话随机插入
+            const pos = rand(0,3);
+            const finalList = [...reals];
+            finalList.splice(pos, 0, fake);
+            
+            let html = '';
+            finalList.forEach((s, i) => {
+                const isFake = s === fake ? ' (假)' : '';
+                html += `<div class="secret-card" style="font-size:20px; cursor:default; ${s===fake?'border:2px solid var(--danger)':''}">
+                    ${i+1}. ${s} <span style="font-size:12px; opacity:0.7; margin-left:10px;">${isFake}</span>
+                </div>`;
+            });
+            $('tl-cards').innerHTML = html;
+        }
+        truthLieGen();
+
+        // --- 8. 谁是卧底 ---
+        const spyPairs = [
+            ['苹果','梨'], ['牛奶','豆浆'], ['可乐','雪碧'], ['面包','馒头'],
+            ['饺子','馄饨'], ['面条','粉丝'], ['汉堡','三明治'], ['薯条','薯片'],
+            ['咖啡','奶茶'], ['啤酒','白酒'], ['沙发','床'], ['桌子','茶几'],
+            ['雨伞','遮阳伞'], ['眼镜','墨镜'], ['手表','手环'], ['毛巾','浴巾'],
+            ['牙膏','牙刷'], ['洗发水','沐浴露'], ['口红','唇膏'], ['香水','花露水'],
+            ['飞机','高铁'], ['地铁','公交'], ['出租车','网约车'], ['自行车','电动车'],
+            ['医生','护士'], ['老师','教授'], ['警察','保安'], ['厨师','服务员']
+        ];
+        let spyCount = 5, spyWords = [], spyIdx = 0, spyRevealed = 0;
+        function setSpyCount(el, n) {
+            document.querySelectorAll('#spy-setup .chip').forEach(c=>c.classList.remove('selected'));
+            el.classList.add('selected');
+            spyCount = n;
+            spyInit();
+        }
+        function spyInit() {
+            const pair = spyPairs[rand(0, spyPairs.length-1)];
+            if(Math.random() > 0.5) pair.reverse(); // 随机卧底词
+            spyWords = [];
+            const spyPos = rand(0, spyCount-1);
+            for(let i=0; i<spyCount; i++) {
+                spyWords.push(i === spyPos ? pair[1] : pair[0]);
+            }
+            spyIdx = 0;
+            spyRevealed = 0;
+            $('spy-card').textContent = '点击开始发牌';
+            $('spy-card').classList.add('hidden-word');
+            $('spy-progress').textContent = `共 ${spyCount} 人，卧底词: ${pair[1]} | 平民词: ${pair[0]}`;
+        }
+        function revealSpy() {
+            if(spyIdx >= spyCount) {
+                spyInit();
+                return;
+            }
+            $('spy-card').classList.remove('hidden-word');
+            $('spy-card').textContent = spyWords[spyIdx];
+            $('spy-card').style.background = spyIdx === spyWords.indexOf(spyWords[spyIdx]) && spyWords.filter(w=>w===spyWords[spyIdx]).length===1 
+                ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+                : 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+            
+            // 记录已看
+            if(!spyWords[spyIdx]._seen) {
+                spyWords[spyIdx]._seen = true;
+                spyRevealed++;
+            }
+            
+            setTimeout(() => {
+                spyIdx++;
+                if(spyIdx < spyCount) {
+                    $('spy-card').classList.add('hidden-word');
+                    $('spy-card').textContent = `请传给第 ${spyIdx+1} 位玩家，点击看词`;
+                    $('spy-card').style.background = '';
+                } else {
+                    $('spy-card').textContent = '所有人已看词，点击重新发牌';
+                    $('spy-card').classList.add('hidden-word');
+                    $('spy-card').style.background = '';
+                }
+            }, 2000);
+        }
+        spyInit();
+
+        // --- 9. 逛三园 ---
+        const gdThemes = {
+            '水果园': ['苹果','香蕉','橙子','葡萄','西瓜','草莓','芒果','菠萝','樱桃','桃子','梨','猕猴桃','火龙果','榴莲','荔枝','龙眼','柚子','木瓜','哈密瓜','蓝莓','石榴','山竹','椰子','牛油果','百香果','枇杷','杨梅','杏子','李子','柿子','山楂','甘蔗','甜瓜','柠檬','金桔','无花果','桑葚','车厘子','释迦果','莲雾'],
+            '蔬菜园': ['白菜','萝卜','茄子','番茄','黄瓜','土豆','青椒','豆角','芹菜','菠菜','韭菜','洋葱','大蒜','生姜','南瓜','冬瓜','苦瓜','丝瓜','西兰花','花菜','生菜','油麦菜','空心菜','苋菜','茼蒿','香菜','秋葵','山药','莲藕','芋头','红薯','玉米','豌豆','毛豆','蚕豆','扁豆','蘑菇','香菇','金针菇','木耳'],
+            '动物园': ['老虎','狮子','大象','长颈鹿','斑马','熊猫','猴子','猩猩','袋鼠','考拉','企鹅','北极熊','棕熊','狐狸','狼','豹子','猎豹','犀牛','河马','鳄鱼','蛇','乌龟','青蛙','鹦鹉','老鹰','猫头鹰','孔雀','火烈鸟','天鹅','海鸥','海豚','鲸鱼','鲨鱼','章鱼','水母','螃蟹','龙虾','蝴蝶','蜜蜂','蚂蚁'],
+            '游乐园': ['过山车','摩天轮','旋转木马','碰碰车','海盗船','大摆锤','跳楼机','激流勇进','鬼屋','卡丁车','蹦极','滑索','水上乐园','漂流','射击馆','套圈','抓娃娃','棉花糖','爆米花','冰淇淋','热狗','汉堡','薯条','可乐','果汁','气球','玩偶','门票','排队']
+        };
+        let gdCurrentTheme = '', gdUsed = [];
+        function gardenInit() {
+            const keys = Object.keys(gdThemes);
+            gdCurrentTheme = keys[rand(0, keys.length-1)];
+            gdUsed = [];
+            $('gd-theme').textContent = `🥬 ${gdCurrentTheme}`;
+            $('gd-input').value = '';
+            $('gd-history').innerHTML = '<p>🏁 主题已更换，开始接龙！</p>';
+        }
+        function gardenGuess() {
+            const val = $('gd-input').value.trim();
+            if(!val) return;
+            const list = gdThemes[gdCurrentTheme];
+            const p = document.createElement('p');
+            
+            if(!list.includes(val)) {
+                p.textContent = `❌ ${val} → 不属于${gdCurrentTheme}！`;
+                p.style.color = 'var(--danger)';
+                $('gd-history').prepend(p);
+                showModal('❌', '说错了！', `${val} 不属于 ${gdCurrentTheme}`);
+            } else if(gdUsed.includes(val)) {
+                p.textContent = `❌ ${val} → 已经说过了！`;
+                p.style.color = 'var(--danger)';
+                $('gd-history').prepend(p);
+                showModal('🔁', '重复了！', `${val} 之前已经有人说过了`);
+            } else {
+                gdUsed.push(val);
+                p.textContent = `✅ ${val}`;
+                $('gd-history').prepend(p);
+            }
+            $('gd-input').value = '';
+            $('gd-input').focus();
+        }
+        $('gd-input').addEventListener('keydown', e => { if(e.key==='Enter') gardenGuess(); });
+        gardenInit();
+
+    // --- 10. 逢七过 ---
+    let psCurrent = 1;
+    function passSevenInit() {
+        psCurrent = 1;
+        $('ps-num').textContent = psCurrent;
+        $('ps-num').style.color = 'var(--primary)';
+    }
+    function passSevenNext() {
+        psCurrent++;
+        $('ps-num').textContent = psCurrent;
+        $('ps-num').style.color = 'var(--primary)';
+    }
+    function passSevenClap() {
+        const isSeven = psCurrent % 7 === 0 || psCurrent.toString().includes('7');
+        if(isSeven) {
+            $('ps-num').style.color = 'var(--success)';
+            passSevenNext(); // 拍手正确，自动下一个
+        } else {
+            $('ps-num').style.color = 'var(--danger)';
+            showModal('❌', '拍错了！', `${psCurrent} 不是 7 或 7 的倍数哦`);
+        }
+    }
+    passSevenInit();
+
+    // --- 11. 歌词接龙 ---
+    const lyChars = ['爱','恨','情','愁','风','花','雪','月','夜','雨','梦','泪','笑','哭','走','留','忘','记','你','我','他','她','天','地','心','眼','手','口','耳','鼻','发','眉','唇','脸','颈','肩','胸','背','腰','腿','脚','指','甲','骨','肉','血','汗','气','声','音','乐','歌','舞','画','诗','书','琴','棋','剑','刀','枪','棍','棒','拳','掌','腿','脚','步','行','跑','跳','飞','游','爬','滚','翻','转','旋','摇','摆','晃','荡','飘','落','沉','浮','升','降','起','伏','弯','直','曲','圆','方','长','短','高','低','大','小','多','少','有','无','是','非','对','错','真','假','善','恶','美','丑','好','坏','新','旧','老','少','男','女','父','母','兄','弟','姐','妹','儿','女','夫','妻','君','臣','将','相','王','侯','帝','皇','神','仙','妖','魔','鬼','怪','龙','凤','虎','豹','狼','熊','鹰','燕','雀','鸦','鹊','鸡','鸭','鹅','鱼','虾','蟹','龟','蛇','虫','蚁','蜂','蝶','蛙','蝉','萤','蚊','蝇','鼠','牛','马','羊','猪','狗','猫','兔','猴','狐','鹿','象','狮','熊','豹','虎','狼','犬','豕','雉','隼','鹏','鲲','鳌','犀','兕','獬','豸','犰','狳','貘','犴','狍','狨','猞','猁','狝','猴','猕','狒','猩','狖','狚','狜','狝','狟','狢','狣','狤','狥','狦','狧','狨','狯','狰','狲','狳','狴','狵','狶','狷','狸','狺','狻','狼','狽','狾','狿','猀','猁','猂','猃','猄','猅','猆','猇','猈','猉','猋','猌','猍','猏','猐','猑','猒','猓','猔','猕','猖','猗','猘','猙','猚','猛','猜','猝','猞','猠','猡','猢','猣','猤','猥','猦','猧','猨','猩','猭','献','猯','猰','猲','猳','猴','猵','猶','猷','猸','猹','猺','猻','猼','猽','猾','猿','獀','獁','獂','獃','獅','獆','獇','獈','獉','獊','獋','獌','獍','獏','獐','獑','獒','獓','獔','獕','獖','獗','獘','獙','獚','獛','獜','獝','獞','獟','獠','獡','獢','獣','獤','獥','獦','獧','獩','獪','獫','獬','獭','獮','獯','獰','獱','獳','獴','獵','獶','獷','獸','獹','獺','獻','獼','獽','獾','獿','玀','玁','玂','玃','玄','玅','玆','率','玈','玉','玊','玌','玍','玎','玏','玐','玑','玒','玓','玔','玕','玗','玘','玙','玚','玛','玜','玝','玞','玟','玠','玡','玢','玣','玤','玥','玦','玧','玨','玩','玪','玫','玬','玭','玮','环','现','玱','玲','玳','玴','玵','玶','玷','玸','玹','玺','玻','玼','玽','玾','玿','玲','玿','玾','玿']; // 简化版常用字
+    function lyricsNext() {
+        const char = lyChars[rand(0, lyChars.length-1)];
+        $('ly-char').textContent = char;
+    }
+    lyricsNext();
+
+    // --- 12. 你画我猜 ---
+    const gwWords = ['外星人','微波炉','长颈鹿','过山车','棉花糖','挖掘机','孙悟空','猪八戒','奥特曼','变形金刚','哈利波特','蜘蛛侠','钢铁侠','蝙蝠侠','超人','神奇女侠','美国队长','雷神','绿巨人','黑寡妇','鹰眼','灭霸','洛基','奇异博士','黑豹','蚁人','黄蜂女','惊奇队长','银河护卫队','火箭浣熊','格鲁特','星爵','卡魔拉','德拉克斯','星云','勇度','螳螂女','至高进化者','亚当术士','观察者','生命法庭','永恒','无限','死亡','湮灭','行星吞噬者','吞星','银色滑翔者','诺瓦','类星体','斗剑','哨兵','亥伯龙','分子人','超越者','神君杜姆','毁灭博士','红骷髅','交叉骨','齐莫','九头蛇','神盾局','复仇者联盟','正义联盟','X战警','神奇四侠','捍卫者联盟','光照会','异人族','永恒族','变种人','克隆人','机器人','人工智能','赛博格','生化人','吸血鬼','狼人','僵尸','幽灵','恶魔','天使','神明','精灵','矮人','巨人','泰坦','巨龙','凤凰','独角兽','狮鹫','飞马','九头蛇','海妖','塞壬','美人鱼','牛头怪','米诺陶','独眼巨人','三头犬','地狱犬','刻耳柏洛斯','许德拉','戈耳工','美杜莎','珀耳修斯','阿喀琉斯','赫拉克勒斯','忒修斯','俄狄浦斯','普罗米修斯','潘多拉','伊卡洛斯','代达罗斯','米达斯','坦塔罗斯','西西弗斯','阿特拉斯','俄耳甫斯','欧律狄刻','珀耳塞福涅','哈迪斯','波塞冬','宙斯','赫拉','雅典娜','阿波罗','阿尔忒弥斯','阿瑞斯','阿佛洛狄忒','赫菲斯托斯','赫尔墨斯','狄俄尼索斯','得墨忒耳','赫斯提亚','厄洛斯','普赛克','盖亚','乌拉诺斯','克罗诺斯','瑞亚','俄刻阿诺斯','泰西斯','许珀里翁','忒亚','科俄斯','福柏','克利俄斯','欧律比亚','墨诺提俄斯','阿斯特赖俄斯','珀耳塞斯','阿特拉斯','普罗米修斯','厄庇墨透斯','墨诺提俄斯','赫利俄斯','塞勒涅','厄俄斯','阿斯特赖亚','勒托','阿斯忒里亚','帕拉斯','斯提克斯','尼刻','比阿','克拉托斯','泽洛斯','伊利斯','特里同','普罗透斯','涅瑞伊得斯','俄刻阿尼得斯','河神','海神','风神','雨神','雷神','火神','水神','地神','日神','月神','星神','云神','雾神','霜神','雪神','冰神','火神','光神','暗神','夜神','昼神','晨神','昏神','春神','夏神','秋神','冬神','命运三女神','复仇三女神','美惠三女神','缪斯九女神','时序三女神','摩伊赖','厄里倪厄斯','卡里忒斯','荷赖','缪斯','克利俄','欧忒耳佩','塔利亚','墨耳波墨涅','忒耳普西科瑞','厄拉托','波吕许谟尼亚','乌剌尼亚','卡利俄佩','阿波罗','狄俄尼索斯','潘','西勒诺斯','萨堤尔','宁芙','德律阿得斯','那伊阿得斯','俄瑞阿得斯','涅瑞伊得斯','俄刻阿尼得斯','赫利阿得斯','法厄同','阿斯克勒庇俄斯','许癸厄亚','帕那刻亚','伊阿索','阿刻索','忒勒斯福罗斯','狄俄斯库里','卡斯托尔','波吕丢刻斯','海伦','墨涅拉俄斯','阿伽门农','克吕泰涅斯特拉','俄瑞斯忒斯','厄勒克特拉','伊菲革涅亚','阿喀琉斯','帕特罗克洛斯','埃阿斯','奥德修斯','涅斯托尔','狄俄墨得斯','伊多墨纽斯','墨里俄涅斯','忒拉蒙','菲罗克忒忒斯','欧律皮洛斯','涅俄普托勒摩斯','普里阿摩斯','赫卡柏','帕里斯','赫克托耳','安德洛玛刻','阿斯提阿那克斯','卡珊德拉','波吕克塞娜','拉奥孔','安喀塞斯','埃涅阿斯','阿斯卡尼俄斯','狄多','拉维尼亚','图尔努斯','埃万德','帕拉斯','卡弥拉','墨赞提俄斯','劳苏斯','翁法勒','赫拉克勒斯','得伊阿尼拉','许洛斯','马喀里阿','克勒俄达俄斯','阿里阿德涅','忒修斯','淮德拉','希波吕托斯','阿德拉斯托斯','安菲阿拉俄斯','堤丢斯','卡帕纽斯','帕耳忒诺派俄斯','波吕尼刻斯','厄忒俄克勒斯','安提戈涅','伊斯墨涅','克瑞翁','墨诺叩斯','欧律狄刻','俄狄浦斯','伊俄卡斯忒','拉伊俄斯','福玻斯','波吕玻斯','墨罗珀','科林斯','忒拜','阿尔戈斯','迈锡尼','斯巴达','雅典','特洛伊','伊利昂','珀伽索斯','喀迈拉','斯芬克斯','牛头怪','米诺陶','达摩克利斯','皮格马利翁','伽拉忒亚','那喀索斯','厄科','潘多拉','普罗米修斯','厄庇墨透斯','阿特拉斯','赫拉克勒斯','忒修斯','珀耳修斯','柏勒洛丰','伊阿宋','俄耳甫斯','阿塔兰忒','墨勒阿革洛斯','卡斯托尔','波吕丢刻斯','阿喀琉斯','埃阿斯','奥德修斯','狄俄墨得斯','涅斯托尔','伊多墨纽斯','墨里俄涅斯','菲罗克忒忒斯','欧律皮洛斯','涅俄普托勒摩斯','普里阿摩斯','赫卡柏','帕里斯','赫克托耳','安德洛玛刻','阿斯提阿那克斯','卡珊德拉','波吕克塞娜','拉奥孔','安喀塞斯','埃涅阿斯','阿斯卡尼俄斯','狄多','拉维尼亚','图尔努斯','埃万德','帕拉斯','卡弥拉','墨赞提俄斯','劳苏斯','翁法勒','赫拉克勒斯','得伊阿尼拉','许洛斯','马喀里阿','克勒俄达俄斯','阿里阿德涅','忒修斯','淮德拉','希波吕托斯','阿德拉斯托斯','安菲阿拉俄斯','堤丢斯','卡帕纽斯','帕耳忒诺派俄斯','波吕尼刻斯','厄忒俄克勒斯','安提戈涅','伊斯墨涅','克瑞翁','墨诺叩斯','欧律狄刻','俄狄浦斯','伊俄卡斯忒','拉伊俄斯','福玻斯','波吕玻斯','墨罗珀','科林斯','忒拜','阿尔戈斯','迈锡尼','斯巴达','雅典','特洛伊','伊利昂'];
+    function guessWordInit() {
+        $('gw-card').textContent = '点击看词';
+        $('gw-card').classList.add('hidden-word');
+        $('gw-card').style.background = '';
+    }
+    function revealGuessWord() {
+        if($('gw-card').classList.contains('hidden-word')) {
+            const word = gwWords[rand(0, gwWords.length-1)];
+            $('gw-card').textContent = word;
+            $('gw-card').classList.remove('hidden-word');
+            $('gw-card').style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+            setTimeout(() => {
+                $('gw-card').textContent = '点击换词';
+                $('gw-card').classList.add('hidden-word');
+                $('gw-card').style.background = '';
+            }, 3000);
+        } else {
+            guessWordInit();
+        }
+    }
+    guessWordInit();
+
+    // --- 13. 吹牛骰子 ---
+    let ldCount = 5, ldDice = [], ldLastCall = '';
+    function setLdCount(el, n) {
+        document.querySelectorAll('#game-liarsDice .chip').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+        ldCount = n;
+        liarsDiceRoll();
+    }
+    function liarsDiceRoll() {
+        ldDice = [];
+        for(let i=0; i<ldCount; i++) {
+            ldDice.push(rand(1,6));
+        }
+        renderLdDice();
+        $('ld-call').textContent = '摇好了！请叫号或开！';
+        $('ld-call').style.color = '#94a3b8';
+    }
+    function renderLdDice() {
+        let html = '';
+        ldDice.forEach(d => {
+            html += `<div style="width:40px; height:40px; background:var(--card); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; border:2px solid var(--primary);">${d}</div>`;
+        });
+        $('ld-dice').innerHTML = html;
+    }
+    function liarsDiceOpen() {
+        if(ldDice.length === 0) return alert('请先摇骰子！');
+        // 简单模拟：随机判定胜负（实际应结合上家叫号）
+        const win = Math.random() > 0.5;
+        if(win) {
+            showModal('🎉', '你赢了！', '对方吹牛被识破，或者你的点数够大！');
+        } else {
+            showModal('💥', '你输了！', '点数不够，或者你吹牛被抓包了！');
+        }
+        liarsDiceRoll();
+    }
+    liarsDiceRoll();
+
+        // --- 课堂乐园游戏 ---
+                // 上课模式
+        let isStudyMode = false;
+        function toggleStudyMode() {
+            const studyMode = document.getElementById('studyMode');
+            if (!studyMode) return;
+            isStudyMode = !isStudyMode;
+            studyMode.classList.toggle('active', isStudyMode);
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') toggleStudyMode();
+            if (isStudyMode) return;
+            handleTypingKey(e.key);
+        });
+        // 延迟绑定上课模式点击事件，确保 DOM 已加载
+        setTimeout(() => {
+            const studyMode = document.getElementById('studyMode');
+            if (studyMode) {
+                studyMode.addEventListener('click', toggleStudyMode);
+            }
+        }, 0);
+
+        // 手速挑战
+        let clickScore = 0;
+        let clickTimeLeft = 10;
+        let clickerInterval = null;
+        let clickerActive = false;
+
+        function startClicker() {
+            clickScore = 0;
+            clickTimeLeft = 10;
+            clickerActive = true;
+            updateClickUI();
+            
+            clickerInterval = setInterval(() => {
+                clickTimeLeft--;
+                updateClickUI();
+                if (clickTimeLeft <= 0) {
+                    clearInterval(clickerInterval);
+                    clickerActive = false;
+                    document.getElementById('click-target').innerText = clickScore;
+                }
+            }, 1000);
+        }
+
+        function handleClick() {
+            if (!clickerActive) return;
+            clickScore++;
+            updateClickUI();
+        }
+
+        function updateClickUI() {
+            document.getElementById('click-time').innerText = clickTimeLeft;
+            document.getElementById('click-score').innerText = clickScore;
+            if (clickerActive) document.getElementById('click-target').innerText = clickScore;
+        }
+
+        // 记忆翻牌
+        const emojis = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🍑', '🥝', '🍋', '🍊', '🥭', '🍍', '🫐', '🥥', '🍈', '🥑', '🍏', '🍐', '🥕', '🌽', '🍅', '🥦', '🧄', '🧅', '🌶️', '🍄', '🥜', '🌰', '🍞', '🧀', '🥚', '🍳'];
+        let memorySize = 4;
+        let flippedCards = [];
+        let memoryMoves = 0;
+        let memoryPairs = 0;
+        let memoryLocked = false;
+
+        function setMemorySize(size, btn) {
+            memorySize = size;
+            document.querySelectorAll('#game-memory .chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            initMemory();
+        }
+
+        function initMemory() {
+            memoryMoves = 0;
+            memoryPairs = 0;
+            flippedCards = [];
+            memoryLocked = false;
+            
+            const totalPairs = (memorySize * memorySize) / 2;
+            document.getElementById('memory-total').innerText = totalPairs;
+            updateMemoryUI();
+            
+            const selectedEmojis = emojis.slice(0, totalPairs);
+            const shuffled = [...selectedEmojis, ...selectedEmojis].sort(() => Math.random() - 0.5);
+            
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${memorySize}, 1fr)`;
+            
+            shuffled.forEach((emoji, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.emoji = emoji;
+                card.dataset.index = idx;
+                card.innerText = '?';
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (memoryLocked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            
+            card.classList.add('flipped');
+            card.innerText = card.dataset.emoji;
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                memoryMoves++;
+                updateMemoryUI();
+                memoryLocked = true;
+
+                const [c1, c2] = flippedCards;
+                if (c1.dataset.emoji === c2.dataset.emoji) {
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
+                    memoryPairs++;
+                    updateMemoryUI();
+                    flippedCards = [];
+                    memoryLocked = false;
+                } else {
+                    setTimeout(() => {
+                        c1.classList.remove('flipped');
+                        c2.classList.remove('flipped');
+                        c1.innerText = '?';
+                        c2.innerText = '?';
+                        flippedCards = [];
+                        memoryLocked = false;
+                    }, 800);
+                }
+            }
+        }
+
+        function updateMemoryUI() {
+            document.getElementById('memory-moves').innerText = memoryMoves;
+            document.getElementById('memory-pairs').innerText = memoryPairs;
+        }
+
+        // 反应测试
+        let reactionState = 'idle';
+        let reactionTimeout = null;
+        let reactionStartTime = 0;
+        let reactionBest = Infinity;
+
+        function handleReaction() {
+            const box = document.getElementById('reaction-box');
+            
+            if (reactionState === 'idle' || reactionState === 'result') {
+                reactionState = 'waiting';
+                box.className = 'reaction-box';
+                box.style.background = 'var(--danger)';
+                box.innerText = '等待变绿...';
+                
+                const delay = 1000 + Math.random() * 4000;
+                reactionTimeout = setTimeout(() => {
+                    reactionState = 'ready';
+                    box.className = 'reaction-box';
+                    box.style.background = 'var(--success)';
+                    box.innerText = '快点击！';
+                    reactionStartTime = performance.now();
+                }, delay);
+            } else if (reactionState === 'waiting') {
+                clearTimeout(reactionTimeout);
+                reactionState = 'result';
+                box.className = 'reaction-box';
+                box.style.background = 'var(--primary)';
+                box.innerText = '太早了！点击重试';
+            } else if (reactionState === 'ready') {
+                const time = Math.round(performance.now() - reactionStartTime);
+                reactionState = 'result';
+                box.className = 'reaction-box';
+                box.style.background = 'var(--primary)';
+                box.innerText = `${time} ms！点击重试`;
+                
+                if (time < reactionBest) {
+                    reactionBest = time;
+                    document.getElementById('reaction-best').innerText = time;
+                }
+            }
+        }
+
+        // 打字躲避
+        let typingLetters = [];
+        let typingScore = 0;
+        let typingLives = 3;
+        let typingActive = false;
+        let typingFrame = null;
+        let lastSpawn = 0;
+
+        function startTyping() {
+            typingLetters = [];
+            typingScore = 0;
+            typingLives = 3;
+            typingActive = true;
+            lastSpawn = 0;
+            updateTypingUI();
+            document.getElementById('typing-area').innerHTML = '';
+            typingFrame = requestAnimationFrame(typingLoop);
+        }
+
+        function typingLoop(timestamp) {
+            if (!typingActive) return;
+            
+            if (timestamp - lastSpawn > 800) {
+                spawnLetter();
+                lastSpawn = timestamp;
+            }
+
+            const area = document.getElementById('typing-area');
+            const areaHeight = area.clientHeight;
+            
+            typingLetters.forEach(letter => {
+                letter.y += 2;
+                letter.el.style.top = letter.y + 'px';
+            });
+
+            for (let i = typingLetters.length - 1; i >= 0; i--) {
+                if (typingLetters[i].y > areaHeight - 40) {
+                    typingLetters[i].el.remove();
+                    typingLetters.splice(i, 1);
+                    typingLives--;
+                    updateTypingUI();
+                    if (typingLives <= 0) {
+                        typingActive = false;
+                        showModal('💥', '游戏结束！', `最终得分: ${typingScore}`);
+                        return;
+                    }
+                }
+            }
+
+            typingFrame = requestAnimationFrame(typingLoop);
+        }
+
+        function spawnLetter() {
+            const area = document.getElementById('typing-area');
+            const char = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            const el = document.createElement('div');
+            el.className = 'falling-letter';
+            el.innerText = char;
+            el.style.left = Math.random() * (area.clientWidth - 40) + 'px';
+            el.style.top = '-40px';
+            area.appendChild(el);
+
+            typingLetters.push({ char, y: -40, el });
+        }
+
+        function handleTypingKey(key) {
+            if (!typingActive) return;
+            const upperKey = key.toUpperCase();
+            
+            for (let i = 0; i < typingLetters.length; i++) {
+                if (typingLetters[i].char === upperKey) {
+                    typingLetters[i].el.remove();
+                    typingLetters.splice(i, 1);
+                    typingScore++;
+                    updateTypingUI();
+                    break;
+                }
+            }
+        }
+
+        function updateTypingUI() {
+            document.getElementById('typing-score').innerText = typingScore;
+            document.getElementById('typing-lives').innerText = typingLives;
+        }
+
+    </script>
+
+    <!-- 上课模式遮罩 -->
+    <div id="studyMode" class="study-mode">
+        <div class="fake-book" style="font-size:4rem;margin-bottom:1rem;">📖</div>
+        <h1>正在认真学习...</h1>
+        <p>请保持专注，不要分心</p>
+        <div class="study-hint">按 Esc 或点击此处返回游戏</div>
+    </div>
+</body>
+</html>
+
+
+
+

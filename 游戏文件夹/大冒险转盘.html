@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 课堂大冒险转盘</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --warning-color: #ff9f43;
+            --dark-color: #2d3436;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark-color);
+        }
+
+        h1 { color: white; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        /* 控制面板 */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        button, label {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 14px;
+        }
+
+        button:hover, label:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .btn-download { background: var(--secondary-color); color: white; }
+        .btn-upload { background: #ffeaa7; color: var(--dark-color); }
+        .btn-spin { background: var(--primary-color); color: white; font-size: 18px; padding: 15px 40px; margin-top: 10px; width: 100%; max-width: 300px;}
+        
+        input[type="file"] { display: none; }
+
+        /* 转盘区域 */
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin-bottom: 30px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 0 10px white, 0 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* 指针 */
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0; 
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--primary-color);
+            z-index: 10;
+            filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+        }
+
+        /* 结果弹窗 */
+        .result-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .result-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+        }
+
+        .result-modal.show { opacity: 1; pointer-events: all; }
+        .result-modal.show .result-content { transform: scale(1); }
+
+        .result-content h2 { margin-bottom: 15px; font-size: 24px; }
+        .result-content p { font-size: 20px; line-height: 1.5; margin-bottom: 20px; }
+        .result-content button { background: var(--dark-color); color: white; }
+
+        /* 历史记录 */
+        .history {
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            font-size: 14px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .history h3 { margin-bottom: 8px; color: var(--dark-color); }
+        .history-item { padding: 5px 0; border-bottom: 1px dashed #ddd; }
+
+        @media (max-width: 400px) {
+            .wheel-container { width: 280px; height: 280px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎲 课堂大冒险转盘</h1>
+
+    <div class="controls">
+        <button class="btn-download" onclick="downloadTemplate()">📥 下载TXT模板</button>
+        <label class="btn-upload">
+            📂 上传任务文件
+            <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload(event)">
+        </label>
+        <button class="btn-spin" onclick="spinWheel()">🚀 开始大冒险</button>
+    </div>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="600" height="600"></canvas>
+    </div>
+
+    <div class="history" id="historyBox">
+        <h3>📜 最近记录</h3>
+        <div id="historyList"><div style="color:#999; text-align:center;">暂无记录</div></div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="result-modal" id="resultModal">
+        <div class="result-content">
+            <h2 id="resultTitle">🎉 命运已定！</h2>
+            <p id="resultText">任务内容</p>
+            <button onclick="closeModal()">确认接受挑战</button>
+        </div>
+    </div>
+
+<script>
+    // 默认任务列表（包含普通任务和惩罚任务）
+    let tasks = [
+        "用3个词编一个合理的故事",
+        "像主播一样介绍课本的任意一个知识点（科目不限）",
+        "给身边同学讲一个冷笑话，时长 15 秒以上",
+        "模仿一位老师上课的神态语气（不许丑化恶搞）",
+        "反手在黑板上写自己的名字",
+        "模仿一个动物动作",
+        "用唱歌的语调念一段课文",
+        "假装被难题难住，夸张表演抓头发、踱步，最后灵光一闪的全过程",
+        "摆出 3 个不一样的思考造型，每个造型定格 3 秒",
+        "模仿小猫/小狗摇尾巴卖萌 10 秒，并发出对应的叫声",
+        "用夹子音念一句土味情话",
+        "快速做 10 个深蹲，边做边喊 “我最棒”",
+        "双手比心，对着所有人挨个送爱心",
+        "模仿机器人走路说话绕一圈",
+        "对着水杯深情告白 15 秒",
+        "用撒娇语气背诵一段古诗",
+        "把外套反穿坚持一轮游戏时间",
+        "用很霸气的霸道总裁语气跟在场一人对话",
+        "模仿短视频网红的经典片段表演出来",
+        "扮演导游，给在场所有人介绍 “现场景点” 一分钟",
+        "模仿电视剧狗血吵架片段，自己一人分饰两角",
+        "原地蹦跳 8 下，每跳一下喊一个人的名字",
+        "用悲伤的语气念搞笑段子",
+        "模仿鸭子走路，嘎嘎叫绕场地走半圈",
+        "霸道总裁语气对一位朋友下达三条奇怪指令",
+        "用开心、生气、委屈三种语气说 “哎呀”",
+        "模仿企鹅摇摇摆摆走路，发出嗷呜叫声",
+        "假装直播带货，推销手里一件不存在的商品 1 分钟",
+        "模仿明星走红毯，摆各种 pose 走过房间",
+        "唱两句自己最喜欢的歌曲片段",
+        "模仿一个影视剧角色的经典台词",
+        "诗朗诵一句网络热梗"
+    ];
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let currentAngle = 0;
+    let isSpinning = false;
+    
+    // 颜色配置
+    const normalColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+    const warningColor = '#ff9f43'; // 惩罚任务专属颜色
+
+    // 初始化绘制
+    function drawWheel() {
+        const radius = canvas.width / 2;
+        const arc = 2 * Math.PI / tasks.length;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(currentAngle);
+
+        tasks.forEach((task, i) => {
+            const isWarning = task.includes('【未完成惩罚】');
+            
+            // 1. 绘制扇形
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, i * arc, (i + 1) * arc);
+            ctx.fillStyle = isWarning ? warningColor : normalColors[i % normalColors.length];
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 2. 绘制文字
+            ctx.save();
+            ctx.rotate(i * arc + arc / 2);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#2d3436';
+            ctx.font = 'bold 22px "Microsoft YaHei", sans-serif';
+            
+            // 处理文字截断和显示
+            let displayText = task;
+            if (isWarning) {
+                displayText = '⚠️ ' + task.replace('【未完成惩罚】', '');
+            }
+            let text = displayText.length > 8 ? displayText.substring(0, 8) + '...' : displayText;
+            
+            ctx.fillText(text, radius - 20, 10);
+            ctx.restore();
+        });
+        ctx.restore();
+    }
+
+    // 旋转逻辑
+    function spinWheel() {
+        if (isSpinning || tasks.length === 0) return;
+        isSpinning = true;
+
+        const spinDuration = 4000 + Math.random() * 2000;
+        const totalRotation = 5 * 2 * Math.PI + Math.random() * 2 * Math.PI;
+        const startAngle = currentAngle;
+        const startTime = performance.now();
+
+        function animate(time) {
+            const elapsed = time - startTime;
+            const progress = Math.min(elapsed / spinDuration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            currentAngle = startAngle + totalRotation * ease;
+            
+            drawWheel();
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                finishSpin();
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function finishSpin() {
+        isSpinning = false;
+        const normalizedAngle = currentAngle % (2 * Math.PI);
+        const pointerAngle = (2 * Math.PI - normalizedAngle + Math.PI * 1.5) % (2 * Math.PI);
+        const index = Math.floor(pointerAngle / (2 * Math.PI / tasks.length)) % tasks.length;
+        
+        const winner = tasks[index];
+        showResult(winner);
+        addHistory(winner);
+    }
+
+    // 文件上传处理
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            const newTasks = content.split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            if (newTasks.length === 0) {
+                alert("文件内容为空或格式不正确！");
+                return;
+            }
+
+            tasks = newTasks;
+            drawWheel();
+            alert(`✅ 成功导入 ${tasks.length} 个任务！`);
+        };
+        reader.readAsText(file, 'UTF-8');
+        event.target.value = ''; 
+    }
+
+    // 下载模板
+    function downloadTemplate() {
+        const content = "大冒险任务模板（每行一个任务）\n\n用3个新词编故事\n像主播一样介绍知识点\n和同桌摆出图形/单词\n【未完成惩罚】带领全班读重点句\n【未完成惩罚】用屁股写自己的名字\n【未完成惩罚】模仿一个动物动作\n【未完成惩罚】课后擦黑板\n【未完成惩罚】夸赞左右同学";
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '课堂大冒险模板.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // 弹窗与历史
+    function showResult(text) {
+        const isWarning = text.includes('【未完成惩罚】');
+        const titleEl = document.getElementById('resultTitle');
+        const textEl = document.getElementById('resultText');
+        
+        if (isWarning) {
+            titleEl.textContent = '⚠️ 挑战失败！';
+            titleEl.style.color = '#ff9f43';
+            textEl.textContent = text.replace('【未完成惩罚】', '');
+        } else {
+            titleEl.textContent = '🎉 命运已定！';
+            titleEl.style.color = '#ff6b6b';
+            textEl.textContent = text;
+        }
+        
+        document.getElementById('resultModal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').classList.remove('show');
+    }
+
+    function addHistory(text) {
+        const list = document.getElementById('historyList');
+        if (list.querySelector('div')) list.innerHTML = '';
+        
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        const time = new Date().toLocaleTimeString();
+        
+        const isWarning = text.includes('【未完成惩罚】');
+        const displayText = isWarning ? '⚠️ ' + text.replace('【未完成惩罚】', '') : text;
+        
+        item.textContent = `[${time}] ${displayText}`;
+        list.prepend(item);
+        
+        while (list.children.length > 10) {
+            list.removeChild(list.lastChild);
+        }
+    }
+
+    // 首次绘制
+    drawWheel();
+</script>
+</body>
+</html>
