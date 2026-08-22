@@ -194,14 +194,13 @@
                 <div class="tooltip-wrapper">
                     <button class="secondary" onclick="downloadTemplate()">📥 下载Excel模板</button>
                     <div class="template-tooltip">
-                        <h4>📋 模板格式说明</h4>
-                        <p><b>文件名即班级名</b>：例如文件名为「高三1班.xlsx」，上传后自动识别为「高三1班」。第一行为表头：第一列"学生"，第二列"考试"，后续列为各科成绩（含总分）。每名学生每次考试占一行。一个Excel对应一个班级，可同时上传多个班级文件。</p>
+                        <h4>📋 模板格式说明（横向）</h4>
+                        <p><b>文件名即班级名</b>：例如文件名为「高三1班.xlsx」，上传后自动识别为「高三1班」。<b>两行表头</b>：第一行第1列为"学生"，后续每6列为一次考试（合并单元格显示考试名，如"月考1"）；第二行对应各科目标题（语文、数学、英语、物理、化学、总分）。每名学生占一行，同一行内包含所有考试的各科成绩。一个Excel对应一个班级，可同时上传多个班级文件。</p>
                         <table>
-                            <tr><th>学生</th><th>考试</th><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>化学</th><th>总分</th></tr>
-                            <tr><td>张三</td><td>月考1</td><td>88</td><td>92</td><td>85</td><td>78</td><td>82</td><td>425</td></tr>
-                            <tr><td>张三</td><td>期中</td><td>90</td><td>88</td><td>87</td><td>80</td><td>85</td><td>430</td></tr>
-                            <tr><td>李四</td><td>月考1</td><td>85</td><td>80</td><td>88</td><td>75</td><td>80</td><td>408</td></tr>
-                            <tr><td>李四</td><td>期中</td><td>87</td><td>85</td><td>90</td><td>78</td><td>83</td><td>423</td></tr>
+                            <tr><th rowspan="2">学生</th><th colspan="6">月考1</th><th colspan="6">期中</th></tr>
+                            <tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>化学</th><th>总分</th><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>化学</th><th>总分</th></tr>
+                            <tr><td>张三</td><td>88</td><td>92</td><td>85</td><td>78</td><td>82</td><td>425</td><td>90</td><td>88</td><td>87</td><td>80</td><td>85</td><td>430</td></tr>
+                            <tr><td>李四</td><td>85</td><td>80</td><td>88</td><td>75</td><td>80</td><td>408</td><td>87</td><td>85</td><td>90</td><td>78</td><td>83</td><td>423</td></tr>
                         </table>
                     </div>
                 </div>
@@ -458,14 +457,41 @@ function clearAllData(){ resetApp(); }
 
 function downloadTemplate() {
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([
-        ['学生', '考试', '语文', '数学', '英语', '物理', '化学', '总分'],
-        ['张三', '月考1', 88, 92, 85, 78, 82, 425],
-        ['张三', '期中', 90, 88, 87, 80, 85, 430],
-        ['李四', '月考1', 85, 80, 88, 75, 80, 408],
-        ['李四', '期中', 87, 85, 90, 78, 83, 423],
-    ]);
-    ws['!cols'] = [{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8}];
+    const exams = ['月考1', '期中'];
+    const subjects = ['语文', '数学', '英语', '物理', '化学', '总分'];
+    const n = subjects.length;
+    // 第一行：学生 + 考试名（每个考试名占n列，其余为空用于合并）
+    const row1 = ['学生'];
+    exams.forEach(ex => {
+        row1.push(ex);
+        for(let i=1;i<n;i++) row1.push('');
+    });
+    // 第二行：空（学生列合并到第一行） + 科目名
+    const row2 = [''];
+    exams.forEach(() => {
+        subjects.forEach(s => row2.push(s));
+    });
+    // 示例数据行
+    const sampleData = [
+        ['张三', [88,92,85,78,82,425], [90,88,87,80,85,430]],
+        ['李四', [85,80,88,75,80,408], [87,85,90,78,83,423]],
+    ];
+    const dataRows = sampleData.map(([name, ...examScores]) => {
+        const row = [name];
+        examScores.forEach(scores => scores.forEach(s => row.push(s)));
+        return row;
+    });
+    const ws = XLSX.utils.aoa_to_sheet([row1, row2, ...dataRows]);
+    // 合并单元格：学生列合并两行；每个考试名合并n列
+    ws['!merges'] = [{s:{r:0,c:0},e:{r:1,c:0}}];
+    let colIdx = 1;
+    exams.forEach(() => {
+        ws['!merges'].push({s:{r:0,c:colIdx},e:{r:0,c:colIdx+n-1}});
+        colIdx += n;
+    });
+    // 列宽
+    ws['!cols'] = [{wch:10}];
+    exams.forEach(() => { subjects.forEach(() => ws['!cols'].push({wch:8})); });
     XLSX.utils.book_append_sheet(wb, ws, '成绩模板');
     XLSX.writeFile(wb, '班级成绩模板.xlsx');
 }
@@ -514,10 +540,63 @@ function readOneFile(file){
 
 function parseExcel(rows, className){
     if(!rows || rows.length<2) throw new Error("行数不足，至少表头+1行数据");
-    const headers = rows[0].map(h=>String(h??'').trim());
-    if(headers[0]!=='学生' || headers[1]!=='考试'){
-        throw new Error("表头前两列必须是：学生、考试（班级名由文件名决定）");
+    const row0 = rows[0].map(h=>String(h??'').trim());
+    const row1 = rows[1] ? rows[1].map(h=>String(h??'').trim()) : [];
+    // 自动识别格式：
+    // 纵向：第一行前两列为"学生","考试"
+    // 横向：第一行第一列为"学生"，第二行第一列为空（学生列两行合并）
+    if(row0[0]==='学生' && row0[1]==='考试'){
+        parseVerticalExcel(rows, className);
+    } else if(row0[0]==='学生' && row1.length>0 && (row1[0]==='' || row1[0]==='学生')){
+        parseHorizontalExcel(rows, className);
+    } else {
+        throw new Error("无法识别模板格式。横向模板：第一行第1列为'学生'，后续为考试名（合并单元格），第二行为科目名。纵向模板：第一行为'学生','考试',各科目标题。");
     }
+}
+function parseHorizontalExcel(rows, className){
+    const row0 = rows[0].map(h=>String(h??'').trim());
+    const row1 = rows[1].map(h=>String(h??'').trim());
+    // 解析考试-科目-列索引映射
+    const examSubjectCols = [];
+    let currentExam = '';
+    for(let c=1;c<row1.length;c++){
+        if(row0[c] && row0[c]!=='') currentExam = row0[c];
+        const subject = row1[c];
+        if(subject && subject!==''){
+            if(!currentExam){
+                throw new Error(`第${c+1}列科目"${subject}"上方缺少考试名称，请检查模板第一行表头`);
+            }
+            examSubjectCols.push({exam:currentExam, subject:subject, col:c});
+            if(!appData.examList.includes(currentExam)) appData.examList.push(currentExam);
+            if(!appData.subjectList.includes(subject)) appData.subjectList.push(subject);
+        }
+    }
+    if(examSubjectCols.length===0) throw new Error("未识别到任何科目列，请检查模板第二行的科目名称");
+    if(!appData.classList.includes(className)) appData.classList.push(className);
+    if(!appData.classData[className]) appData.classData[className] = {};
+    // 从第3行（索引2）开始解析数据
+    for(let i=2;i<rows.length;i++){
+        const row = rows[i];
+        if(!row || row.length<1) continue;
+        const studentName = String(row[0]??'').trim();
+        if(!studentName) continue;
+        examSubjectCols.forEach(es=>{
+            const exam = es.exam;
+            const subject = es.subject;
+            if(!appData.classData[className][exam]) appData.classData[className][exam] = [];
+            // 查找该学生在本次考试中是否已存在（同一行可能包含多科）
+            let stuObj = appData.classData[className][exam].find(s=>s.student===studentName);
+            if(!stuObj){
+                stuObj = {student: studentName};
+                appData.classData[className][exam].push(stuObj);
+            }
+            let v = row[es.col];
+            stuObj[subject] = (v!==undefined&&v!==null&&v!=='')?parseFloat(v):null;
+        });
+    }
+}
+function parseVerticalExcel(rows, className){
+    const headers = rows[0].map(h=>String(h??'').trim());
     const subjects = headers.slice(2);
     subjects.forEach(s=>{ if(s && !appData.subjectList.includes(s)) appData.subjectList.push(s); });
     if(!appData.classList.includes(className)) appData.classList.push(className);
