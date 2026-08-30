@@ -28,50 +28,6 @@
             line-height: 1.6;
             padding: 20px;
         }
-        .login-overlay{
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.45);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            z-index:9999;
-        }
-        .login-card{
-            background:#ffffff;
-            padding:28px 32px;
-            border-radius:14px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.15);
-            width:min(92%,420px);
-        }
-        .login-card h2{
-            margin-bottom:16px;
-            color:var(--primary);
-            font-size:1.25rem;
-        }
-        .login-card input{
-            width:100%;
-            padding:10px 12px;
-            font-size:1rem;
-            margin:8px 0 14px;
-            border:1px solid #cbd5e1;
-            border-radius:8px;
-        }
-        .login-card button{
-            width:100%;
-            padding:10px;
-            background:var(--primary);
-            color:white;
-            border:none;
-            border-radius:8px;
-            font-size:1rem;
-            cursor:pointer;
-        }
-        .login-tip{
-            font-size:0.82rem;
-            color:#64748b;
-            margin-top:10px;
-        }
         .container { max-width: 1240px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; position: relative; }
         h1 { font-size: 1.5rem; color: var(--primary); font-weight:600; }
@@ -314,41 +270,32 @@
             margin:6px 0;
             font-size:0.9rem;
         }
-        .stu-full-block{
-            padding:16px;
-            background:rgba(255,255,255,0.45);
-            border-radius:12px;
+        /* page4 全班学生图表网格 */
+        .all-student-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+            gap:16px;
+        }
+        .stu-chart-card{
+            padding:12px;
             border:1px solid rgba(226,232,240,0.6);
-            margin-bottom:24px;
+            border-radius:10px;
+            background:rgba(255,255,255,0.42);
+            backdrop-filter: blur(8px);
         }
-        .stu-full-block h4{
-            font-size:1.1rem;
-            margin-bottom:12px;
-            color:var(--primary);
+        .stu-chart-card h5{
+            text-align:center;
+            margin-bottom:6px;
         }
-        .stu-chart-row{
-            display:grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
-            gap:14px;
-            margin-bottom:16px;
-        }
-        .stu-chart-item{
-            height:230px;
+        .stu-chart-container{
+            height:220px;
+            width:100%;
+            position:relative;
         }
     </style>
 </head>
 <body>
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-card">
-            <h2>成绩系统访问验证</h2>
-            <p>教师密码：danzhao123；学生输入【数字+班+姓名】例如：2班张三</p>
-            <input type="text" id="accessPassword" placeholder="请输入访问密码/身份口令">
-            <button onclick="doLogin()">确认登录</button>
-            <div class="login-tip">教师可查看全部；学生仅查看本人成绩</div>
-        </div>
-    </div>
-
-    <div class="container hidden" id="mainAppWrap">
+    <div class="container">
         <header>
             <h1>📊 班级成绩分析系统</h1>
             <div class="controls">
@@ -386,6 +333,7 @@
                 <button class="success" id="exportBtn" onclick="exportReport()" disabled>📄 导出分析报告</button>
             </div>
         </header>
+        <!-- 班级选择器 -->
         <div class="card">
             <div class="filter-row">
                 <div class="filter-group">
@@ -400,7 +348,7 @@
             <button class="tab-btn active" onclick="switchTab('page1')">📈 网页1：个人趋势</button>
             <button class="tab-btn" onclick="switchTab('page2')">🏫 网页2：班级整体</button>
             <button class="tab-btn" onclick="switchTab('page3')">👥 网页3：全班成绩</button>
-            <button class="tab-btn" onclick="switchTab('page4')">📉网页4：全部学生详情</button>
+            <button class="tab-btn" onclick="switchTab('page4')">📑网页4：全班学生图表</button>
         </div>
         <div id="page1">
             <div class="card">
@@ -432,7 +380,7 @@
                 <h3 style="margin-bottom:12px;">📊 各科目班级统计趋势（平均分 / 最高分 / 最低分）</h3>
                 <div id="subjectChartWrap" class="subject-chart-wrap"></div>
                 <hr style="border:0;border-top:1px dashed rgba(226,232,240,0.7);margin:20px 0;">
-                <h3 style="margin-bottom:12px;">📈 分科目统计进步 / 退步学生（取末次与上一次考试差值）</h3>
+                <h3 style="margin-bottom:12px;">📈 分科目统计进步 / 退步学生（取末次与倒数第二次考试分数差值）</h3>
                 <div id="subjectAnalyzeWrap" class="subject-wrap"></div>
             </div>
             <div id="classGlobalAnalysisWrap" class="card"></div>
@@ -449,65 +397,34 @@
                 <div id="singleSubjectAnalysisWrap" class="analysis-block"></div>
             </div>
         </div>
+        <!-- page4 新增 -->
         <div id="page4" class="hidden">
             <div class="card">
-                <h3>📉全部学生详情（第一行为各科曲线图；下方为科目数值表格）</h3>
+                <h3>📑 全班学生全部科目成绩变化图</h3>
+                <p class="info-text">每个学生图表展示全部科目趋势，网格布局展示全部学生</p>
             </div>
-            <div id="page4Container"></div>
+            <div id="page4Container" class="all-student-chart-grid"></div>
         </div>
     </div>
 <script>
     Chart.register(window['chartjs-plugin-annotation']);
-    let loginRole = null;
-    let loginStudentName = null;
-    let loginStudentClass = null;
+    // 全部原始数据：key=班级名
     let allClassData = {};
     let classList = [];
     let currentClassName = "";
+    // 当前正在查看班级的数据（镜像，复用原有页面逻辑，页面只读取这个）
     let appData = { exams: [], subjects: [], students: {}, subjectData: {} };
     let mainChartInstances = {};
     let page2ChartList = [];
     let page4ChartList = [];
 
-    async function doLogin(){
-        const pwd = document.getElementById("accessPassword").value.trim();
-        if(!pwd){ alert("请输入口令"); return; }
-        if(pwd === "danzhao123"){
-            loginRole = "teacher";
-            document.getElementById("loginOverlay").classList.add("hidden");
-            document.getElementById("mainAppWrap").classList.remove("hidden");
-            await autoLoadRemoteFile("27届龙泉周测成绩（大类后）.xlsx");
-            return;
-        }
-        loginRole = "student";
-        const matchRes = pwd.match(/^(\d+班)(.+)$/);
-        if(!matchRes){ alert("学生口令格式错误！正确示例：2班张三"); return; }
-        loginStudentClass = matchRes[1];
-        loginStudentName = matchRes[2].trim();
-        document.getElementById("loginOverlay").classList.add("hidden");
-        document.getElementById("mainAppWrap").classList.remove("hidden");
-        await autoLoadRemoteFile("27届龙泉周测成绩（大类后）.xlsx");
-        setTimeout(()=>{
-            const selClass = document.getElementById("classSelect");
-            for(let opt of selClass.options){
-                if(opt.value.trim() === loginStudentClass.trim()){
-                    selClass.value = opt.value;
-                    onClassChange();
-                    break;
-                }
-            }
-        },200);
-    }
-
-    async function autoLoadRemoteFile(filePath){
+    async function autoLoadDefaultFile(){
+        const url = "27届龙泉周测成绩（大类后）.xlsx";
         try{
-            const resp = await fetch(filePath);
-            if(!resp.ok){
-                alert(`自动加载${filePath}失败，请手动上传这个Excel文件！`);
-                return;
-            }
+            const resp = await fetch(url);
+            if(!resp.ok) throw new Error("默认文件不存在");
             const buf = await resp.arrayBuffer();
-            const wb = XLSX.read(buf,{type:"array"});
+            const wb = XLSX.read(buf, {type:'array'});
             resetApp();
             for(const sheetName of wb.SheetNames){
                 const ws = wb.Sheets[sheetName];
@@ -520,7 +437,10 @@
                     classList.push(className);
                 }
             }
-            if(classList.length===0){ throw new Error("自动读取文件无有效班级"); }
+            if(classList.length===0){
+                console.warn("默认文件没有有效班级");
+                return;
+            }
             const selClass = document.getElementById('classSelect');
             selClass.innerHTML = "";
             classList.forEach(cn=>{
@@ -531,38 +451,60 @@
             selClass.value = classList[0];
             onClassChange();
             document.getElementById('exportBtn').disabled = false;
-        }catch(err){ console.error(err); }
+        }catch(err){
+            console.log("自动加载默认文件失败，等待用户手动上传",err);
+        }
     }
 
     function resetApp(){
-        allClassData = {}; classList = []; currentClassName = "";
+        allClassData = {};
+        classList = [];
+        currentClassName = "";
         appData = { exams: [], subjects: [], students: {}, subjectData: {} };
-        Object.values(mainChartInstances).forEach(c=>c.destroy()); mainChartInstances={};
-        page2ChartList.forEach(c=>c.destroy()); page2ChartList=[];
-        page4ChartList.forEach(c=>c.destroy()); page4ChartList=[];
+        Object.values(mainChartInstances).forEach(chart=>chart.destroy());
+        mainChartInstances = {};
+        page2ChartList.forEach(c=>c.destroy());
+        page2ChartList = [];
+        page4ChartList.forEach(c=>c.destroy());
+        page4ChartList = [];
         document.getElementById('chartsContainer').innerHTML="";
         document.getElementById('personAnalysisWrap').innerHTML="";
         document.getElementById('classGlobalAnalysisWrap').innerHTML="";
         document.getElementById('singleSubjectAnalysisWrap').innerHTML="";
-        document.getElementById("page4Container").innerHTML="";
+        document.getElementById('page4Container').innerHTML="";
         document.getElementById('classSelect').innerHTML = '<option value="">请先上传Excel文件</option>';
     }
-
+    // 下载横向多sheet模板
     function downloadTemplate() {
         const wb = XLSX.utils.book_new();
-        const h1 = ["学生", "第一次考试", "第一次考试", "第一次考试", "第一次考试", "第二次考试", "第二次考试", "第二次考试", "第二次考试"];
-        const h2 = ["学生", "语文", "数学", "英语", "总分", "语文", "数学", "英语", "总分"];
-        const sheet1 = [h1,h2,["张三",88,92,85,265,90,88,87,265],["李四",85,80,88,253,87,85,90,262]];
-        const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
-        ws1['!merges'] = [{s:{r:0,c:0},e:{r:1,c:0}},{s:{r:0,c:1},e:{r:0,c:4}},{s:{r:0,c:5},e:{r:0,c:8}}];
-        XLSX.utils.book_append_sheet(wb,ws1,"1班");
-        const sheet2 = [h1,h2,["小明",78,82,80,240,80,84,83,247],["小红",82,76,84,242,84,79,86,249]];
-        const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
-        ws2['!merges'] = [{s:{r:0,c:0},e:{r:1,c:0}},{s:{r:0,c:1},e:{r:0,c:4}},{s:{r:0,c:5},e:{r:0,c:8}}];
-        XLSX.utils.book_append_sheet(wb,ws2,"2班");
-        XLSX.writeFile(wb,"多班级成绩横向模板.xlsx");
+        const headerRow1 = ["学生", "第一次考试", "第一次考试", "第一次考试", "第一次考试", "第二次考试", "第二次考试", "第二次考试", "第二次考试"];
+        const headerRow2 = ["学生", "语文", "数学", "英语", "总分", "语文", "数学", "英语", "总分"];
+        // sheet 1班
+        const sheet1Data = [headerRow1, headerRow2,
+            ["张三", 88,92,85,265, 90,88,87,265],
+            ["李四", 85,80,88,253, 87,85,90,262]
+        ];
+        const ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+        ws1['!merges'] = [
+            {s:{r:0,c:0}, e:{r:1,c:0}},
+            {s:{r:0,c:1}, e:{r:0,c:4}},
+            {s:{r:0,c:5}, e:{r:0,c:8}}
+        ];
+        XLSX.utils.book_append_sheet(wb, ws1, "1班");
+        // sheet 2班
+        const sheet2Data = [headerRow1, headerRow2,
+            ["小明",78,82,80,240, 80,84,83,247],
+            ["小红",82,76,84,242, 84,79,86,249]
+        ];
+        const ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+        ws2['!merges'] = [
+            {s:{r:0,c:0}, e:{r:1,c:0}},
+            {s:{r:0,c:1}, e:{r:0,c:4}},
+            {s:{r:0,c:5}, e:{r:0,c:8}}
+        ];
+        XLSX.utils.book_append_sheet(wb, ws2, "2班");
+        XLSX.writeFile(wb, "多班级成绩横向模板.xlsx");
     }
-
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -572,6 +514,7 @@
             try {
                 const data = new Uint8Array(e.target.result);
                 const wb = XLSX.read(data, { type: 'array' });
+                //遍历全部工作表，sheet名称为班级
                 for(const sheetName of wb.SheetNames){
                     const ws = wb.Sheets[sheetName];
                     const jsonRows = XLSX.utils.sheet_to_json(ws, {header:1});
@@ -583,7 +526,10 @@
                         classList.push(className);
                     }
                 }
-                if(classList.length===0){ throw new Error("没有解析到有效班级数据，请检查模板"); }
+                if(classList.length===0){
+                    throw new Error("没有解析到有效班级数据，请检查模板");
+                }
+                //填充班级下拉
                 const selClass = document.getElementById('classSelect');
                 selClass.innerHTML = "";
                 classList.forEach(cn=>{
@@ -594,22 +540,34 @@
                 selClass.value = classList[0];
                 onClassChange();
                 document.getElementById('exportBtn').disabled = false;
-            } catch (err) { alert('文件解析失败：\n' + err.message); }
+            } catch (err) {
+                alert('文件解析失败：\n' + err.message);
+            }
         };
         reader.readAsArrayBuffer(file);
         event.target.value = '';
     }
-
+    /**
+     * 解析单个工作表，自动识别【横向双行表头】 / 旧纵向格式
+     * 返回该班级完整appData结构 {exams,subjects,students,subjectData}
+     */
     function parseOneSheet(rows){
         if(!rows || rows.length<3) return null;
         const row0 = rows[0]||[];
         const row1 = rows[1]||[];
         const h0_0 = String(row0[0]??'').trim();
         const h0_1 = String(row0[1]??'').trim();
-        if(h0_0 === '学生' && h0_1 === '考试') return parseVerticalSheet(rows);
-        else return parseHorizontalSheet(rows);
+        let result;
+        if(h0_0 === '学生' && h0_1 === '考试'){
+            //旧纵向格式
+            result = parseVerticalSheet(rows);
+        }else{
+            //横向双行表头
+            result = parseHorizontalSheet(rows);
+        }
+        return result;
     }
-
+    // 旧纵向格式解析
     function parseVerticalSheet(rows){
         const headers = rows[0].map(h=>String(h??'').trim());
         const subjects = headers.slice(2);
@@ -635,10 +593,10 @@
         fillSubjectData(subjectData,subjects,students,exams);
         return {exams,subjects,students,subjectData};
     }
-
+    //横向双行表头解析
     function parseHorizontalSheet(rows){
-        const row0 = rows[0];
-        const row1 = rows[1];
+        const row0 = rows[0];//考试名行
+        const row1 = rows[1];//科目行
         const examGroups = [];
         let curExamName=null, curSubjects=[], curStartCol=null;
         for(let c=1;c<row1.length;c++){
@@ -659,7 +617,10 @@
         }
         if(examGroups.length===0) return null;
         const exams = [];
-        examGroups.forEach(g=>{ if(!exams.includes(g.exam)) exams.push(g.exam); });
+        examGroups.forEach(g=>{
+            if(!exams.includes(g.exam)) exams.push(g.exam);
+        });
+        //全部科目集合
         const subjectsSet = new Set();
         examGroups.forEach(g=>g.subjects.forEach(s=>subjectsSet.add(s)));
         const subjects = Array.from(subjectsSet);
@@ -687,7 +648,6 @@
         fillSubjectData(subjectData,subjects,students,exams);
         return {exams,subjects,students,subjectData};
     }
-
     function fillSubjectData(subjectData,subjects,students,exams){
         Object.keys(students).forEach(stu=>{
             subjects.forEach(sub=>{
@@ -698,39 +658,26 @@
             });
         });
     }
-
+    //切换班级，把选中班级的数据复制到全局appData，刷新全部页面
     function onClassChange(){
         const sel = document.getElementById('classSelect');
         const cn = sel.value;
         if(!cn || !allClassData[cn]) return;
         currentClassName = cn;
+        //复制数据到页面使用的appData
         appData = JSON.parse(JSON.stringify(allClassData[cn]));
-        if(loginRole === "student"){
-            const targetStu = loginStudentName;
-            const allStuKeys = Object.keys(appData.students);
-            let realStuKey = null;
-            for(let k of allStuKeys){
-                if(k.trim() === targetStu.trim()){ realStuKey = k; break; }
-            }
-            if(realStuKey){
-                const onlyStu = {};
-                onlyStu[realStuKey] = appData.students[realStuKey];
-                appData.students = onlyStu;
-            }else{
-                alert(`当前选中班级【${currentClassName}】未找到学生【${targetStu}】，确认口令格式与工作表班级`);
-                appData.students = {};
-            }
-        }
         initializeApp();
     }
-
     function initializeApp() {
-        if(!appData.subjects.length) return;
+        if(!appData.subjects.length){
+            return;
+        }
         const studentSelect = document.getElementById('studentSelect');
         studentSelect.innerHTML = '';
         Object.keys(appData.students).sort().forEach(name => {
             const opt = document.createElement('option');
-            opt.value = name; opt.textContent = name;
+            opt.value = name;
+            opt.textContent = name;
             studentSelect.appendChild(opt);
         });
         const subjectSelect = document.getElementById('subjectSelect');
@@ -738,62 +685,89 @@
         const classSubjectSelect = document.getElementById('classSubjectSelect');
         classSubjectSelect.innerHTML = '';
         appData.subjects.forEach(sub => {
-            const o1 = document.createElement('option'); o1.value=sub; o1.textContent=sub; subjectSelect.appendChild(o1);
-            const o2 = document.createElement('option'); o2.value=sub; o2.textContent=sub; classSubjectSelect.appendChild(o2);
+            const opt1 = document.createElement('option');
+            opt1.value = sub; opt1.textContent = sub;
+            subjectSelect.appendChild(opt1);
+            const opt2 = document.createElement('option');
+            opt2.value = sub; opt2.textContent = sub;
+            classSubjectSelect.appendChild(opt2);
         });
-        updatePage1(); updatePage2(); updatePage3(); updatePage4();
+        updatePage1();
+        updatePage2();
+        updatePage3();
+        updatePage4();
     }
-
     function switchTab(page) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('page1').classList.add('hidden');
         document.getElementById('page2').classList.add('hidden');
         document.getElementById('page3').classList.add('hidden');
-        document.getElementById("page4").classList.add("hidden");
-        if(page==='page1'){ document.querySelector('.tab-btn:nth-child(1)').classList.add('active'); document.getElementById('page1').classList.remove('hidden'); updatePage1(); }
-        else if(page==='page2'){ document.querySelector('.tab-btn:nth-child(2)').classList.add('active'); document.getElementById('page2').classList.remove('hidden'); updatePage2(); }
-        else if(page==='page3'){ document.querySelector('.tab-btn:nth-child(3)').classList.add('active'); document.getElementById('page3').classList.remove('hidden'); updatePage3(); }
-        else if(page==='page4'){ document.querySelector('.tab-btn:nth-child(4)').classList.add('active'); document.getElementById("page4").classList.remove("hidden"); updatePage4(); }
+        document.getElementById('page4').classList.add('hidden');
+        if (page === 'page1') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('page1').classList.remove('hidden');
+            updatePage1();
+        } else if (page === 'page2') {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('page2').classList.remove('hidden');
+            updatePage2();
+        } else if(page==='page3'){
+            document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+            document.getElementById('page3').classList.remove('hidden');
+            updatePage3();
+        }else if(page==='page4'){
+            document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
+            document.getElementById('page4').classList.remove('hidden');
+            updatePage4();
+        }
     }
-
     function renderPersonAnalysis(studentName){
         const wrapDom = document.getElementById('personAnalysisWrap');
         const stuData = appData.students[studentName];
         let html = `<h4>🧑‍🎓【${studentName}】个人科目成绩分析</h4>`;
-        const exams = appData.exams;
-        const lastIdx = exams.length-1;
-        const preLastIdx = exams.length >=2 ? exams.length-2 : null;
+        const examLen = appData.exams.length;
+        const hasTwo = examLen >=2;
+        const lastIdx = examLen-1;
+        const prevLastIdx = examLen-2;
         appData.subjects.forEach(sub=>{
-            const scores = exams.map(ex=>stuData[ex]?.[sub]).filter(s=>s!==null);
+            const scores = appData.exams.map(ex=>stuData[ex]?.[sub]).filter(s=>s!==null);
             if(scores.length===0) return;
             const maxS = Math.max(...scores);
             const minS = Math.min(...scores);
             const avgS = (scores.reduce((s,v)=>s+v,0)/scores.length).toFixed(1);
             let trendText="";
-            let deltaLastPre = null;
-            if(preLastIdx !== null){
-                const scoreLast = stuData[exams[lastIdx]]?.[sub];
-                const scorePreLast = stuData[exams[preLastIdx]]?.[sub];
-                if(scoreLast!==null && scorePreLast!==null){ deltaLastPre = scoreLast - scorePreLast; }
-            }
             if(scores.length>=2){
-                const first = scores[0]; const last = scores[scores.length-1];
+                const first = scores[0];
+                const last = scores[scores.length-1];
                 const diff = last-first;
                 if(diff>2) trendText = `<span class="font-up">整体呈上升趋势，提升${diff}分</span>`;
                 else if(diff<-2) trendText = `<span class="font-down">整体呈下滑趋势，下降${Math.abs(diff)}分</span>`;
                 else trendText = `<span class="font-flat">成绩基本保持稳定</span>`;
             }
-            let deltaHtml = "";
-            if(deltaLastPre !== null){
-                if(deltaLastPre>0) deltaHtml = `【对比上一次考试：<span class="font-up">+${deltaLastPre}</span>】`;
-                else if(deltaLastPre <0) deltaHtml = `【对比上一次考试：<span class="font-down">${deltaLastPre}</span>】`;
-                else deltaHtml = `【对比上一次考试：持平】`;
+            //新增：末次vs倒数第二次
+            let lastDiffText = "";
+            if(hasTwo){
+                const examLast = appData.exams[lastIdx];
+                const examPrev = appData.exams[prevLastIdx];
+                const sLast = stuData[examLast]?.[sub];
+                const sPrev = stuData[examPrev]?.[sub];
+                if(sLast!==null && sPrev!==null && !isNaN(sLast)&&!isNaN(sPrev)){
+                    const delta = sLast - sPrev;
+                    if(delta>0){
+                        lastDiffText = `｜<span class="font-up">较上一次:+${delta}分</span>`;
+                    }else if(delta<0){
+                        lastDiffText = `｜<span class="font-down">较上一次:${delta}分</span>`;
+                    }else{
+                        lastDiffText = `｜<span class="font-flat">较上一次:不变</span>`;
+                    }
+                }
             }
-            html += `<div class="analysis-item"><b>${sub}</b>｜最高分：${maxS}，最低分：${minS}，平均：${avgS}。${trendText} ${deltaHtml}</div>`;
+            html += `<div class="analysis-item">
+                <b>${sub}</b>｜最高分：${maxS}，最低分：${minS}，平均：${avgS}。${trendText} ${lastDiffText}
+            </div>`;
         });
         wrapDom.innerHTML = html;
     }
-
     function updatePage1() {
         if(!appData.subjects.length){
             document.getElementById('chartsContainer').innerHTML = `<div class="empty-hint">⚠️ 暂无成绩数据，请上传Excel文件</div>`;
@@ -808,17 +782,24 @@
         renderPersonAnalysis(student);
         const lineConfigGroup = document.getElementById('lineConfigGroup');
         lineConfigGroup.style.display = (selectedSubject === 'all' || selectedSubject === '总分') ? 'flex' : 'none';
-        Object.values(mainChartInstances).forEach(c=>c.destroy()); mainChartInstances={};
-        const container = document.getElementById('chartsContainer'); container.innerHTML = '';
+        Object.values(mainChartInstances).forEach(chart=>chart.destroy());
+        mainChartInstances = {};
+        const container = document.getElementById('chartsContainer');
+        container.innerHTML = '';
         const exams = appData.exams;
         const studentData = appData.students[student];
         let subjectsToRender = [];
         if(selectedSubject === 'all'){
             const temp = [...appData.subjects];
             const idxTotal = temp.indexOf("总分");
-            if(idxTotal > -1){ temp.splice(idxTotal,1); subjectsToRender.push("总分"); }
+            if(idxTotal > -1){
+                temp.splice(idxTotal,1);
+                subjectsToRender.push("总分");
+            }
             subjectsToRender = subjectsToRender.concat(temp);
-        }else{ subjectsToRender = [selectedSubject]; }
+        }else{
+            subjectsToRender = [selectedSubject];
+        }
         subjectsToRender.forEach(sub => {
             const card = document.createElement('div');
             card.className = 'card';
@@ -833,24 +814,43 @@
             }
             mainChartInstances[sub] = new Chart(ctx, {
                 type: 'line',
-                data: { labels: exams, datasets: [{ label: sub, data: scores, borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.45, fill: true, pointRadius: 3, pointHoverRadius: 5, spanGaps: true }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, annotation: { annotations: annotations } }, scales: { y: { beginAtZero: false, min: 0 } }
+                data: {
+                    labels: exams,
+                    datasets: [{
+                        label: sub, data: scores,
+                        borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.45, fill: true, pointRadius: 3, pointHoverRadius: 5, spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        annotation: { annotations: annotations }
+                    },
+                    scales: { y: { beginAtZero: false, min: 0 } }
+                }
             });
         });
     }
-
     function renderClassGlobalAnalysis(){
         const wrapDom = document.getElementById('classGlobalAnalysisWrap');
         let html = `<h4>🏫【${currentClassName}】班级整体综合分析</h4>`;
         const examList = appData.exams;
-        if(examList.length<2){ html += `<div class="analysis-item">考试场次不足2场，无法进行进退步对比。</div>`; wrapDom.innerHTML = html; return; }
-        const preLastExam = examList[examList.length-2];
+        if(examList.length<2){
+            html += `<div class="analysis-item">考试场次不足2场，无法进行进退步对比。</div>`;
+            wrapDom.innerHTML = html;
+            return;
+        }
+        const firstExam = examList[0];
         const lastExam = examList[examList.length-1];
-        html += `<div class="analysis-item">对比【${preLastExam}】→【${lastExam}】班级各科整体变化：</div>`;
+        html += `<div class="analysis-item">对比【${firstExam}】→【${lastExam}】班级各科整体变化：</div>`;
         appData.subjects.forEach(sub=>{
-            let scoreListFirst = []; let scoreListLast = [];
+            let scoreListFirst = [];
+            let scoreListLast = [];
             Object.values(appData.students).forEach(stu=>{
-                const s1 = stu[preLastExam]?.[sub]; const s2 = stu[lastExam]?.[sub];
+                const s1 = stu[firstExam]?.[sub];
+                const s2 = stu[lastExam]?.[sub];
                 if(s1!==null && !isNaN(s1)) scoreListFirst.push(s1);
                 if(s2!==null && !isNaN(s2)) scoreListLast.push(s2);
             });
@@ -862,11 +862,10 @@
             if(delta>1.5) trendStr=`<span class="font-up">📈整体提升 ${delta}分</span>`;
             else if(delta<-1.5) trendStr=`<span class="font-down">📉整体下滑 ${Math.abs(delta)}分</span>`;
             else trendStr=`<span class="font-flat">➡基本稳定，变化${delta}分</span>`;
-            html += `<div class="analysis-item">▪${sub}:倒数第二次平均${avg1}，末次平均${avg2}。${trendStr}</div>`;
+            html += `<div class="analysis-item">▪${sub}:首次平均${avg1}，末次平均${avg2}。${trendStr}</div>`;
         });
         wrapDom.innerHTML = html;
     }
-
     function updatePage2() {
         if(!appData.subjects.length){
             document.getElementById("subjectAnalyzeWrap").innerHTML = `<div class="empty-hint">⚠️ 暂无成绩数据，请上传Excel文件</div>`;
@@ -874,8 +873,10 @@
             return;
         }
         if (!appData.exams.length) return;
-        page2ChartList.forEach(c=>c.destroy()); page2ChartList = [];
-        const chartWrapDom = document.getElementById("subjectChartWrap"); chartWrapDom.innerHTML = "";
+        page2ChartList.forEach(c=>c.destroy());
+        page2ChartList = [];
+        const chartWrapDom = document.getElementById("subjectChartWrap");
+        chartWrapDom.innerHTML = "";
         appData.subjects.forEach(subjectName=>{
             const chartCard = document.createElement("div");
             chartCard.className = "subject-chart-card";
@@ -883,56 +884,85 @@
             chartCard.innerHTML = `<h4>${subjectName}</h4><div class="chart-sub-container"><canvas id="${canvasId}"></canvas></div>`;
             chartWrapDom.appendChild(chartCard);
             const ctx = document.getElementById(canvasId).getContext('2d');
-            const avgArr = [],maxArr=[],minArr=[];
+            const avgArr = [];
+            const maxArr = [];
+            const minArr = [];
             appData.exams.forEach(exam=>{
                 let scoreList = [];
                 Object.values(appData.students).forEach(stu=>{
-                    const s = stu[exam]?.[subjectName]; if(s!==null && !isNaN(s)) scoreList.push(s);
+                    const s = stu[exam]?.[subjectName];
+                    if(s!==null && !isNaN(s)) scoreList.push(s);
                 });
                 if(scoreList.length>0){
                     const avg = scoreList.reduce((a,b)=>a+b,0)/scoreList.length;
-                    avgArr.push(Math.round(avg)); maxArr.push(Math.max(...scoreList)); minArr.push(Math.min(...scoreList));
-                }else{ avgArr.push(null);maxArr.push(null);minArr.push(null); }
+                    avgArr.push(Math.round(avg));
+                    maxArr.push(Math.max(...scoreList));
+                    minArr.push(Math.min(...scoreList));
+                }else{
+                    avgArr.push(null);
+                    maxArr.push(null);
+                    minArr.push(null);
+                }
             });
             const chartIns = new Chart(ctx,{
                 type:"line",
-                data:{ labels:appData.exams, datasets:[
-                    {label:"平均分",data:avgArr,borderColor:"#4f46e5",backgroundColor:"rgba(79,70,229,0.12)",tension:0.45,fill:true,pointRadius:2},
-                    {label:"最高分",data:maxArr,borderColor:"#16a34a",borderDash:[4,4],tension:0.45,fill:false,pointRadius:2},
-                    {label:"最低分",data:minArr,borderColor:"#dc2626",borderDash:[4,4],tension:0.45,fill:false,pointRadius:2}
-                ]},
-                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},tooltip:{mode:'index',intersect:false}}, interaction:{mode:'index',intersect:false}, scales:{y:{beginAtZero:false}} }
+                data:{
+                    labels:appData.exams,
+                    datasets:[
+                        {label:"平均分",data:avgArr,borderColor:"#4f46e5",backgroundColor:"rgba(79,70,229,0.12)",tension:0.45,fill:true,pointRadius:2},
+                        {label:"最高分",data:maxArr,borderColor:"#16a34a",borderDash:[4,4],tension:0.45,fill:false,pointRadius:2},
+                        {label:"最低分",data:minArr,borderColor:"#dc2626",borderDash:[4,4],tension:0.45,fill:false,pointRadius:2}
+                    ]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    plugins:{
+                        legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
+                        tooltip:{mode:'index',intersect:false}
+                    },
+                    interaction:{mode:'index',intersect:false},
+                    scales:{y:{beginAtZero:false}}
+                }
             });
             page2ChartList.push(chartIns);
         });
-        const wrapDom = document.getElementById("subjectAnalyzeWrap"); wrapDom.innerHTML = "";
+        const wrapDom = document.getElementById("subjectAnalyzeWrap");
+        wrapDom.innerHTML = "";
         if(appData.exams.length < 2){
             wrapDom.innerHTML = `<div class="empty-hint">⚠️ 需要至少2次考试数据，才能统计进步退步</div>`;
         }else{
-            const preLastExam = appData.exams[appData.exams.length-2];
+            //修改：取最后一次、倒数第二次考试
             const lastExam = appData.exams[appData.exams.length-1];
+            const prevLastExam = appData.exams[appData.exams.length-2];
             appData.subjects.forEach(subjectName=>{
                 const subjectDiv = document.createElement("div");
                 subjectDiv.className = "subject-block";
                 subjectDiv.innerHTML = `<h4>📒 ${subjectName}</h4>`;
                 let changeList = [];
                 Object.keys(appData.students).forEach(stuName=>{
-                    const s1 = appData.students[stuName][preLastExam]?.[subjectName];
-                    const s2 = appData.students[stuName][lastExam]?.[subjectName];
-                    if(s1===null || s2===null || isNaN(s1)||isNaN(s2)) return;
-                    changeList.push({name:stuName, diff: s2 - s1});
+                    const sPrev = appData.students[stuName][prevLastExam]?.[subjectName];
+                    const sLast = appData.students[stuName][lastExam]?.[subjectName];
+                    if(sPrev===null || sLast===null || isNaN(sPrev)||isNaN(sLast)) return;
+                    changeList.push({name:stuName, diff: sLast - sPrev});
                 });
                 changeList.sort((a,b)=> b.diff - a.diff);
                 const up5 = changeList.filter(i=>i.diff>0).slice(0,5);
                 const down5 = changeList.filter(i=>i.diff<0).slice(-5).reverse();
                 let htmlPart = `<div class="two-col">`;
                 htmlPart += `<div><p style="color:#166534;font-weight:bold;">✅进步前5</p>`;
-                up5.forEach(item=>{ htmlPart += `<div class="student-card"><span>${item.name}</span><span class="tag tag-up">+${item.diff}</span></div>`; });
-                if(up5.length===0) htmlPart += `<p class="info-text">无</p>`;
+                if(up5.length>0){
+                    up5.forEach(item=>{
+                        htmlPart += `<div class="student-card"><span>${item.name}</span><span class="tag tag-up">+${item.diff}</span></div>`;
+                    });
+                }else{ htmlPart += `<p class="info-text">无</p>`; }
                 htmlPart += `</div>`;
                 htmlPart += `<div><p style="color:#991b1b;font-weight:bold;">❌退步前5</p>`;
-                down5.forEach(item=>{ htmlPart += `<div class="student-card"><span>${item.name}</span><span class="tag tag-down">${item.diff}</span></div>`; });
-                if(down5.length===0) htmlPart += `<p class="info-text">无</p>`;
+                if(down5.length>0){
+                    down5.forEach(item=>{
+                        htmlPart += `<div class="student-card"><span>${item.name}</span><span class="tag tag-down">${item.diff}</span></div>`;
+                    });
+                }else{ htmlPart += `<p class="info-text">无</p>`; }
                 htmlPart += `</div></div>`;
                 subjectDiv.innerHTML += htmlPart;
                 wrapDom.appendChild(subjectDiv);
@@ -940,104 +970,20 @@
         }
         renderClassGlobalAnalysis();
     }
-
-    function updatePage4(){
-        page4ChartList.forEach(c=>c.destroy()); page4ChartList = [];
-        const container = document.getElementById("page4Container"); container.innerHTML = "";
-        if(!appData.subjects.length){ container.innerHTML = `<div class="empty-hint">暂无成绩数据</div>`; return; }
-        const exams = appData.exams;
-        const studentList = Object.keys(appData.students);
-        studentList.forEach(stuName=>{
-            const stuData = appData.students[stuName];
-            const block = document.createElement("div");
-            block.className = "stu-full-block";
-            block.innerHTML = `<h4>👤 ${stuName}</h4>`;
-            const chartRowDiv = document.createElement("div");
-            chartRowDiv.className = "stu-chart-row";
-            appData.subjects.forEach(sub=>{
-                const chartWrap = document.createElement("div");
-                chartWrap.className = "stu-chart-item";
-                const cid = "p4_"+stuName.replace(/\s/g,"_")+"_"+sub.replace(/\s/g,"_");
-                chartWrap.innerHTML = `<h5 style="text-align:center;margin-bottom:4px;font-size:0.9rem">${sub}</h5><canvas id="${cid}"></canvas>`;
-                chartRowDiv.appendChild(chartWrap);
-                const ctx = document.getElementById(cid).getContext("2d");
-                const scores = exams.map(ex=>stuData[ex]?.[sub]??null);
-                const chartIns = new Chart(ctx,{
-                    type:"line",
-                    data:{ labels:exams, datasets:[{ label:sub, data:scores, borderColor:"#4f46e5", tension:0.4, fill:false, pointRadius:2, spanGaps:true }] },
-                    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}
-                });
-                page4ChartList.push(chartIns);
-            });
-            block.appendChild(chartRowDiv);
-            appData.subjects.forEach(sub=>{
-                const tableWrap = document.createElement("div");
-                tableWrap.style.marginBottom="14px";
-                let htmlTable = `<h5 style="margin:6px 0;">📘科目：${sub}</h5>`;
-                htmlTable += '<table class="data-table"><thead><tr><th>项目</th>';
-                exams.forEach(ex=> htmlTable += `<th>${ex}</th>`);
-                htmlTable += '</tr></thead><tbody>';
-                const scores = exams.map(ex=>stuData[ex]?.[sub] ?? null);
-                const stepStatus = [];
-                for(let i=0;i<scores.length;i++){
-                    if(i===0 || scores[i]===null || scores[i-1]===null) stepStatus.push(0);
-                    else stepStatus.push(scores[i]>scores[i-1]?1:(scores[i]<scores[i-1]?-1:0));
-                }
-                const streak3Up = [],streak3Down=[];
-                let currentUp=0,currentDown=0;
-                for(let i=0;i<scores.length;i++){
-                    if(stepStatus[i]===1){ currentUp++; currentDown=0; }
-                    else if(stepStatus[i]===-1){ currentDown++; currentUp=0; }
-                    else {currentUp=0;currentDown=0;}
-                    streak3Up.push(currentUp>=3); streak3Down.push(currentDown>=3);
-                }
-                htmlTable += `<tr><td>分数</td>`;
-                for(let i=0;i<scores.length;i++){
-                    const s = scores[i];
-                    let fontClass="",bgClass="";
-                    if(s!==null){
-                        if(stepStatus[i]===1) fontClass="font-up";
-                        else if(stepStatus[i]===-1) fontClass="font-down";
-                        else fontClass="font-flat";
-                        if(streak3Up[i]) bgClass="cell-bg-streak-up";
-                        if(streak3Down[i]) bgClass="cell-bg-streak-down";
-                    }
-                    htmlTable += `<td class="${fontClass} ${bgClass}">${s!==null?s:'-'}</td>`;
-                }
-                htmlTable += `</tr>`;
-                htmlTable += `<tr><td>变化分值</td>`;
-                for(let i=0;i<scores.length;i++){
-                    if(i===0 || scores[i]===null || scores[i-1]===null){
-                        htmlTable += `<td class="font-flat">-</td>`;
-                    }else{
-                        const diff = scores[i]-scores[i-1];
-                        const fontCls = diff>0?"font-up":(diff<0?"font-down":"font-flat");
-                        const disp = diff>0 ? `+${diff}` : diff;
-                        htmlTable += `<td class="${fontCls}">${disp}</td>`;
-                    }
-                }
-                htmlTable += `</tr></tbody></table>`;
-                tableWrap.innerHTML = htmlTable;
-                block.appendChild(tableWrap);
-            });
-            container.appendChild(block);
-        });
-    }
-
     function renderSingleSubjectAnalysis(subName){
         const wrapDom = document.getElementById('singleSubjectAnalysisWrap');
         const exams = appData.exams;
         const lastExam = exams[exams.length-1];
-        const preLastExam = exams.length>=2 ? exams.length-2 : null;
+        const firstExam = exams[0];
         let lastScores = [];
         let upCnt=0,downCnt=0,flatCnt=0;
         Object.values(appData.students).forEach(stu=>{
             const sLast = stu[lastExam]?.[subName];
-            const sPre = preLastExam ? stu[preLastExam]?.[subName] : null;
+            const sFirst = stu[firstExam]?.[subName];
             if(sLast!==null && !isNaN(sLast)) lastScores.push(sLast);
-            if(sPre!==null&&sLast!==null&&!isNaN(sPre)&&!isNaN(sLast)){
-                if(sLast>sPre) upCnt++;
-                else if(sLast<sPre) downCnt++;
+            if(sFirst!==null&&sLast!==null&&!isNaN(sFirst)&&!isNaN(sLast)){
+                if(sLast>sFirst) upCnt++;
+                else if(sLast<sFirst) downCnt++;
                 else flatCnt++;
             }
         });
@@ -1049,18 +995,14 @@
         const minS = Math.min(...lastScores);
         const avgS = (lastScores.reduce((a,b)=>a+b,0)/lastScores.length).toFixed(1);
         let html = `<h4>📋【${currentClassName}｜${subName}】单科全班分析（末次考试）</h4>
-        <div class="analysis-item">▪班级最高分：${maxS}；班级最低分：${minS}；班级平均分：${avgS}</div>`;
-        if(preLastExam){
-            html +=`<div class="analysis-item">▪对比倒数第二次考试：进步人数${upCnt}人，退步人数${downCnt}人，成绩持平${flatCnt}人</div>`;
-            const total = upCnt+downCnt+flatCnt;
-            if(total>0){
-                const rateUp = ((upCnt/total)*100).toFixed(1);
-                html+=`<div class="analysis-item">▪进步占比：${rateUp}%。${upCnt>downCnt?"整体多数学生该科取得进步":"该科目需要加强巩固训练"}</div>`;
-            }
+        <div class="analysis-item">▪班级最高分：${maxS}；班级最低分：${minS}；班级平均分：${avgS}</div>
+        <div class="analysis-item">▪对比首次考试：进步人数${upCnt}人，退步人数${downCnt}人，成绩持平${flatCnt}人</div>`;
+        if(exams.length>=2){
+            const rateUp = ((upCnt/(upCnt+downCnt+flatCnt))*100).toFixed(1);
+            html+=`<div class="analysis-item">▪进步占比：${rateUp}%。${upCnt>downCnt?"整体多数学生该科取得进步":"该科目需要加强巩固训练"}</div>`;
         }
         wrapDom.innerHTML = html;
     }
-
     function updatePage3() {
         if(!appData.subjects.length){
             document.getElementById('classTableContainer').innerHTML = `<div class="empty-hint">⚠️ 暂无成绩数据，请上传Excel文件</div>`;
@@ -1078,56 +1020,56 @@
         const exams = appData.exams;
         let html = '<table class="data-table"><thead><tr><th>排名</th><th>姓名</th>';
         exams.forEach(ex => html += `<th>${ex}</th>`);
-        html += '</tr></thead>';
-        html += `<thead><tr><th></th><th>变化分值</th>`;
-        exams.forEach((ex,idx)=>{ html += idx===0 ? `<th>-</th>` : `<th>较上一次</th>`; });
-        html += `</tr></thead><tbody>`;
+        html += '</tr></thead><tbody>';
         const studentList = Object.keys(appData.students).map(name => {
             const scores = exams.map(ex => appData.students[name][ex]?.[sub] ?? null);
             const validArr = scores.filter(s => s !== null);
             const lastValid = validArr.length > 0 ? validArr[validArr.length - 1] : 0;
             return { name, scores, last: lastValid || 0 };
         }).sort((a, b) => b.last - a.last);
-
         studentList.forEach((stu, idx) => {
+            html += `<tr><td>${idx + 1}</td><td style="font-weight:600;">${stu.name}</td>`;
             const scores = stu.scores;
             const stepStatus = [];
             for(let i=0;i<scores.length;i++){
-                if(i===0 || scores[i]===null || scores[i-1]===null) stepStatus.push(0);
-                else stepStatus.push(scores[i]>scores[i-1]?1:(scores[i]<scores[i-1]?-1:0));
+                if(i===0 || scores[i]===null || scores[i-1]===null){
+                    stepStatus.push(0);
+                }else{
+                    if(scores[i]>scores[i-1]) stepStatus.push(1);
+                    else if(scores[i]<scores[i-1]) stepStatus.push(-1);
+                    else stepStatus.push(0);
+                }
             }
-            const streak3Up = [],streak3Down=[];
-            let currentUp=0,currentDown=0;
+            const streak3Up = [];
+            const streak3Down = [];
+            let currentUp = 0;
+            let currentDown = 0;
             for(let i=0;i<scores.length;i++){
-                if(stepStatus[i]===1){ currentUp++; currentDown=0; }
-                else if(stepStatus[i]===-1){ currentDown++; currentUp=0; }
-                else {currentUp=0;currentDown=0;}
-                streak3Up.push(currentUp>=3); streak3Down.push(currentDown>=3);
+                if(stepStatus[i] === 1){
+                    currentUp +=1;
+                    currentDown =0;
+                }else if(stepStatus[i] === -1){
+                    currentDown +=1;
+                    currentUp =0;
+                }else{
+                    currentUp=0;
+                    currentDown=0;
+                }
+                streak3Up.push(currentUp >=3);
+                streak3Down.push(currentDown >=3);
             }
-            html += `<tr><td>${idx + 1}</td><td style="font-weight:600;">${stu.name}</td>`;
             for(let i=0;i<scores.length;i++){
                 const s = scores[i];
-                let fontClass="",bgClass="";
+                let fontClass = "";
+                let bgClass = "";
                 if(s!==null){
-                    if(stepStatus[i]===1) fontClass="font-up";
-                    else if(stepStatus[i]===-1) fontClass="font-down";
-                    else fontClass="font-flat";
-                    if(streak3Up[i]) bgClass="cell-bg-streak-up";
-                    if(streak3Down[i]) bgClass="cell-bg-streak-down";
+                    if(stepStatus[i] ===1) fontClass = "font-up";
+                    else if(stepStatus[i]===-1) fontClass = "font-down";
+                    else fontClass = "font-flat";
+                    if(streak3Up[i]) bgClass = "cell-bg-streak-up";
+                    if(streak3Down[i]) bgClass = "cell-bg-streak-down";
                 }
                 html += `<td class="${fontClass} ${bgClass}">${s!==null?s:'-'}</td>`;
-            }
-            html += `</tr>`;
-            html += `<tr><td></td><td></td>`;
-            for(let i=0;i<scores.length;i++){
-                if(i===0 || scores[i]===null || scores[i-1]===null){
-                    html += `<td class="font-flat">-</td>`;
-                }else{
-                    const diff = scores[i]-scores[i-1];
-                    const fontCls = diff>0?"font-up":(diff<0?"font-down":"font-flat");
-                    const disp = diff>0 ? `+${diff}` : diff;
-                    html += `<td class="${fontCls}">${disp}</td>`;
-                }
             }
             html += `</tr>`;
         });
@@ -1141,8 +1083,76 @@
         container.innerHTML = html;
     }
 
+    //网页4 全班学生全部科目图表
+    function updatePage4(){
+        page4ChartList.forEach(c=>c.destroy());
+        page4ChartList = [];
+        const container = document.getElementById("page4Container");
+        container.innerHTML = "";
+        if(!appData.subjects.length){
+            container.innerHTML = `<div class="empty-hint">⚠️ 暂无成绩数据，请上传Excel文件</div>`;
+            return;
+        }
+        const exams = appData.exams;
+        const studentNames = Object.keys(appData.students).sort();
+        //科目排序：总分优先
+        let subList = [...appData.subjects];
+        const tidx = subList.indexOf("总分");
+        if(tidx>-1){
+            subList.splice(tidx,1);
+            subList.unshift("总分");
+        }
+        studentNames.forEach(stuName=>{
+            const stu = appData.students[stuName];
+            const card = document.createElement("div");
+            card.className = "stu-chart-card";
+            const cid = "page4_"+stuName.replace(/\s/g,"_");
+            card.innerHTML = `<h5>${stuName}</h5><div class="stu-chart-container"><canvas id="${cid}"></canvas></div>`;
+            container.appendChild(card);
+            const ctx = document.getElementById(cid).getContext('2d');
+            const colors = [
+                {border:"#4f46e5",bg:"rgba(79,70,229,0.12)"},
+                {border:"#16a34a",bg:"rgba(22,163,74,0.12)"},
+                {border:"#dc2626",bg:"rgba(220,38,38,0.12)"},
+                {border:"#ca8a04",bg:"rgba(202,138,4,0.12)"},
+                {border:"#0891ac",bg:"rgba(8,145,172,0.12)"}
+            ];
+            const datasets = subList.map((sub,idx)=>{
+                const c = colors[idx % colors.length];
+                return {
+                    label:sub,
+                    data: exams.map(ex=>stu[ex]?.[sub]??null),
+                    borderColor:c.border,
+                    backgroundColor:c.bg,
+                    tension:0.4,
+                    fill:false,
+                    pointRadius:2,
+                    spanGaps:true
+                };
+            });
+            const chart = new Chart(ctx,{
+                type:"line",
+                data:{labels:exams, datasets:datasets},
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    plugins:{
+                        legend:{position:"bottom",labels:{boxWidth:10,font:{size:9}}},
+                        tooltip:{mode:"index",intersect:false}
+                    },
+                    interaction:{mode:"index",intersect:false},
+                    scales:{y:{beginAtZero:false}}
+                }
+            });
+            page4ChartList.push(chart);
+        });
+    }
+
     async function exportReport() {
-        if(!appData.subjects.length){ alert("暂无数据，无法导出，请先上传成绩文件"); return; }
+        if(!appData.subjects.length){
+            alert("暂无数据，无法导出，请先上传成绩文件");
+            return;
+        }
         const { jsPDF } = window.jspdf;
         const btn = document.getElementById("exportBtn");
         btn.classList.add("export-btn-loading");
@@ -1172,11 +1182,8 @@
             btn.classList.remove("export-btn-loading");
         }
     }
-
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById("accessPassword").addEventListener("keydown",(e)=>{
-            if(e.key === "Enter") doLogin();
-        });
+        autoLoadDefaultFile();
     });
 </script>
 </body>
