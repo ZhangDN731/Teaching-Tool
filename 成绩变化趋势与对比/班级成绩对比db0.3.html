@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多班级成绩对比分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #5b53e8;
+            --primary-light: rgba(91, 83, 232, 0.12);
+            --bg: #e8edf7;
+            --card: rgba(255, 255, 255, 0.65);
+            --card-border: rgba(255,255,255,0.8);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body {
+            background: var(--bg);
+            background-image: radial-gradient(circle at 10% 20%, rgba(91,83,232,0.08) 0%, transparent 45%),
+            radial-gradient(circle at 85% 75%, rgba(22,163,74,0.07) 0%, transparent 40%);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1240px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; position: relative; }
+        h1 { font-size: 1.5rem; color: var(--primary); font-weight:600; }
+        .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; position: relative; }
+        button, select, input {
+            padding: 8px 14px;
+            border: 1px solid rgba(203, 213, 225,0.55);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            transition: 0.22s ease;
+        }
+        button:hover { opacity: 0.92; transform: translateY(-1px); }
+        button.secondary { background: #64748b; }
+        button.success { background: #16a34a; }
+        button.danger {background:#dc2626;}
+        .line-setting{
+            display:flex;align-items:center;gap:6px;
+            padding:6px 10px;border-radius:8px;
+            background:rgba(255,255,255,0.55);
+            border:1px solid rgba(226,232,240,0.6);
+            font-size:0.82rem;
+        }
+        .line-setting input{ width:70px; padding:4px 8px; }
+        .line-setting.public{ border-left:3px solid #dc2626; }
+        .line-setting.private{ border-left:3px solid #ca8a04; }
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border:1px solid var(--card-border);
+            padding:16px;
+            border-radius:14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom:18px;
+        }
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(226, 232, 240,0.6);
+            padding-bottom: 8px;
+            flex-wrap:wrap;
+        }
+        .tab-btn {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            color: var(--text-sub);
+            border-radius: 8px 8px 0 0;
+            padding: 9px 18px;
+            border:1px solid transparent;
+            font-size:0.9rem;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .subject-chart-wrap{
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap:16px;
+            margin:12px 0 8px;
+        }
+        @media (max-width:1100px){
+            .subject-chart-wrap{ grid-template-columns: repeat(2,1fr); }
+        }
+        @media (max-width:720px){
+            .subject-chart-wrap{ grid-template-columns: 1fr; }
+        }
+        .subject-chart-card{
+            padding:12px;
+            border:1px solid rgba(226,232,240,0.6);
+            border-radius:10px;
+            background:rgba(255,255,255,0.42);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .subject-chart-card.total-card{
+            border:1.5px solid rgba(91,83,232,0.35);
+            background:rgba(91,83,232,0.06);
+        }
+        .subject-chart-card h4{
+            text-align:center;
+            margin-bottom:8px;
+            font-size:0.94rem;
+        }
+        .subject-chart-card h4 .badge{
+            display:inline-block;font-size:0.7rem;padding:1px 6px;border-radius:4px;
+            background:var(--primary);color:white;margin-left:6px;vertical-align:middle;
+        }
+        .chart-sub-container{
+            position:relative;
+            height:240px;
+            width:100%;
+        }
+        .big-chart-container{
+            position:relative;
+            height:520px;
+            width:100%;
+            margin-top:12px;
+        }
+        .hidden { display: none !important; }
+        .info-text { font-size: 0.84rem; color: var(--text-sub); margin-top: 5px; }
+        .template-tooltip {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width:560px;
+            background:rgba(255,255,255,0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border:1px solid rgba(226,232,240,0.7);
+            border-radius:12px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.12);
+            padding:18px;
+            z-index:999;
+            text-align:left;
+        }
+        .template-tooltip::before {
+            content:'';
+            position:absolute;
+            top:-8px;
+            right:30px;
+            width:14px;height:14px;
+            background:rgba(255,255,255,0.72);
+            border-left:1px solid rgba(226,232,240,0.7);
+            border-top:1px solid rgba(226,232,240,0.7);
+            transform:rotate(45deg);
+        }
+        .template-tooltip h4 { color:#166534; margin-bottom:8px; font-size:0.95rem; }
+        .template-tooltip p { font-size:0.82rem; color:#475569; margin-bottom:8px; }
+        .template-tooltip table { width:100%; border-collapse:collapse; margin-top:6px; }
+        .template-tooltip th,.template-tooltip td { border:1px solid #bbf7d0; padding:4px 6px; text-align:center; font-size:0.78rem; }
+        .template-tooltip th { background:#dcfce7; color:#166534; }
+        .tooltip-wrapper { position:relative; display:inline-block; }
+        .tooltip-wrapper:hover .template-tooltip { display:block; }
+        .empty-hint{
+            text-align:center;
+            padding:36px 10px;
+            color:var(--text-sub);
+            font-size:0.94rem;
+        }
+        .upload-tooltip-wrap{
+            position:relative;
+            display:inline-block;
+        }
+        .upload-tooltip{
+            display:none;
+            position:absolute;
+            top:calc(100% + 10px);
+            left:0;
+            min-width:320px;
+            background:rgba(255,255,255,0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border:1px solid rgba(226,232,240,0.7);
+            border-radius:12px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.12);
+            padding:20px;
+            z-index:999;
+            text-align:center;
+        }
+        .upload-tooltip::before{
+            content:'';
+            position:absolute;
+            top:-8px;
+            left:24px;
+            width:14px;height:14px;
+            background:rgba(255,255,255,0.72);
+            border-left:1px solid rgba(226,232,240,0.7);
+            border-top:1px solid rgba(226,232,240,0.7);
+            transform:rotate(45deg);
+        }
+        .upload-tooltip-wrap:hover .upload-tooltip{
+            display:block;
+        }
+        .upload-tooltip .big-icon{
+            font-size:2.4rem;
+            margin-bottom:8px;
+        }
+        .class-tag-list{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin:10px 0;
+        }
+        .class-tag{
+            padding:4px 10px;
+            background:rgba(91,83,232,0.15);
+            border-radius:6px;
+            font-size:0.84rem;
+        }
+        .page-title{
+            font-size:1.05rem;
+            font-weight:600;
+            color:var(--primary);
+            margin-bottom:4px;
+        }
+        .single-subject-bar{
+            display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+            padding:10px 14px;border-radius:10px;
+            background:rgba(255,255,255,0.5);
+            border:1px solid rgba(226,232,240,0.6);
+            margin-bottom:10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 多班级成绩对比系统</h1>
+            <div class="controls">
+                <div class="tooltip-wrapper">
+                    <button class="secondary" onclick="downloadTemplate()">📥 下载Excel模板</button>
+                    <div class="template-tooltip">
+                        <h4>📋 模板格式说明</h4>
+                        <p><b>文件名即班级名</b>：例如文件名为「高三1班.xlsx」，上传后自动识别为「高三1班」。第一行为表头：第一列"学生"，第二列"考试"，后续列为各科成绩（含总分）。每名学生每次考试占一行。一个Excel对应一个班级，可同时上传多个班级文件。</p>
+                        <table>
+                            <tr><th>学生</th><th>考试</th><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>化学</th><th>总分</th></tr>
+                            <tr><td>张三</td><td>月考1</td><td>88</td><td>92</td><td>85</td><td>78</td><td>82</td><td>425</td></tr>
+                            <tr><td>张三</td><td>期中</td><td>90</td><td>88</td><td>87</td><td>80</td><td>85</td><td>430</td></tr>
+                            <tr><td>李四</td><td>月考1</td><td>85</td><td>80</td><td>88</td><td>75</td><td>80</td><td>408</td></tr>
+                            <tr><td>李四</td><td>期中</td><td>87</td><td>85</td><td>90</td><td>78</td><td>83</td><td>423</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="upload-tooltip-wrap">
+                    <button onclick="document.getElementById('fileInput').click()">📂 上传Excel成绩</button>
+                    <div class="upload-tooltip">
+                        <div class="big-icon">📁</div>
+                        <p>上传多个班级的成绩Excel</p>
+                        <p class="info-text">文件名自动作为班级名，支持 .xlsx / .xls</p>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display:none" onchange="handleFileUpload(event)">
+                <button class="danger" onclick="clearAllData()">🗑️清空</button>
+                <button class="success" id="exportBtn" onclick="exportReport()" disabled>📄导出PDF</button>
+            </div>
+        </header>
+
+        <!-- 分数线设置 + 班级标签 -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                    <div style="font-weight:600;font-size:0.92rem;margin-bottom:4px;">已加载班级</div>
+                    <div id="classTagWrap" class="class-tag-list">
+                        <span class="info-text">暂无数据，请上传Excel</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <div class="line-setting public">
+                        <span>🏛️ 公办分数线</span>
+                        <input type="number" id="publicLine" value="" placeholder="如 500" onchange="onLineChange()">
+                    </div>
+                    <div class="line-setting private">
+                        <span>🏫 民办分数线</span>
+                        <input type="number" id="privateLine" value="" placeholder="如 350" onchange="onLineChange()">
+                    </div>
+                </div>
+            </div>
+            <p class="info-text">💡分数线仅作用于"总分"图表；四个页面总分均排最前；切换Tab查看平均分/最高分/最低分/单科大图</p>
+        </div>
+
+        <!-- Tab切换 -->
+        <div class="tabs">
+            <button class="tab-btn active" data-page="avg" onclick="switchPage('avg')">📈 平均分对比</button>
+            <button class="tab-btn" data-page="max" onclick="switchPage('max')">🏆 最高分对比</button>
+            <button class="tab-btn" data-page="min" onclick="switchPage('min')">📉 最低分对比</button>
+            <button class="tab-btn" data-page="single" onclick="switchPage('single')">🔍 单科大图</button>
+        </div>
+
+        <!-- 页面1/2/3：多科目卡片 -->
+        <div id="pageMulti" class="card">
+            <div class="page-title" id="multiPageTitle">各科目班级平均分对比趋势</div>
+            <div id="subjectCompareWrap" class="subject-chart-wrap"></div>
+        </div>
+
+        <!-- 页面4：单科大图 -->
+        <div id="pageSingle" class="card hidden">
+            <div class="page-title">单科 / 总分 变化趋势大图</div>
+            <div class="single-subject-bar">
+                <label style="font-size:0.9rem;">选择科目：</label>
+                <select id="singleSubjectSelect" onchange="renderSingleChart()">
+                    <option value="">请先上传数据</option>
+                </select>
+                <span class="info-text">总分图表会叠加公办/民办分数线</span>
+            </div>
+            <div class="big-chart-container"><canvas id="singleBigChart"></canvas></div>
+        </div>
+
+    </div>
+<script>
+    Chart.register(window['chartjs-plugin-annotation']);
+    const colorPool = [
+        {border:'#4f46e5',bg:'rgba(79,70,229,0.12)'},
+        {border:'#16a34a',bg:'rgba(22,163,74,0.12)'},
+        {border:'#dc2626',bg:'rgba(220,38,38,0.12)'},
+        {border:'#ca8a04',bg:'rgba(202,138,4,0.12)'},
+        {border:'#9333ea',bg:'rgba(147,51,234,0.12)'},
+        {border:'#0891b2',bg:'rgba(8,145,178,0.12)'},
+        {border:'#ea580c',bg:'rgba(234,88,12,0.12)'}
+    ];
+
+    let appData = {
+        classList:[],
+        examList:[],
+        subjectList:[],   // 排序后，总分始终第一
+        classData:{}
+    };
+    let chartInstances = [];
+    let singleChartInstance = null;
+    let currentPage = 'avg';
+
+    function resetApp(){
+        appData = {classList:[],examList:[],subjectList:[],classData:{}};
+        chartInstances.forEach(c=>c.destroy());
+        chartInstances = [];
+        if(singleChartInstance){ singleChartInstance.destroy(); singleChartInstance=null; }
+        document.getElementById('subjectCompareWrap').innerHTML = "";
+        document.getElementById('singleSubjectSelect').innerHTML = '<option value="">请先上传数据</option>';
+        renderClassTag();
+        document.getElementById('exportBtn').disabled=true;
+    }
+    function clearAllData(){ resetApp(); }
+
+    function downloadTemplate() {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([
+            ['学生', '考试', '语文', '数学', '英语', '物理', '化学', '总分'],
+            ['张三', '月考1', 88, 92, 85, 78, 82, 425],
+            ['张三', '期中', 90, 88, 87, 80, 85, 430],
+            ['李四', '月考1', 85, 80, 88, 75, 80, 408],
+            ['李四', '期中', 87, 85, 90, 78, 83, 423],
+        ]);
+        ws['!cols'] = [ { wch:10 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, {wch:8} ];
+        XLSX.utils.book_append_sheet(wb, ws, '成绩模板');
+        XLSX.writeFile(wb, '班级成绩模板.xlsx');
+    }
+
+    async function handleFileUpload(event){
+        const files = event.target.files;
+        if(!files.length) return;
+        for(let f of files){
+            await readOneFile(f);
+        }
+        document.getElementById('fileInput').value = '';
+        // 排序：总分放最前
+        sortSubjects();
+        initRender();
+        document.getElementById('exportBtn').disabled=false;
+    }
+
+    function readOneFile(file){
+        return new Promise((resolve,reject)=>{
+            const fileName = file.name;
+            const className = fileName.replace(/\.(xlsx|xls)$/i, '').trim();
+            const reader = new FileReader();
+            reader.onload = function(e){
+                try{
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data,{type:'array'});
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(ws,{header:1});
+                    parseExcel(json, className);
+                    resolve();
+                }catch(err){
+                    alert("文件【"+fileName+"】解析失败:"+err.message);
+                    reject(err);
+                }
+            }
+            reader.readAsArrayBuffer(file);
+        })
+    }
+
+    function parseExcel(rows, className){
+        if(rows.length<2) throw new Error("行数不足，至少表头+1行数据");
+        const headers = rows[0].map(h=>String(h).trim());
+        if(headers[0]!=='学生' || headers[1]!=='考试'){
+            throw new Error("表头前两列必须是：学生、考试（班级名由文件名决定）");
+        }
+        const subjects = headers.slice(2);
+        subjects.forEach(s=>{
+            if(!appData.subjectList.includes(s)) appData.subjectList.push(s);
+        })
+        if(!appData.classList.includes(className)) appData.classList.push(className);
+        if(!appData.classData[className]) appData.classData[className] = {};
+
+        for(let i=1;i<rows.length;i++){
+            const row = rows[i];
+            if(!row || row.length<2) continue;
+            const studentName = String(row[0]).trim();
+            const examName = String(row[1]).trim();
+            if(!studentName||!examName) continue;
+            if(!appData.examList.includes(examName)) appData.examList.push(examName);
+            if(!appData.classData[className][examName]) appData.classData[className][examName] = [];
+            let scoreObj = {};
+            for(let j=0;j<subjects.length;j++){
+                let v = row[2+j];
+                scoreObj[subjects[j]] = (v!==undefined&&v!==null&&v!=='')?parseFloat(v):null;
+            }
+            scoreObj.student = studentName;
+            appData.classData[className][examName].push(scoreObj);
+        }
+    }
+
+    // 把"总分"排到最前
+    function sortSubjects(){
+        const totalIdx = appData.subjectList.findIndex(s=>s==='总分'||s==='总 分'||s==='总成绩');
+        if(totalIdx>0){
+            const total = appData.subjectList.splice(totalIdx,1)[0];
+            appData.subjectList.unshift(total);
+        }
+    }
+
+    function isTotal(subName){
+        return subName==='总分'||subName==='总 分'||subName==='总成绩';
+    }
+
+    function renderClassTag(){
+        const wrap = document.getElementById('classTagWrap');
+        if(appData.classList.length===0){
+            wrap.innerHTML = `<span class="info-text">暂无数据，请上传Excel</span>`;
+            return;
+        }
+        wrap.innerHTML = appData.classList.map(c=>`<span class="class-tag">${c}</span>`).join('');
+    }
+
+    function initRender(){
+        renderClassTag();
+        // 填充单科下拉
+        const sel = document.getElementById('singleSubjectSelect');
+        if(appData.subjectList.length>0){
+            sel.innerHTML = appData.subjectList.map(s=>`<option value="${s}">${s}${isTotal(s)?'（含分数线）':''}</option>`).join('');
+            sel.value = appData.subjectList[0];
+        }
+        switchPage(currentPage);
+    }
+
+    function switchPage(page){
+        currentPage = page;
+        document.querySelectorAll('.tab-btn').forEach(b=>{
+            b.classList.toggle('active', b.dataset.page===page);
+        });
+        if(page==='single'){
+            document.getElementById('pageMulti').classList.add('hidden');
+            document.getElementById('pageSingle').classList.remove('hidden');
+            renderSingleChart();
+        }else{
+            document.getElementById('pageMulti').classList.remove('hidden');
+            document.getElementById('pageSingle').classList.add('hidden');
+            const titleMap = {avg:'各科目班级平均分对比趋势',max:'各科目班级最高分对比趋势',min:'各科目班级最低分对比趋势'};
+            document.getElementById('multiPageTitle').textContent = titleMap[page];
+            renderMultiCharts(page);
+        }
+    }
+
+    function onLineChange(){
+        // 分数线变化时重绘当前页
+        if(currentPage==='single') renderSingleChart();
+        else renderMultiCharts(currentPage);
+    }
+
+    // 聚合计算：avg/max/min
+    function calcStat(cls, exam, subName, mode){
+        const stuList = appData.classData[cls]?.[exam]||[];
+        const valid = stuList.map(s=>s[subName]).filter(x=>x!==null&&!isNaN(x));
+        if(valid.length===0) return null;
+        if(mode==='avg') return Math.round(valid.reduce((a,b)=>a+b,0)/valid.length*10)/10;
+        if(mode==='max') return Math.max(...valid);
+        if(mode==='min') return Math.min(...valid);
+        return null;
+    }
+
+    // 构建annotation（仅总分）
+    function buildAnnotation(subName){
+        if(!isTotal(subName)) return {};
+        const pub = parseFloat(document.getElementById('publicLine').value);
+        const priv = parseFloat(document.getElementById('privateLine').value);
+        let ann = {};
+        if(!isNaN(pub)){
+            ann.publicLine = {
+                type:'line', yMin:pub, yMax:pub,
+                borderColor:'#dc2626', borderWidth:2, borderDash:[6,4],
+                label:{display:true, content:`公办 ${pub}`, position:'end', backgroundColor:'rgba(220,38,38,0.8)', color:'#fff', font:{size:10}, padding:4}
+            };
+        }
+        if(!isNaN(priv)){
+            ann.privateLine = {
+                type:'line', yMin:priv, yMax:priv,
+                borderColor:'#ca8a04', borderWidth:2, borderDash:[6,4],
+                label:{display:true, content:`民办 ${priv}`, position:'end', backgroundColor:'rgba(202,138,4,0.85)', color:'#fff', font:{size:10}, padding:4}
+            };
+        }
+        return ann;
+    }
+
+    // 前3页：多科目卡片
+    function renderMultiCharts(mode){
+        chartInstances.forEach(c=>c.destroy());
+        chartInstances=[];
+        const wrapDom = document.getElementById("subjectCompareWrap");
+        wrapDom.innerHTML = "";
+        if(appData.subjectList.length===0){
+            wrapDom.innerHTML = `<div class="empty-hint">⚠️暂无成绩数据，请上传Excel</div>`;
+            return;
+        }
+        const modeLabel = {avg:'平均分',max:'最高分',min:'最低分'}[mode];
+        appData.subjectList.forEach(subName=>{
+            const total = isTotal(subName);
+            const card = document.createElement("div");
+            card.className = "subject-chart-card"+(total?" total-card":"");
+            const cid = "chart_"+subName.replace(/\s/g,"_")+"_"+mode;
+            card.innerHTML = `<h4>${subName} 多班级${modeLabel}对比${total?'<span class="badge">总分</span>':''}</h4>
+            <div class="chart-sub-container"><canvas id="${cid}"></canvas></div>`;
+            wrapDom.appendChild(card);
+            const ctx = document.getElementById(cid).getContext('2d');
+
+            let datasets = [];
+            appData.classList.forEach((cls,idx)=>{
+                const colorItem = colorPool[idx % colorPool.length];
+                let points = appData.examList.map(exam=>calcStat(cls,exam,subName,mode));
+                datasets.push({
+                    label:cls,
+                    data:points,
+                    borderColor:colorItem.border,
+                    backgroundColor:colorItem.bg,
+                    tension:0.45,
+                    fill:false,
+                    pointRadius:3
+                });
+            });
+
+            const annotation = buildAnnotation(subName);
+            const chartIns = new Chart(ctx,{
+                type:"line",
+                data:{ labels:appData.examList, datasets:datasets },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    plugins:{
+                        legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
+                        tooltip:{mode:'index',intersect:false},
+                        annotation: annotation
+                    },
+                    interaction:{mode:'index',intersect:false},
+                    scales:{ y:{beginAtZero:false} }
+                }
+            });
+            chartInstances.push(chartIns);
+        });
+    }
+
+    // 第4页：单科大图
+    function renderSingleChart(){
+        if(singleChartInstance){ singleChartInstance.destroy(); singleChartInstance=null; }
+        const subName = document.getElementById('singleSubjectSelect').value;
+        const ctx = document.getElementById('singleBigChart').getContext('2d');
+        if(!subName || appData.classList.length===0){
+            ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+            return;
+        }
+        const mode = currentPage==='single' ? 'avg' : currentPage; // 单科大图默认平均分
+        // 单科大图固定展示平均分（用户要求"变化趋势图"）
+        let datasets = [];
+        appData.classList.forEach((cls,idx)=>{
+            const colorItem = colorPool[idx % colorPool.length];
+            let points = appData.examList.map(exam=>calcStat(cls,exam,subName,'avg'));
+            datasets.push({
+                label:cls,
+                data:points,
+                borderColor:colorItem.border,
+                backgroundColor:colorItem.bg,
+                tension:0.45,
+                fill:false,
+                pointRadius:5,
+                borderWidth:3
+            });
+        });
+        const annotation = buildAnnotation(subName);
+        singleChartInstance = new Chart(ctx,{
+            type:"line",
+            data:{ labels:appData.examList, datasets:datasets },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{
+                    legend:{position:"top",labels:{boxWidth:16,font:{size:13}}},
+                    tooltip:{mode:'index',intersect:false},
+                    title:{display:true,text:`${subName} - 各班级平均分变化趋势`,font:{size:15},color:'#1e293b'},
+                    annotation: annotation
+                },
+                interaction:{mode:'index',intersect:false},
+                scales:{
+                    y:{beginAtZero:false, ticks:{font:{size:12}}},
+                    x:{ticks:{font:{size:12}}}
+                }
+            }
+        });
+    }
+
+    async function exportReport() {
+        if(appData.classList.length===0){ alert("暂无数据，无法导出"); return; }
+        const { jsPDF } = window.jspdf;
+        try{
+            const pdf = new jsPDF('p','mm','a4');
+            const contentDom = document.querySelector(".container");
+            const canvas = await html2canvas(contentDom,{scale:1.2});
+            const imgData = canvas.toDataURL('image/jpeg',0.95);
+            const imgWidth = 210;
+            const pageHeight = 297;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            while(heightLeft>0){
+                position = heightLeft-imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData,'JPEG',0,position,imgWidth,imgHeight);
+                heightLeft -= pageHeight;
+            }
+            pdf.save("多班级成绩对比报告.pdf");
+        }catch(e){
+            console.error(e);
+            alert("PDF导出失败，可用浏览器打印另存PDF");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{ resetApp(); });
+</script>
+</body>
+</html>
