@@ -62,13 +62,15 @@ body{font-family:var(--font);color:var(--text);line-height:1.55;font-size:14px;
 .stat .num small{font-size:12px;font-weight:600;color:var(--text-3);margin-left:2px}
 .stat .lbl{font-size:12px;color:var(--text-3);margin-top:1px}
 
-/* ---------- 上下结构：上方设置区网格 ---------- */
-.settings-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:14px;align-items:start}
+/* ---------- 上下结构：上方设置区网格 ----------
+   ≥1200px：4列；768~1199px：2列×2行；<768px：单列堆叠。
+   卡片高度由内容决定，行内自动等高填充，避免出现整列空白。 */
+.settings-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
 @media(min-width:768px){.settings-grid{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1280px){.settings-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1200px){.settings-grid{grid-template-columns:repeat(4,1fr)}}
 
 .card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
-  padding:16px;transition:box-shadow .25s ease}
+  padding:16px;transition:box-shadow .25s ease;height:auto}
 .card:hover{box-shadow:var(--shadow-hover)}
 .sec-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .sec-bar{width:4px;height:16px;border-radius:2px;background:var(--grad-text);flex:none}
@@ -202,19 +204,37 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
   display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
   letter-spacing:4px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);flex-grow:2;min-height:58px}
 
-/* 小组配色（淡色底 + 同色边框，12色循环） */
-.g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
-.g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
-.g2{background:#F0FDF4 !important;border-color:#22C55E !important}
-.g3{background:#FFF7ED !important;border-color:#F59E0B !important}
-.g4{background:#FDF2F8 !important;border-color:#EC4899 !important}
-.g5{background:#F5F3FF !important;border-color:#8B5CF6 !important}
-.g6{background:#FFF1F2 !important;border-color:#F43F5E !important}
-.g7{background:#F0F9FF !important;border-color:#0EA5E9 !important}
-.g8{background:#F7FEE7 !important;border-color:#84CC16 !important}
-.g9{background:#FEFCE8 !important;border-color:#EAB308 !important}
-.g10{background:#FDF4FF !important;border-color:#D946EF !important}
-.g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
+/* 小组配色（淡色底 + 2.5px 实色边框，12色循环，边界更明显） */
+.g0{background:#EEF2FF !important;border:2.5px solid #4F6BFF !important}
+.g1{background:#ECFEFF !important;border:2.5px solid #06B6D4 !important}
+.g2{background:#F0FDF4 !important;border:2.5px solid #22C55E !important}
+.g3{background:#FFF7ED !important;border:2.5px solid #F59E0B !important}
+.g4{background:#FDF2F8 !important;border:2.5px solid #EC4899 !important}
+.g5{background:#F5F3FF !important;border:2.5px solid #8B5CF6 !important}
+.g6{background:#FFF1F2 !important;border:2.5px solid #F43F5E !important}
+.g7{background:#F0F9FF !important;border:2.5px solid #0EA5E9 !important}
+.g8{background:#F7FEE7 !important;border:2.5px solid #84CC16 !important}
+.g9{background:#FEFCE8 !important;border:2.5px solid #EAB308 !important}
+.g10{background:#FDF4FF !important;border:2.5px solid #D946EF !important}
+.g11{background:#EFF6FF !important;border:2.5px solid #3B82F6 !important}
+
+/* ---------- 悬停成绩详情 tooltip ---------- */
+.seat-tip{position:fixed;z-index:9999;min-width:180px;max-width:240px;background:#fff;
+  border:1.5px solid var(--accent);border-radius:12px;box-shadow:0 10px 36px rgba(79,107,255,.22),0 2px 8px rgba(0,0,0,.08);
+  padding:10px 12px;font-size:12px;line-height:1.5;color:var(--text);pointer-events:none;
+  opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease}
+.seat-tip.show{opacity:1;transform:translateY(0)}
+.seat-tip .tt-h{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed var(--border)}
+.seat-tip .tt-nm{font-weight:700;font-size:13.5px;color:var(--text)}
+.seat-tip .tt-grp{font-size:10.5px;font-weight:700;color:#fff;background:var(--accent);
+  border-radius:999px;padding:1px 8px;white-space:nowrap}
+.seat-tip .tt-row{display:flex;justify-content:space-between;gap:10px;padding:1.5px 0}
+.seat-tip .tt-row .k{color:var(--text-3)}
+.seat-tip .tt-row .v{font-weight:600;color:var(--text-2)}
+.seat-tip .tt-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;font-weight:700}
+.seat-tip .tt-total .v{color:var(--accent)}
 
 .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11.5px;color:var(--text-3);justify-content:center}
 .legend-item{display:flex;align-items:center;gap:5px}
@@ -351,6 +371,10 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
           <option value="none">无讲台</option>
         </select>
       </div>
+      <label class="opt" style="margin-bottom:10px">
+        <input type="checkbox" id="skipFirstRow">
+        <span><b>错开讲台第一排</b><small>勾选后第一排空置，从第二排起坐；坐不下时自动回退使用第一排</small></span>
+      </label>
       <div class="field">
         <label>过道（点击格子切换，可选）</label>
         <div class="aisle-edit" id="aisleEdit"></div>
@@ -364,12 +388,10 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
         <div><h2>排座方式</h2><p>自动应用全部约束</p></div>
       </div>
       <div class="opts">
-        <label class="opt sel"><input type="radio" name="strat" value="balanced" checked><span><b>成绩均衡分布</b><small>高分打散到各排各列</small></span></label>
-        <label class="opt"><input type="radio" name="strat" value="random"><span><b>随机排座</b><small>Fisher-Yates 严格洗牌</small></span></label>
-        <label class="opt"><input type="radio" name="strat" value="order"><span><b>按成绩顺序</b><small>高分从前往后坐</small></span></label>
-        <label class="opt"><input type="radio" name="strat" value="group"><span><b>小组排座</b><small>组间均衡，每科有带头人</small></span></label>
+        <label class="opt sel"><input type="radio" name="strat" value="group" checked><span><b>小组排座</b><small>按成绩均衡分组，每组每科有带头人</small></span></label>
+        <label class="opt"><input type="radio" name="strat" value="random"><span><b>完全随机</b><small>完全随机，不考虑成绩（Fisher-Yates 严格洗牌）</small></span></label>
       </div>
-      <div id="groupPanel" style="display:none;margin-top:10px;border:1px dashed var(--border);border-radius:11px;padding:9px;background:var(--surface-2)">
+      <div id="groupPanel" style="margin-top:10px;border:1px dashed var(--border);border-radius:11px;padding:9px;background:var(--surface-2)">
         <div class="field" style="margin-bottom:4px">
           <label>每组人数</label>
           <div class="gsize-row">
@@ -433,6 +455,10 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
     <div class="map-head">
       <div><h2>座位表预览</h2><p>拖拽换座 · 点选互换 · 行号从讲台旁第 1 排数起</p></div>
       <div class="btn-row">
+        <button class="btn btn-secondary" id="regenBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新排布</button>
+        <button class="btn btn-danger" id="clearBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清除记录</button>
         <button class="btn btn-secondary" id="printBtn" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>打印</button>
         <button class="btn btn-primary" id="exportBtn" disabled>
@@ -463,9 +489,11 @@ let layout = { rows: 6, cols: 6, aisle: new Set(), podium: 'bottom' };
 let constraints = [];
 let seatMap = [];         // [r][c] -> null | {t:'aisle'} | {t:'podium'} | {t:'s', s}
 let fileData = null;
-let genStrategy = 'balanced';
+let genStrategy = 'group';   // group | random
+let skipFirstRow = false;    // 错开讲台第一排：第一排空置，从第二排起坐
 let groupSize = 4;
 let groupList = [];       // [[student,...], ...]
+let subjectRanks = {};    // {subj: {studentId: rank}} 每科从高到低名次
 
 const $ = id => document.getElementById(id);
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
@@ -505,6 +533,10 @@ document.querySelectorAll('input[name=strat]').forEach(r=>r.addEventListener('ch
   if(genStrategy==='group') updateGroupInfo();
   refreshStats();
 }));
+/* 初始化：默认选中小组排座，展开小组人数面板 */
+(function(){
+  $('groupPanel').style.display='block';
+})();
 
 /* 小组人数快捷按钮 + 自定义输入 */
 document.querySelectorAll('.gsize-btn').forEach(b=>b.addEventListener('click',()=>{
@@ -620,6 +652,9 @@ function importAOA(aoa){
   });
   if(!students.length){toast('未解析到有效学生',true);return;}
 
+  /* 计算每科班级排名（从高到低，并列同名次） */
+  computeSubjectRanks();
+
   // 自动确定默认行列
   const auto=autoLayout(students.length);
   layout.rows=auto.rows; layout.cols=auto.cols;
@@ -683,6 +718,21 @@ function refreshStats(){
   $('stGroups').innerHTML=(groupList.length||0)+'<small>组</small>';
 }
 
+/* 每科排名：按该科成绩从高到低，相同成绩同名次 */
+function computeSubjectRanks(){
+  subjectRanks={};
+  scoreCols.forEach(subj=>{
+    const sorted=[...students].sort((a,b)=>(b.scores[subj]||0)-(a.scores[subj]||0));
+    const rankMap={}; let lastScore=null,lastRank=0;
+    sorted.forEach((s,i)=>{
+      const sc=s.scores[subj]||0;
+      if(lastScore===null||sc!==lastScore){lastRank=i+1;lastScore=sc;}
+      rankMap[s.id]=lastRank;
+    });
+    subjectRanks[subj]=rankMap;
+  });
+}
+
 /* ============================================================
  * 7. 讲台：默认底部中间，融入第一排（占中间 1~2 格）
  * ============================================================ */
@@ -741,6 +791,10 @@ $('rowsInput').addEventListener('change',()=>{buildAisleEditor();refreshStats();
 $('colsInput').addEventListener('change',()=>{buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
 $('podiumSel').addEventListener('change',()=>{readLayout();buildAisleEditor();refreshStats();if(seatMap.length)renderGrid();});
 $('clearAisleBtn').addEventListener('click',()=>{layout.aisle.clear();buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
+$('skipFirstRow').addEventListener('change',()=>{
+  skipFirstRow=$('skipFirstRow').checked;
+  if(seatMap.length) generateSeats(true);
+});
 
 /* ============================================================
  * 约束管理
@@ -893,13 +947,13 @@ function generateSeats(silent){
   const totalSeats=layout.rows*layout.cols-layout.aisle.size-podiumCells().length;
   if(students.length>totalSeats){toast('学生 '+students.length+' 人超过座位 '+totalSeats+' 个，请增加行列',true);return;}
 
-  let best=null,bestViol=Infinity,bestReport='';
+  let best=null,bestViol=Infinity;
   if(genStrategy==='group'){
     computeGroups();
     for(let attempt=0;attempt<6;attempt++){
       const grid=buildGrid();
       placeFixed(grid);
-      placeGroupsOnGrid(grid,attempt);
+      placeGroupsBlock(grid,attempt);
       fixPairs(grid);
       if(constraints.some(c=>c.type==='gender')) fixGender(grid);
       const viol=countViolations(grid);
@@ -911,8 +965,7 @@ function generateSeats(silent){
     for(let attempt=0;attempt<8;attempt++){
       const grid=buildGrid();
       placeFixed(grid);
-      const queue=buildQueue(grid);
-      greedyPlace(grid,queue,attempt);
+      placeRandomShuffled(grid,attempt);
       fixPairs(grid);
       if(constraints.some(c=>c.type==='gender')) fixGender(grid);
       const viol=countViolations(grid);
@@ -923,13 +976,19 @@ function generateSeats(silent){
   seatMap=best;
   renderGrid(); refreshStats();
   $('exportBtn').disabled=false; $('printBtn').disabled=false;
+  $('regenBtn').disabled=false; $('clearBtn').disabled=false;
+  /* 错开第一排：若第二排及以后坐不下，已自动回退占用第一排，给出提示 */
+  if(skipFirstRow){
+    const fr=frontRowInternal();
+    const spilled=seatMap[fr] && seatMap[fr].some(cell=>cell&&cell.t==='s');
+    if(spilled) toast('人数较多，第2排及以后坐不下，已自动启用第1排');
+  }
   if(!silent){
     if(genStrategy==='group'){
-      // 统计带头人覆盖情况
       const cov=leaderCoverage();
       toast('小组排座完成：共 '+groupList.length+' 组'+(cov?('（'+cov+'）'):''));
     }else{
-      toast(bestViol===0?'座位表生成完成，全部约束已满足':'座位表已生成（'+bestViol+' 处约束未完全满足，可拖拽微调）');
+      toast(bestViol===0?'完全随机排座完成，全部约束已满足':'完全随机排座完成（'+bestViol+' 处约束未完全满足，可拖拽微调）');
     }
   }
 }
@@ -958,11 +1017,6 @@ function buildGrid(){
   }}
   return g;
 }
-function freeCells(g){
-  const out=[];
-  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++) if(!g[r][c]) out.push([r,c]);
-  return out;
-}
 function placeFixed(g){
   constraints.filter(c=>c.type==='fix').forEach(con=>{
     const s=getStudent(con.id);
@@ -971,7 +1025,6 @@ function placeFixed(g){
   /* 前排优先：把须前排的学生先放到前 N 排空位 */
   constraints.filter(c=>c.type==='mfront').forEach(con=>{
     const s=getStudent(con.id); if(!s)return;
-    // 已在固定位则跳过
     let already=false;
     for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
       if(g[r][c]&&g[r][c].t==='s'&&g[r][c].s.id===s.id){already=true;break;}
@@ -988,7 +1041,7 @@ function placedIds(g){
   g.forEach(row=>row.forEach(cell=>{if(cell&&cell.t==='s')set.add(cell.s.id);}));
   return set;
 }
-/* ⑤ 严格 Fisher-Yates 洗牌 */
+/* 严格 Fisher-Yates 洗牌 */
 function fisherYates(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -996,92 +1049,76 @@ function fisherYates(arr){
   }
   return arr;
 }
-function buildQueue(grid){
-  const placed=placedIds(grid);
-  let q=students.filter(s=>!placed.has(s.id));
-  if(genStrategy==='balanced'||genStrategy==='order') q.sort((a,b)=>b.total-a.total);
-  else q=fisherYates(q);   // random：严格洗牌
-  return q;
-}
 function isHighTotal(s){
   const sorted=[...students].sort((a,b)=>b.total-a.total);
   const cut=Math.max(1,Math.floor(sorted.length/3));
   return sorted.indexOf(s)<cut;
 }
-function greedyPlace(grid,queue,attempt){
-  const free=freeCells(grid);
-  queue.forEach(s=>{
-    let cands=free.filter(([r,c])=>!grid[r][c]&&passesFrontConstraint(s,r));
-    if(!cands.length) cands=free.filter(([r,c])=>!grid[r][c]);
-    if(!cands.length)return;
-    let scored=cands.map(([r,c])=>{
-      let pen=0;
-      if(violatesPair(s,r,c,grid)) pen+=10000;
-      if(genStrategy==='balanced'){
-        const highCount=neighbors(r,c).filter(([nr,nc])=>grid[nr][nc]&&grid[nr][nc].t==='s'&&isHighTotal(grid[nr][nc].s)).length;
-        if(isHighTotal(s)) pen+=highCount*100;
-        else pen+=highCount*3;
-      }
-      pen+=Math.random()*((attempt%2)?4:0.01);
-      return {r,c,pen};
-    });
-    scored.sort((a,b)=>a.pen-b.pen);
-    const pick=scored[0];
-    grid[pick.r][pick.c]={t:'s',s};
-  });
+
+/* 自由座位填充顺序：默认从离讲台最近的第一排开始，逐排往后（左→右）。
+ * 讲台在底部：内部 r=rows-1 是第1排，从下往上遍历；
+ * 讲台在顶部/左/右/无：内部 r=0 是第1排，从上往下遍历。
+ * 勾选"错开讲台第一排"时：把第一排挪到最后填充——第二排及以后先坐满，
+ * 若人数过多再自动回退占用第一排（由 generateSeats 给出提示）。 */
+function snakeFillCells(g){
+  const out=[];
+  let rowOrder;
+  if(frontIsBottom()){
+    rowOrder=[]; for(let r=layout.rows-1;r>=0;r--) rowOrder.push(r);
+  }else{
+    rowOrder=[]; for(let r=0;r<layout.rows;r++) rowOrder.push(r);
+  }
+  if(skipFirstRow && rowOrder.length>1){
+    const frontR=rowOrder.shift();
+    rowOrder.push(frontR);
+  }
+  for(const r of rowOrder){
+    for(let c=0;c<layout.cols;c++){
+      if(!g[r][c]) out.push([r,c]);
+    }
+  }
+  return out;
+}
+/* 离讲台最近的第一排对应的内部行号 */
+function frontRowInternal(){ return frontIsBottom()?layout.rows-1:0; }
+
+/* —— 小组块状落位：每组占连续的蛇形座位段（行区块），组内成绩错落，仅边缘少量穿插 —— */
+function placeGroupsBlock(g,attempt){
+  const placed=placedIds(g);
+  const groups=groupList.map(grp=>grp.filter(s=>!placed.has(s.id)));
+  const G=groups.length;
+  if(!G) return;
+
+  // 自由座位按"从第一排开始"的顺序取出（讲台/过道/已固定位已在 buildGrid 中占位）
+  let cells=snakeFillCells(g);
+
+  // 组的行块归属按 attempt 旋转：组仍各自连成一段，但每次重排占的行块不同
+  const rot=attempt%G;
+  const order=[...Array(G).keys()].slice(rot).concat([...Array(G).keys()].slice(0,rot));
+
+  let idx=0;
+  for(const gi of order){
+    const members=groups[gi];
+    for(let k=0;k<members.length;k++){
+      while(idx<cells.length && g[cells[idx][0]][cells[idx][1]]) idx++; // 跳过已被固定/占用的格
+      if(idx>=cells.length) break;
+      const [r,c]=cells[idx];
+      g[r][c]={t:'s',s:members[k]};
+      idx++;
+    }
+  }
 }
 
-/* —— 小组落位：每组整块矩形入座 —— */
-function blockDims(){
-  let bw=Math.ceil(Math.sqrt(groupSize)), bh=Math.ceil(groupSize/bw);
-  if(bw>layout.cols){[bw,bh]=[bh,bw];}
-  if(bw>layout.cols){bw=layout.cols;bh=Math.ceil(groupSize/bw);}
-  return {bw,bh};
-}
-function restrictScore(s){
-  return constraints.filter(c=>c.type==='mfront'&&c.id===s.id).length;
-}
-function placeGroupsOnGrid(g,attempt){
-  const {bw,bh}=blockDims();
-  const order=groupList.map((_,i)=>i);
-  if(attempt%2)order.reverse();
-  order.forEach(gi=>{
-    const grp=groupList[gi];
-    let anchor=null;
-    outer:
-    for(let r=0;r<=layout.rows-bh;r++)for(let c=0;c<=layout.cols-bw;c++){
-      let ok=true;
-      for(let rr=r;rr<r+bh;rr++)for(let cc=c;cc<c+bw;cc++){
-        if(g[rr][cc]){ok=false;break;}
-      }
-      if(ok){anchor=[r,c];break outer;}
-    }
-    if(!anchor){scatterGroup(g,grp);return;}
-    const [ar,ac]=anchor;
-    const cells=[];
-    for(let rr=ar;rr<ar+bh;rr++)for(let cc=ac;cc<ac+bw;cc++)cells.push([rr,cc]);
-    const members=[...grp].sort((a,b)=>restrictScore(b)-restrictScore(a));
-    cells.forEach(([rr,cc])=>{
-      if(!members.length)return;
-      let idx=members.findIndex(m=>passesFrontConstraint(m,rr));
-      if(idx<0)idx=0;
-      const m=members.splice(idx,1)[0];
-      g[rr][cc]={t:'s',s:m};
-    });
-    if(members.length)scatterGroup(g,members);
-  });
-}
-function scatterGroup(g,grp){
-  grp.forEach(m=>{
-    const cands=freeCells(g);
-    if(!cands.length)return;
-    cands.sort((A,B)=>{
-      const sameA=neighbors(A[0],A[1]).filter(([nr,nc])=>g[nr][nc]&&g[nr][nc].t==='s'&&g[nr][nc].s._group===m._group).length;
-      const sameB=neighbors(B[0],B[1]).filter(([nr,nc])=>g[nr][nc]&&g[nr][nc].t==='s'&&g[nr][nc].s._group===m._group).length;
-      return sameB-sameA;
-    });
-    const pick=cands[0];
-    g[pick[0]][pick[1]]={t:'s',s:m};
+/* —— 完全随机：Fisher-Yates 洗牌后，从第一排开始依次填充 —— */
+function placeRandomShuffled(g,attempt){
+  const placed=placedIds(g);
+  let q=students.filter(s=>!placed.has(s.id));
+  fisherYates(q);
+  const cells=snakeFillCells(g);
+  q.forEach((s,i)=>{
+    if(i>=cells.length) return;
+    const [r,c]=cells[i];
+    g[r][c]={t:'s',s};
   });
 }
 
@@ -1236,6 +1273,8 @@ function renderGrid(){
         el.addEventListener('drop',onDrop);
         el.addEventListener('dragend',dragEnd);
         el.addEventListener('click',seatClick);
+        el.addEventListener('mouseenter',(e)=>showTip(e,cell.s,el));
+        el.addEventListener('mouseleave',hideTip);
       }else{
         el.className='seat empty'; el.textContent='空';
         el.draggable=true;
@@ -1325,12 +1364,61 @@ function doSwap(sr,sc,tr,tc,srcEmpty){
 }
 
 /* ============================================================
- * 6. 导出 / 打印
+ * 悬停成绩详情 tooltip（白色卡片 / 蓝紫边框 / 自动翻转）
  * ============================================================ */
+let tipEl=null;
+function showTip(e,s,anchor){
+  hideTip();
+  tipEl=document.createElement('div'); tipEl.className='seat-tip';
+  let html='<div class="tt-h"><span class="tt-nm">'+esc(s.name)+'</span>';
+  html+='<span class="tt-grp">'+(s._group!=null?('第'+(s._group+1)+'组'):'个人')+'</span></div>';
+  scoreCols.forEach(subj=>{
+    const rank=subjectRanks[subj]&&subjectRanks[subj][s.id];
+    const v=s.scores[subj]!=null?s.scores[subj]:'-';
+    html+='<div class="tt-row"><span class="k">'+esc(subj)+'</span>'
+        +'<span class="v">'+v+(rank!=null?('　班级第'+rank+'名/'+students.length+'人'):'')+'</span></div>';
+  });
+  html+='<div class="tt-total"><span>总分</span><span class="v">'+s.total+'</span></div>';
+  tipEl.innerHTML=html;
+  document.body.appendChild(tipEl);
+  positionTip(anchor);
+  requestAnimationFrame(()=>tipEl.classList.add('show'));
+}
+function positionTip(anchor){
+  if(!tipEl)return;
+  const ar=anchor.getBoundingClientRect();
+  const tw=tipEl.offsetWidth, th=tipEl.offsetHeight;
+  let left=ar.left+ar.width/2-tw/2;
+  let top=ar.top-th-10;
+  // 上方空间不足 → 放到座位下方
+  if(ar.top-th-10<8) top=ar.bottom+10;
+  // 左右越界自动翻转
+  if(left<8) left=8;
+  if(left+tw>window.innerWidth-8) left=window.innerWidth-tw-8;
+  tipEl.style.left=left+'px';
+  tipEl.style.top=top+'px';
+}
+function hideTip(){ if(tipEl){tipEl.remove();tipEl=null;} }
+window.addEventListener('scroll',hideTip,true);
+
+/* ============================================================
+ * 6. 导出 / 打印 / 重新排布 / 清除记录
+ * ============================================================ */
+$('regenBtn').addEventListener('click',()=>{
+  if(!students.length){toast('请先导入学生名单',true);return;}
+  generateSeats(false);
+});
+$('clearBtn').addEventListener('click',()=>{
+  seatMap=[]; groupList=[]; students.forEach(s=>s._group=null);
+  renderGrid(); refreshStats();
+  $('exportBtn').disabled=true; $('printBtn').disabled=true;
+  $('regenBtn').disabled=true; $('clearBtn').disabled=true;
+  toast('已清空座位表');
+});
 $('exportBtn').addEventListener('click',()=>{
   if(!seatMap.length){toast('请先生成座位表',true);return;}
   const groupMode=genStrategy==='group';
-  const data=[['班级座位表'],['排座方式：'+({balanced:'成绩均衡分布',random:'随机排座',order:'按成绩顺序',group:'小组排座'})[genStrategy]],
+  const data=[['班级座位表'],['排座方式：'+({random:'完全随机',group:'小组排座'})[genStrategy]],
     ['讲台：'+({bottom:'底部中间（融入第一排）',top:'顶部中间',left:'左侧',right:'右侧',none:'无讲台'})[layout.podium]],[]];
   data.push(['排\\列',...Array.from({length:layout.cols},(_,i)=>'第'+(i+1)+'列')]);
   // 按显示顺序输出（屏幕上到下），排号用 dispRowOf

@@ -57,7 +57,7 @@ h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-cli
 .section-title .bar{width:3.5px;height:17px;border-radius:3px;background:var(--accent)}
 
 /* 工具卡片网格 */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .card{
   background:var(--surface);border-radius:var(--radius-lg);padding:16px 16px 18px;
   box-shadow:var(--shadow);transition:transform .25s ease,box-shadow .25s ease;
@@ -90,10 +90,13 @@ footer{margin-top:32px;text-align:center;color:var(--text-3);font-size:12px;line
 footer .power{font-weight:600;color:var(--text-2)}
 
 /* 响应式 */
-@media (max-width:900px){
+@media (max-width:1100px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:700px){
   .grid{grid-template-columns:repeat(2,1fr)}
 }
-@media (max-width:560px){
+@media (max-width:500px){
   .wrap{padding:20px 14px 28px}
   .grid{grid-template-columns:1fr;gap:12px}
   .stats{gap:8px}
@@ -115,7 +118,7 @@ footer .power{font-weight:600;color:var(--text-2)}
   </header>
 
   <div class="stats">
-    <div class="stat-card"><div class="num">4</div><div class="label">工具模块</div></div>
+    <div class="stat-card"><div class="num">5</div><div class="label">工具模块</div></div>
     <div class="stat-card"><div class="num">8+</div><div class="label">核心功能</div></div>
     <div class="stat-card"><div class="num">100%</div><div class="label">纯前端可用</div></div>
   </div>
@@ -131,7 +134,7 @@ footer .power{font-weight:600;color:var(--text-2)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
       <h3>点名系统</h3>
-      <p>单页整合随机点名/知识点抽取/盲盒抽取，Tab 切换，结果居中大字号展示。</p>
+      <p>整合抽取学生+知识点，完成/未完成奖惩机制，左侧抽取记录面板，结果居中展示。</p>
       <a class="enter" href="点名系统/index.html">进入点名
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
@@ -144,7 +147,7 @@ footer .power{font-weight:600;color:var(--text-2)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
       </div>
       <h3>课堂互动大厅</h3>
-      <p>Tab 切换数字炸弹（自定义范围）与大冒险转盘，支持上传自定义内容、下载模板、历史记录。</p>
+      <p>Tab 切换数字炸弹、大冒险转盘、课堂飞行棋，支持上传自定义内容、下载模板、历史记录。</p>
       <a class="enter" href="课堂互动/小游戏大厅.html">进入大厅
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
@@ -173,6 +176,19 @@ footer .power{font-weight:600;color:var(--text-2)}
       <p>导入学生成绩，支持成绩均衡/随机/小组排座，多条件约束、教室布局配置、拖拽与点选换座、导出座位表。</p>
       <a class="enter" href="座位编排/index.html">开始排座
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- 课堂回放 -->
+    <div class="card">
+      <span class="tag ext">在线版</span>
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+      </div>
+      <h3>课堂回放</h3>
+      <p>课堂实况视频回放与留存，已发布在线版，可直接访问使用。</p>
+      <a class="enter" href="https://zhangdn731.github.io/lqxqcjfx/index-404.html" target="_blank" rel="noopener">打开回放
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
       </a>
     </div>
 
