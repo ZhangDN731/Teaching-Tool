@@ -42,7 +42,7 @@ body{
 }
 button{font-family:inherit}
 
-/* ============ 通用容器（紧凑） ============ */
+/* ============ 通用容器 ============ */
 .wrap{max-width:1100px;margin:0 auto;padding:16px 16px 32px}
 
 /* ============ 胶囊标签 ============ */
@@ -58,7 +58,7 @@ button{font-family:inherit}
   content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);
 }
 
-/* ============ 顶部标题区（紧凑） ============ */
+/* ============ 顶部标题区 ============ */
 .hero{text-align:center;padding:10px 0 14px}
 .hero h1{
   font-size:26px;font-weight:800;color:var(--text);
@@ -103,7 +103,7 @@ button{font-family:inherit}
 .tab-panel.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ============ 卡片（紧凑 padding 18） ============ */
+/* ============ 卡片 ============ */
 .card{
   background:var(--surface);
   border-radius:var(--radius-lg);
@@ -111,35 +111,94 @@ button{font-family:inherit}
   padding:18px 16px;
 }
 .card + .card{margin-top:12px}
-.card-center{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.card-center{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
 
 h2{font-size:17px;font-weight:700;color:var(--text)}
 .desc{color:var(--text-3);font-size:12px}
 
-/* ============ 数字炸弹（紧凑） ============ */
-.nb-setup{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+/* ============ 数字炸弹：设置行 ============ */
 .nb-setup-row{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
 }
 .nb-label{font-size:13px;color:var(--text-2);font-weight:600;flex:none}
-.nb-max-input{max-width:140px;text-align:center}
-.nb-range{
-  font-size:32px;font-weight:800;line-height:1.15;
-  color:var(--accent);
-  background:var(--accent-soft);
-  padding:10px 22px;border-radius:12px;
-  min-width:180px;
-}
-.nb-range.boom{color:var(--red);background:rgba(239,68,68,0.08)}
-.input-num{
-  width:100%;max-width:280px;
-  background:#fff;border:1px solid var(--border);
-  border-radius:10px;padding:9px;font-size:16px;
-  text-align:center;color:var(--text);outline:none;min-height:44px;
-}
-.input-num:focus{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent-soft)}
+.nb-max-input{width:110px;text-align:center;min-height:40px}
 
-/* ============ 按钮（紧凑 8/18, 13px） ============ */
+/* ============ 数字炸弹：大字号范围（视觉焦点） ============ */
+.nb-range{
+  font-size:clamp(48px,9vw,64px);
+  font-weight:800;line-height:1.1;
+  letter-spacing:1px;
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-fill-color:transparent;
+  padding:6px 18px;
+  min-width:200px;
+  user-select:none;
+}
+.nb-range.boom{
+  background:none;-webkit-text-fill-color:var(--red);
+  color:var(--red);
+}
+@keyframes rangePop{
+  0%{transform:scale(.8);opacity:.2}
+  60%{transform:scale(1.08)}
+  100%{transform:scale(1);opacity:1}
+}
+.range-pop{animation:rangePop .35s ease}
+
+/* 提示语（太大/太小） */
+.nb-msg{font-size:14px;font-weight:600;min-height:22px;color:var(--text-3)}
+.nb-msg.up{color:var(--red)}
+.nb-msg.down{color:var(--green)}
+
+/* 输入回显 */
+.nb-readout{
+  font-size:30px;font-weight:700;color:var(--text);
+  background:var(--surface-2);
+  border:1.5px dashed var(--border);
+  border-radius:12px;
+  min-height:58px;min-width:220px;
+  display:flex;align-items:center;justify-content:center;
+  letter-spacing:6px;padding:0 14px;
+}
+.nb-readout .placeholder{
+  color:var(--text-3);font-size:14px;letter-spacing:0;font-weight:500;
+}
+
+/* ============ 数字键区 3列×4行 ============ */
+.nb-game-area{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  width:100%;margin-top:4px;
+}
+.numpad{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  width:100%;max-width:300px;
+}
+.numpad button{
+  height:56px;border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-size:22px;font-weight:700;color:var(--text);
+  cursor:pointer;transition:all .15s ease;min-width:0;
+}
+.numpad button:hover{
+  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
+}
+.numpad button:active{
+  transform:scale(.93);
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.numpad .key-util{
+  font-size:15px;font-weight:600;
+  background:var(--surface-2);color:var(--text-2);
+}
+.numpad .key-confirm{
+  background:linear-gradient(135deg,#4F6BFF,#38BDF8);
+  color:#fff;border:none;font-size:16px;font-weight:700;
+}
+.numpad .key-confirm:hover{color:#fff;box-shadow:var(--shadow-hover)}
+
+/* ============ 按钮 ============ */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   padding:8px 18px;border-radius:10px;
@@ -148,70 +207,79 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   min-height:44px;transition:all .2s ease;
 }
 .btn:active{transform:scale(.98)}
-.btn-primary{
-  background:linear-gradient(135deg,#4F6BFF,#38BDF8);
-  color:#fff;
-}
+.btn-primary{background:linear-gradient(135deg,#4F6BFF,#38BDF8);color:#fff}
 .btn-primary:hover{box-shadow:var(--shadow-hover)}
 .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.btn-secondary{
-  background:#fff;color:var(--accent);
-  border:1px solid var(--border);
-}
+.btn-secondary{background:#fff;color:var(--accent);border:1px solid var(--border)}
 .btn-secondary:hover{background:var(--accent-soft)}
-.btn.small{padding:6px 12px;font-size:12px;min-height:38px}
+.btn-tight{padding:7px 14px;font-size:12.5px;min-height:40px;border-radius:9px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 
-/* ============ 历史记录（紧凑） ============ */
+/* ============ 输入框 ============ */
+.input-num{
+  background:#fff;border:1px solid var(--border);
+  border-radius:10px;padding:9px;font-size:16px;
+  text-align:center;color:var(--text);outline:none;min-height:44px;
+}
+.input-num:focus{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent-soft)}
+
+/* ============ 历史记录 ============ */
 .history{
-  width:100%;max-width:480px;
-  max-height:120px;overflow-y:auto;
+  width:100%;
+  max-height:200px;overflow-y:auto;
   background:var(--surface-2);
   border-radius:var(--radius-sm);
-  padding:8px 10px;
+  padding:10px 12px;
   text-align:left;font-size:12px;color:var(--text-2);
 }
-.history p{margin:3px 0}
 .history h3{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:5px}
 .history h3 svg{width:14px;height:14px;color:var(--accent)}
 .history-empty{color:var(--text-3);text-align:center;padding:8px 0}
+.history p{margin:3px 0}
 
-/* ============ 转盘（紧凑） ============ */
+/* ============ 转盘 ============ */
+.wheel-top-row{
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  margin-bottom:14px;
+}
 .wheel-card{display:flex;flex-direction:column;align-items:center}
 .wheel-wrap{
   position:relative;
   width:min(78vw,340px);
   aspect-ratio:1/1;
+  cursor:pointer;
+  border-radius:50%;
+  transition:transform .25s ease, box-shadow .25s ease;
 }
-.wheel-wrap canvas{
-  width:100%;height:100%;display:block;border-radius:50%;
+.wheel-wrap:hover{
+  transform:scale(1.03);
+  box-shadow:0 10px 36px rgba(79,107,255,0.28);
 }
+.wheel-wrap.spinning{cursor:default}
+.wheel-wrap.spinning:hover{transform:none;box-shadow:none}
+.wheel-wrap canvas{width:100%;height:100%;display:block;border-radius:50%}
 .pointer{
-  position:absolute;top:-5px;left:50%;
+  position:absolute;top:-6px;left:50%;
   transform:translateX(-50%);
   width:0;height:0;
   border-left:11px solid transparent;
   border-right:11px solid transparent;
-  border-top:22px solid var(--accent);
+  border-top:24px solid var(--accent);
   z-index:10;
   filter:drop-shadow(0 2px 3px rgba(79,107,255,.35));
 }
-.wheel-hint{font-size:12px;color:var(--text-3);margin-top:10px;text-align:center;line-height:1.5}
+.wheel-hint{font-size:13px;color:var(--text-3);margin-top:14px;text-align:center;line-height:1.5}
+.wheel-hint strong{color:var(--accent)}
 .file-label{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  font-family:var(--font);font-size:13px;min-height:44px;
-  padding:7px 14px;border-radius:10px;cursor:pointer;
+  font-family:var(--font);font-size:12.5px;min-height:40px;
+  padding:7px 14px;border-radius:9px;cursor:pointer;
   border:1px solid var(--border);background:#fff;color:var(--accent);
   transition:all .2s ease;
 }
-.file-label:hover{border-color:var(--accent)}
+.file-label:hover{border-color:var(--accent);background:var(--accent-soft)}
 .file-label input{display:none}
-.file-label svg{width:16px;height:16px}
-.spin-btn{
-  width:100%;max-width:300px;
-  font-size:15px;font-weight:600;
-  padding:10px 20px;
-}
+.file-label svg{width:15px;height:15px}
 .history-item{
   font-size:13px;color:var(--text);
   padding:5px 2px;border-bottom:1px dashed var(--border);
@@ -227,10 +295,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 }
 
 /* ============ 更多游戏占位 ============ */
-.more-card{
-  display:flex;flex-direction:column;align-items:center;gap:12px;
-  text-align:center;padding:36px 20px;
-}
+.more-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:36px 20px}
 .more-card .lock-icon{
   width:64px;height:64px;border-radius:16px;
   background:rgba(245,158,11,0.12);color:var(--orange);
@@ -239,13 +304,12 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .more-card .lock-icon svg{width:34px;height:34px}
 .more-tag{
   background:rgba(245,158,11,0.12);color:var(--orange);
-  font-size:12px;font-weight:600;
-  padding:4px 14px;border-radius:999px;
+  font-size:12px;font-weight:600;padding:4px 14px;border-radius:999px;
 }
 .more-card h3{font-size:18px;font-weight:700;color:var(--text)}
 .more-card p{font-size:13px;color:var(--text-3);max-width:320px;line-height:1.6}
 
-/* ============ 弹窗（紧凑） ============ */
+/* ============ 弹窗 ============ */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(15,23,42,0.35);
   display:none;align-items:center;justify-content:center;
@@ -263,9 +327,10 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .modal-box h2{font-size:18px;margin-bottom:8px}
 .modal-box h2.accent{color:var(--accent)}
 .modal-box h2.warn{color:var(--orange)}
+.modal-box h2.boom{color:var(--red);font-size:30px;letter-spacing:2px}
 .modal-box .m-desc{font-size:14px;line-height:1.55;margin-bottom:16px;color:var(--text)}
 
-/* ============ Toast（紧凑） ============ */
+/* ============ Toast ============ */
 .toast{
   position:fixed;left:50%;bottom:24px;
   transform:translateX(-50%) translateY(16px);
@@ -281,7 +346,10 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   .wrap{padding:24px 36px 36px}
   .hero{padding:14px 0 18px}
   .hero h1{font-size:30px}
-  .nb-range{font-size:40px}
+  /* 桌面端：数字键区在右、历史在左 */
+  .nb-game-area{flex-direction:row;justify-content:center;align-items:flex-start;gap:28px}
+  .nb-game-area .numpad{flex:none;max-width:300px}
+  .nb-game-area .history{flex:1;max-width:300px;max-height:240px}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -319,30 +387,44 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
     <div class="card card-center">
       <span class="capsule">NUMBER BOMB · 自定义区间</span>
       <h2>数字炸弹</h2>
-      <p class="desc">最小值固定为 1，先设定最大值，再开始报数收窄范围，踩中即输</p>
+      <p class="desc">最小值固定为 1，设定最大值后开始报数收窄范围，踩中即输</p>
 
-      <!-- 设置阶段：最大值 -->
-      <div class="nb-setup" id="nb-setup">
-        <div class="nb-setup-row">
-          <label class="nb-label" for="nb-max">最大值</label>
-          <input type="number" class="input-num nb-max-input" id="nb-max" value="100" min="10" max="9999">
-        </div>
-        <button class="btn btn-primary" onclick="numBombStart()">开始游戏</button>
-        <p class="desc">可输入 10 ~ 9999 之间的整数，炸弹将随机埋在 1 ~ 最大值 之间</p>
+      <!-- 设置行 -->
+      <div class="nb-setup-row">
+        <label class="nb-label" for="nb-max">最大值</label>
+        <input type="number" class="input-num nb-max-input" id="nb-max" value="100" min="10" max="9999">
+        <button class="btn btn-primary btn-tight" onclick="numBombStart()">开始新游戏</button>
       </div>
 
-      <!-- 游戏阶段 -->
-      <div id="nb-game" class="card-center" style="display:none;width:100%">
-        <div class="nb-range" id="nb-range">1 ~ 100</div>
+      <!-- 大字号范围（视觉焦点） -->
+      <div class="nb-range" id="nb-range">1 ~ 100</div>
+      <div class="nb-msg" id="nb-msg">在范围内选一个数字</div>
 
-        <input type="number" class="input-num" id="nb-input" placeholder="输入数字..." min="1">
+      <!-- 输入回显 -->
+      <div class="nb-readout" id="nb-readout"><span class="placeholder">点击数字键或用键盘输入</span></div>
 
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="numBombGuess()">确认报数</button>
-          <button class="btn btn-secondary" onclick="numBombBackToSetup()">重新设置</button>
+      <!-- 数字键区 + 历史 -->
+      <div class="nb-game-area">
+        <div class="numpad" id="numpad">
+          <button type="button" data-digit="1">1</button>
+          <button type="button" data-digit="2">2</button>
+          <button type="button" data-digit="3">3</button>
+          <button type="button" data-digit="4">4</button>
+          <button type="button" data-digit="5">5</button>
+          <button type="button" data-digit="6">6</button>
+          <button type="button" data-digit="7">7</button>
+          <button type="button" data-digit="8">8</button>
+          <button type="button" data-digit="9">9</button>
+          <button type="button" class="key-util" data-act="back">&#9003;</button>
+          <button type="button" data-digit="0">0</button>
+          <button type="button" class="key-confirm" data-act="enter">确定</button>
         </div>
 
         <div class="history" id="nb-history">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M21 12a9 9 0 11-9-9"/></svg>
+            报数记录
+          </h3>
           <div class="history-empty">暂无记录，开始第一轮报数吧</div>
         </div>
       </div>
@@ -351,12 +433,12 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 
   <!-- ============ Tab 面板：大冒险转盘 ============ -->
   <div class="tab-panel" id="tab-wheel">
-    <!-- 控制区 -->
+    <!-- 顶部紧凑操作区 -->
     <div class="card">
-      <div class="btn-row" style="margin-bottom:10px">
-        <button type="button" class="btn btn-secondary" onclick="downloadTemplate()">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-          下载 TXT 模板
+      <div class="wheel-top-row">
+        <button type="button" class="btn btn-secondary btn-tight" onclick="downloadTemplate()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          下载TXT模板
         </button>
         <label class="file-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h4l2 2h10a1 1 0 011 1v8a1 1 0 01-1 1H5a1 1 0 01-1-1V7z"/></svg>
@@ -364,19 +446,15 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
           <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload(event)">
         </label>
       </div>
-      <button type="button" class="btn btn-primary spin-btn" id="btnSpin" onclick="spinWheel()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a7 7 0 0112-5m2 5a7 7 0 01-12 5m-2-5h3m8 0h3"/></svg>
-        开始大冒险
-      </button>
     </div>
 
-    <!-- 转盘 -->
+    <!-- 转盘（点击自身旋转） -->
     <div class="card wheel-card">
-      <div class="wheel-wrap">
+      <div class="wheel-wrap" id="wheelWrap" title="点击转盘开始抽取">
         <div class="pointer"></div>
         <canvas id="wheelCanvas"></canvas>
       </div>
-      <p class="wheel-hint">转盘上方指针所指即为抽中任务；每行一个任务的 TXT 文件可自定义转盘内容。</p>
+      <p class="wheel-hint" id="wheel-hint"><strong>点击转盘</strong>开始抽取；每行一个任务的 TXT 文件可自定义转盘内容。</p>
     </div>
 
     <!-- 历史记录 -->
@@ -426,10 +504,7 @@ function switchTab(name){
   $('tab-'+name).classList.add('active');
   document.querySelector('.tab-btn[data-tab="'+name+'"]').classList.add('active');
   window.scrollTo({top:0,behavior:'instant'});
-  if(name==='wheel'){
-    // 切到转盘面板时重新适配画布尺寸（隐藏状态下 clientWidth 为 0）
-    setTimeout(fitCanvas, 50);
-  }
+  if(name==='wheel'){ setTimeout(fitCanvas, 50); }
 }
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
@@ -456,14 +531,40 @@ function showModal(title, desc, cls){
 function closeModal(){ $('modal').classList.remove('show'); }
 
 /* ============================================================
- * 数字炸弹（自定义最大值 + 真随机）
+ * 数字炸弹（自定义最大值 + 真随机 + 数字键区 + 物理键盘）
  * ============================================================ */
 let nbMin = 1;
 let nbUpper = 100;
 let nbBomb = 0;
+let nbInputStr = '';
+let nbPlaying = false;
 
 function genBomb(max){
+  // 真随机，每次开始重新生成，不缓存
   return Math.floor(Math.random() * (max - 1 + 1)) + 1;
+}
+
+function nbRenderReadout(){
+  const el = $('nb-readout');
+  if(nbInputStr === ''){
+    el.innerHTML = '<span class="placeholder">点击数字键或用键盘输入</span>';
+  } else {
+    el.textContent = nbInputStr;
+  }
+}
+
+function nbPopRange(){
+  const r = $('nb-range');
+  r.classList.remove('range-pop');
+  void r.offsetWidth;
+  r.classList.add('range-pop');
+}
+
+function nbSetRangeText(){
+  const r = $('nb-range');
+  r.textContent = nbMin + ' ~ ' + nbUpper;
+  r.classList.remove('boom');
+  nbPopRange();
 }
 
 function numBombStart(){
@@ -476,64 +577,107 @@ function numBombStart(){
   nbUpper = v;
   nbMin = 1;
   nbBomb = genBomb(nbUpper);
+  nbInputStr = '';
+  nbPlaying = true;
 
-  $('nb-setup').style.display = 'none';
-  const g = $('nb-game');
-  g.style.display = 'flex';
-  g.classList.add('card-center');
-
-  $('nb-range').textContent = nbMin + ' ~ ' + nbUpper;
   $('nb-range').classList.remove('boom');
-  $('nb-input').value = '';
-  $('nb-input').min = 1;
-  $('nb-input').max = nbUpper;
-  $('nb-input').placeholder = '输入 1 ~ ' + nbUpper + ' 的数字';
-  $('nb-history').innerHTML = '<div class="history-empty">暂无记录，开始第一轮报数吧</div>';
-  $('nb-input').focus();
+  nbSetRangeText();
+  $('nb-msg').textContent = '在范围内选一个数字';
+  $('nb-msg').className = 'nb-msg';
+  nbRenderReadout();
+  $('nb-history').innerHTML =
+    '<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M21 12a9 9 0 11-9-9"/></svg>报数记录</h3>' +
+    '<div class="history-empty">暂无记录，开始第一轮报数吧</div>';
 }
 
-function numBombBackToSetup(){
-  $('nb-game').style.display = 'none';
-  $('nb-setup').style.display = 'flex';
-  $('nb-max').focus();
+function nbPressDigit(d){
+  if(!nbPlaying) return;
+  if(nbInputStr.length >= 4){ showToast('最多 4 位数字'); return; }
+  nbInputStr += d;
+  nbRenderReadout();
 }
-
-function numBombGuess(){
-  const val = parseInt($('nb-input').value, 10);
+function nbBackspace(){
+  if(!nbPlaying) return;
+  nbInputStr = nbInputStr.slice(0, -1);
+  nbRenderReadout();
+}
+function nbConfirm(){
+  if(!nbPlaying) return;
+  if(nbInputStr === ''){ showToast('请先输入数字'); return; }
+  const val = parseInt(nbInputStr, 10);
   if(isNaN(val) || val < nbMin || val > nbUpper){
-    showToast('请输入 ' + nbMin + ' - ' + nbUpper + ' 之间的数字');
+    showToast('请输入 ' + nbMin + ' ~ ' + nbUpper + ' 之间的数字');
+    nbInputStr = '';
+    nbRenderReadout();
     return;
   }
+
   if(val === nbBomb){
-    $('nb-range').textContent = nbBomb;
-    $('nb-range').classList.add('boom');
-    showModal('BOOM！','炸弹数字是 ' + nbBomb + '，接受惩罚！');
-    numBombBackToSetup();
-  } else {
-    let msg = '';
-    if(val < nbBomb){
-      nbMin = val + 1;
-      msg = val + ' → 小了！范围：' + nbMin + ' ~ ' + nbUpper;
-    } else {
-      nbUpper = val - 1;
-      msg = val + ' → 大了！范围：' + nbMin + ' ~ ' + nbUpper;
-    }
-    $('nb-range').textContent = nbMin + ' ~ ' + nbUpper;
-    const empty = $('nb-history .history-empty');
-    if(empty) empty.remove();
-    const p = document.createElement('p');
-    p.textContent = msg;
-    $('nb-history').prepend(p);
-    $('nb-input').value = '';
-    $('nb-input').focus();
+    nbPlaying = false;
+    const r = $('nb-range');
+    r.textContent = 'BOOM ' + nbBomb;
+    r.classList.add('boom');
+    nbPopRange();
+    $('nb-msg').textContent = '踩中炸弹！';
+    $('nb-msg').className = 'nb-msg up';
+    addNbHistory('踩中炸弹 ' + nbBomb + '，接受惩罚！', true);
+    showModal('BOOM！', '炸弹数字是 ' + nbBomb + '，接受惩罚！', 'boom');
+    nbInputStr = '';
+    nbRenderReadout();
+    return;
   }
+
+  let msg = '';
+  if(val < nbBomb){
+    nbMin = val + 1;
+    msg = val + ' → 小了！范围 ' + nbMin + ' ~ ' + nbUpper;
+    $('nb-msg').textContent = val + ' 小了，往大猜';
+    $('nb-msg').className = 'nb-msg down';
+  } else {
+    nbUpper = val - 1;
+    msg = val + ' → 大了！范围 ' + nbMin + ' ~ ' + nbUpper;
+    $('nb-msg').textContent = val + ' 大了，往小猜';
+    $('nb-msg').className = 'nb-msg up';
+  }
+  nbSetRangeText();
+  addNbHistory(msg, false);
+  nbInputStr = '';
+  nbRenderReadout();
 }
 
-$('nb-max').addEventListener('keydown', e => { if(e.key === 'Enter') numBombStart(); });
-$('nb-input').addEventListener('keydown', e => { if(e.key === 'Enter') numBombGuess(); });
+function addNbHistory(text, isBoom){
+  const box = $('nb-history');
+  const empty = box.querySelector('.history-empty');
+  if(empty) empty.remove();
+  const p = document.createElement('p');
+  p.textContent = text;
+  if(isBoom) p.style.color = 'var(--red)';
+  box.prepend(p);
+}
+
+/* 数字键区点击 */
+$('numpad').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const d = btn.dataset.digit;
+  if(d !== undefined){ nbPressDigit(d); return; }
+  if(btn.dataset.act === 'back'){ nbBackspace(); return; }
+  if(btn.dataset.act === 'enter'){ nbConfirm(); return; }
+});
+
+/* 物理键盘：数字键输入、退格删除、回车确认 */
+document.addEventListener('keydown', e=>{
+  if(!nbPlaying) return;
+  if(!$('tab-numbomb').classList.contains('active')) return;
+  if(document.activeElement === $('nb-max')) return;
+  if(/^[0-9]$/.test(e.key)){ nbPressDigit(e.key); }
+  else if(e.key === 'Backspace'){ e.preventDefault(); nbBackspace(); }
+  else if(e.key === 'Enter'){ e.preventDefault(); nbConfirm(); }
+});
+$('nb-max').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); numBombStart(); } });
 
 /* ============================================================
- * 大冒险转盘
+ * 大冒险转盘（点击转盘自身旋转，3~8 秒随机）
  * ============================================================ */
 let tasks = [
   "用3个词编一个合理的故事",
@@ -579,7 +723,6 @@ const segmentColors = ['#FFFFFF', '#EEF2FF', '#E0F2FE', '#FFF7ED'];
 const warningBg = 'rgba(245,158,11,0.22)';
 
 function fitCanvas(){
-  // 若转盘面板当前隐藏，clientWidth 为 0，此时不绘制，等切到该面板时再调
   const wrap = document.querySelector('.wheel-wrap');
   if(!wrap || wrap.clientWidth === 0) return;
   const size = wrap.clientWidth || 320;
@@ -636,21 +779,64 @@ function drawWheel(){
   ctx.restore();
 }
 
+/* 缓动：平滑加速 -> 匀速巡航 -> 减速停止（三段式） */
+function spinEase(p){
+  const a = 0.28;   // 加速段结束比例
+  const b = 0.62;   // 巡航段结束比例
+  const vmax = 1 / (0.5 + (b - a)); // 面积归一化，使总位移=1
+  if(p < a){
+    const t = p / a;
+    return vmax * 0.5 * a * t * t;
+  } else if(p < b){
+    const t = (p - a) / (b - a);
+    return vmax * (0.5 * a + (p - a));
+  } else {
+    const t = (p - b) / (1 - b);
+    return vmax * (0.5 * a + (b - a)) + vmax * (1 - b) * (t - 0.5 * t * t);
+  }
+}
+
+function setWheelHint(spinning){
+  const el = $('wheel-hint');
+  if(spinning){
+    el.innerHTML = '<strong>旋转中…</strong>，即将揭晓命运';
+  } else {
+    el.innerHTML = '<strong>点击转盘</strong>开始抽取；每行一个任务的 TXT 文件可自定义转盘内容。';
+  }
+}
+
 function spinWheel(){
   if (isSpinning || tasks.length === 0) return;
   isSpinning = true;
-  $('btnSpin').disabled = true;
+  $('wheelWrap').classList.add('spinning');
+  setWheelHint(true);
 
-  const spinDuration = 4000 + Math.random() * 2000;
-  const totalRotation = 5 * 2 * Math.PI + Math.random() * 2 * Math.PI;
+  const n = tasks.length;
+  const arc = 2 * Math.PI / n;
+
+  // 随机 3~8 秒
+  const spinDuration = 3000 + Math.random() * 5000;
+  // 随机 5~9 整圈
+  const turns = Math.floor(5 + Math.random() * 5);
+  // 随机抽中一个扇区（带小幅抖动，避免压在分割线上）
+  const targetIndex = Math.floor(Math.random() * n);
+  const desiredLocal = (targetIndex + 0.5 + (Math.random() - 0.5) * 0.55) * arc;
+
+  // 指针在正上方（1.5π）；令扇区中点转到指针处
+  let finalNorm = 1.5 * Math.PI - desiredLocal;
+  finalNorm = ((finalNorm % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const startNorm = ((currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  let delta = finalNorm - startNorm;
+  if(delta < 0) delta += 2 * Math.PI;
+  const totalRotation = turns * 2 * Math.PI + delta;
+
   const startAngle = currentAngle;
   const startTime = performance.now();
 
   function animate(time){
     const elapsed = time - startTime;
     const progress = Math.min(elapsed / spinDuration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
-    currentAngle = startAngle + totalRotation * ease;
+    currentAngle = startAngle + totalRotation * spinEase(progress);
     drawWheel();
     if (progress < 1){
       requestAnimationFrame(animate);
@@ -663,17 +849,21 @@ function spinWheel(){
 
 function finishSpin(){
   isSpinning = false;
-  $('btnSpin').disabled = false;
+  $('wheelWrap').classList.remove('spinning');
+  setWheelHint(false);
 
   const n = tasks.length;
-  const normalizedAngle = currentAngle % (2 * Math.PI);
-  const pointerAngle = (2 * Math.PI - normalizedAngle + Math.PI * 1.5) % (2 * Math.PI);
+  const normalizedAngle = ((currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const pointerAngle = (2 * Math.PI - normalizedAngle + 1.5 * Math.PI) % (2 * Math.PI);
   const index = Math.floor(pointerAngle / (2 * Math.PI / n)) % n;
 
-  const winner = tasks[index];
+  const winner = tasks[index < 0 ? index + n : index];
   showResult(winner);
   addHistory(winner);
 }
+
+/* 点击转盘本身触发旋转 */
+$('wheelWrap').addEventListener('click', ()=>spinWheel());
 
 function handleFileUpload(event){
   const file = event.target.files[0];
@@ -760,8 +950,9 @@ function renderHistory(){
   });
 }
 
-/* 启动：默认显示数字炸弹 Tab，转盘画布在切到该 Tab 时再 fit */
+/* 启动：自动开始一局默认最大值=100 的数字炸弹，让范围+键区立即可见 */
 window.addEventListener('resize', fitCanvas);
+numBombStart();
 </script>
 </body>
 </html>

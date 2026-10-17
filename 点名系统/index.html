@@ -20,76 +20,411 @@
   --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg-gradient);color:var(--text);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+html,body{overflow-x:hidden}
+body{font-family:var(--font);background:var(--bg-gradient);color:var(--text);line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
 body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 12% 18%,rgba(79,107,255,.08),transparent 32%),radial-gradient(circle at 88% 82%,rgba(56,189,248,.08),transparent 32%);pointer-events:none;z-index:0}
-.wrap{position:relative;z-index:1;max-width:1160px;width:100%;margin:0 auto;padding:24px 20px 36px;flex:1}
 
-/* 顶部区 */
-.hero{text-align:center;margin-bottom:24px}
-.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px;font-size:11px;letter-spacing:1.5px;color:var(--text-3);box-shadow:var(--shadow-card);margin-bottom:12px}
+.wrap{position:relative;z-index:1;max-width:1040px;width:100%;margin:0 auto;padding:22px 18px 36px;flex:1;display:flex;flex-direction:column}
+
+/* 顶部 */
+.page-head{text-align:center;margin-bottom:14px}
+.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px;font-size:11px;letter-spacing:1.5px;color:var(--text-3);box-shadow:var(--shadow-card);margin-bottom:10px}
 .capsule::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.hero h1{font-size:27px;font-weight:800;color:var(--text);margin-bottom:8px}
+.page-head h1{font-size:26px;font-weight:800;color:var(--text);margin-bottom:4px}
 .grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{font-size:14px;color:var(--text-3)}
+.page-head p{font-size:13px;color:var(--text-3)}
 
-/* 卡片网格 */
-.grid{display:grid;grid-template-columns:1fr;gap:15px}
-@media(min-width:820px){.grid{grid-template-columns:repeat(3,1fr)}}
-.entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:20px 18px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:10px;transition:.25s ease;min-height:190px}
-.entry:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}
-.entry-icon{width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
-.entry-icon svg{width:22px;height:22px}
-.entry:nth-child(2) .entry-icon{color:var(--cyan)}
-.entry:nth-child(3) .entry-icon{color:var(--orange)}
-.entry h2{font-size:16px;font-weight:700}
-.entry p{font-size:13.5px;color:var(--text-3);flex:1;line-height:1.55}
-.entry-go{font-size:13px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
-.entry-go svg{width:15px;height:15px;transition:.2s ease}
-.entry:hover .entry-go svg{transform:translateX(4px)}
+/* Tab 栏 */
+.tabbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{font-family:var(--font);font-size:14px;font-weight:600;min-height:44px;padding:9px 22px;border-radius:999px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text-3);transition:.2s ease;display:inline-flex;align-items:center;gap:7px}
+.tab svg{width:16px;height:16px}
+.tab:hover{color:var(--accent);border-color:var(--accent)}
+.tab.active{background:linear-gradient(135deg,#4F6BFF,#3D56E0);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(79,107,255,.28)}
 
-.foot{position:relative;z-index:1;text-align:center;font-size:12.5px;color:var(--text-3);padding:12px 20px}
+/* 面板 */
+.panel{display:none;flex-direction:column;gap:12px;animation:fadeIn .25s ease}
+.panel.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* 紧凑导入区 */
+.import-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-card);padding:12px 14px}
+.import-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.import-row .file-input{flex:1 1 220px;min-width:0;font-size:13px;padding:6px 8px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text-2);cursor:pointer;font-family:var(--font)}
+.import-row .file-input::-webkit-file-upload-button{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:7px 12px;margin-right:10px;font-size:12.5px;cursor:pointer;font-family:var(--font);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.badge.empty{background:var(--surface-2);color:var(--text-3);border:1px dashed var(--border)}
+.paste-toggle{font-family:var(--font);font-size:12px;font-weight:600;color:var(--accent);background:transparent;border:1px solid var(--border);border-radius:999px;padding:6px 12px;min-height:32px;cursor:pointer;transition:.2s ease}
+.paste-toggle:hover{background:var(--accent-soft)}
+.paste-box{margin-top:10px;display:none}
+.paste-box.open{display:block}
+.paste-box textarea{width:100%;min-height:80px;font-family:var(--font);font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);resize:vertical;line-height:1.5}
+.paste-box textarea:focus{outline:none;border:1.5px solid var(--accent)}
+.paste-actions{margin-top:6px;display:flex;gap:8px;justify-content:flex-end}
+.mini-btn{font-family:var(--font);font-size:12.5px;font-weight:600;min-height:36px;padding:6px 14px;border-radius:9px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--accent);transition:.2s ease}
+.mini-btn:hover{background:var(--accent-soft)}
+
+/* 双列导入（盲盒） */
+.duo{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:720px){.duo{grid-template-columns:1fr 1fr}}
+.duo .import-card h3{font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.duo .import-card h3 svg{width:14px;height:14px;color:var(--accent)}
+
+/* 操作按钮行 */
+.ops{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.btn{font-family:var(--font);font-size:13.5px;font-weight:600;min-height:44px;padding:9px 20px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:.2s ease;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:linear-gradient(135deg,#4F6BFF,#38BDF8);color:#fff;box-shadow:0 4px 14px rgba(79,107,255,.25)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-secondary{background:#fff;color:var(--accent);border-color:var(--border)}
+.btn-secondary:hover{background:var(--accent-soft)}
+.btn-warm{background:#fff;color:var(--orange);border:1.5px solid rgba(245,158,11,.35)}
+.btn-warm:hover{background:rgba(245,158,11,.1)}
+.num-input{font-family:var(--font);font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);width:90px;min-height:44px;color:var(--text);text-align:center}
+.num-input:focus{outline:none;border:1.5px solid var(--accent)}
+.custom-wrap{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-3)}
+
+/* 结果区 */
+.result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:22px 20px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex:1}
+.result .placeholder{font-size:14px;color:var(--text-3);display:flex;flex-direction:column;align-items:center;gap:10px}
+.result .placeholder svg{width:36px;height:36px;color:var(--border)}
+.rlabel{font-size:11.5px;color:var(--text-3);margin-bottom:12px;letter-spacing:3px;text-transform:uppercase}
+
+/* 单人/单条：超大渐变字 */
+.big-name{font-size:52px;font-weight:800;line-height:1.2;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;word-break:break-word;padding:0 10px}
+@media(max-width:600px){.big-name{font-size:38px}}
+
+/* 多人网格卡片 */
+.multi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:560px}
+@media(min-width:600px){.multi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:820px){.multi-grid{grid-template-columns:repeat(5,1fr)}}
+.multi-card{background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 8px;font-size:15px;font-weight:700;color:var(--text);line-height:1.3;word-break:break-word;transition:.2s ease}
+.multi-card:first-child{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+/* 知识点列表 */
+.kp-list{list-style:none;display:flex;flex-direction:column;gap:8px;width:100%;max-width:620px;text-align:left}
+.kp-list li{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;line-height:1.55;color:var(--text-2)}
+.kp-list li:first-child{font-size:16px;font-weight:700;color:var(--accent);border:1.5px solid var(--accent);background:var(--accent-soft)}
+
+/* 惩罚卡片 */
+.punish-grid{display:grid;grid-template-columns:1fr;gap:10px;width:100%;max-width:560px}
+@media(min-width:600px){.punish-grid{grid-template-columns:repeat(3,1fr)}}
+.punish-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;font-size:13.5px;color:var(--text);line-height:1.4}
+.punish-card .num{display:block;font-size:11px;color:var(--orange);font-weight:700;margin-bottom:5px;letter-spacing:1.5px}
+
+/* 盲盒结果 */
+.bb-name{font-size:13px;color:var(--text-3)}
+.bb-name b{font-size:46px;font-weight:800;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0 4px;display:block;line-height:1.25}
+@media(max-width:600px){.bb-name b{font-size:34px}}
+.bb-topic{font-size:13px;color:var(--text-3);margin-top:10px}
+.bb-topic .topic-box{display:inline-block;margin-top:6px;font-size:14.5px;font-weight:700;color:var(--text);background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius);padding:9px 16px;max-width:100%;word-break:break-word}
+.bb-punish{font-size:12.5px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:12px;margin-top:14px;width:100%}
+.bb-punish .p-box{display:inline-block;margin-top:6px;font-size:13.5px;font-weight:600;color:var(--orange);background:rgba(245,158,11,.1);border-radius:999px;padding:6px 16px}
+
+/* 状态 */
+.status{font-size:12.5px;min-height:18px;text-align:center;margin-top:2px}
+.status.ok{color:var(--green)}
+.status.err{color:var(--red)}
+
+@media(max-width:600px){
+  .page-head h1{font-size:22px}
+  .result{padding:18px 14px;min-height:180px}
+  .multi-grid{grid-template-columns:repeat(2,1fr)}
+  .btn{flex:1 1 auto}
+  .custom-wrap{width:100%;justify-content:center}
+}
 </style>
 </head>
 <body>
 
 <main class="wrap">
-  <section class="hero">
+  <div class="page-head">
     <span class="capsule">CLASSROOM INTERACTION · TOOLKIT</span>
-    <h1>课堂互动 <span class="grad-text">工具集</span></h1>
-    <p>选择下方任一功能进入使用，支持手机与电脑访问，无需联网。</p>
+    <h1>课堂 <span class="grad-text">点名互动</span>系统</h1>
+    <p>随机点名 · 知识点抽取 · 盲盒挑战，一站式课堂工具</p>
+  </div>
+
+  <nav class="tabbar" role="tablist">
+    <button class="tab active" data-tab="roll" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      随机点名
+    </button>
+    <button class="tab" data-tab="kp" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      知识点抽取
+    </button>
+    <button class="tab" data-tab="box" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
+      盲盒抽取
+    </button>
+  </nav>
+
+  <!-- ========== 随机点名 ========== -->
+  <section class="panel active" id="panel-roll" role="tabpanel">
+    <div class="import-card">
+      <div class="import-row">
+        <input type="file" id="rollFile" class="file-input" accept=".txt" />
+        <button class="paste-toggle" id="rollPasteToggle" type="button">粘贴文本</button>
+        <span class="badge empty" id="rollBadge">未导入名单</span>
+      </div>
+      <div class="paste-box" id="rollPasteBox">
+        <textarea id="rollPasteText" placeholder="每行一个姓名，粘贴后点击「导入名单」"></textarea>
+        <div class="paste-actions">
+          <button class="mini-btn" id="rollPasteLoad" type="button">导入名单</button>
+        </div>
+      </div>
+      <p class="status" id="rollStatus"></p>
+    </div>
+
+    <div class="ops">
+      <button class="btn btn-primary" id="rollDraw1">抽 1 人</button>
+      <button class="btn btn-primary" id="rollDrawRand">随机 1~10 人</button>
+      <div class="custom-wrap">
+        <input type="number" id="rollCustomCount" class="num-input" value="5" min="1" max="10" />
+        <span>人</span>
+      </div>
+      <button class="btn btn-secondary" id="rollDrawCustom">自定义抽取</button>
+    </div>
+
+    <div class="result" id="rollResult">
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>导入学生名单后，点击按钮开始抽取</span>
+      </div>
+    </div>
   </section>
 
-  <section class="grid">
-    <a class="entry" href="roll_call.html">
-      <div class="entry-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <!-- ========== 知识点抽取 ========== -->
+  <section class="panel" id="panel-kp" role="tabpanel">
+    <div class="import-card">
+      <div class="import-row">
+        <input type="file" id="kpFile" class="file-input" accept=".txt" />
+        <span class="badge empty" id="kpBadge">未导入知识点</span>
       </div>
-      <h2>点名系统</h2>
-      <p>上传学生名单，随机抽取 1 人、1~10 人或自定义人数，课堂点名一键完成。</p>
-      <span class="entry-go">进入点名 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
+      <p class="status" id="kpStatus"></p>
+    </div>
 
-    <a class="entry" href="question_system.html">
-      <div class="entry-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <h2>知识点提问系统</h2>
-      <p>上传知识点清单，抽取 1 条或 5 条知识点，亦可随机抽取 3 个课堂惩罚供选择。</p>
-      <span class="entry-go">进入提问 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
+    <div class="ops">
+      <button class="btn btn-primary" id="kpDraw1">抽 1 条知识点</button>
+      <button class="btn btn-primary" id="kpDraw5">抽 5 条知识点</button>
+      <button class="btn btn-warm" id="kpPunish">抽取课堂惩罚</button>
+    </div>
 
-    <a class="entry" href="blind_box_draw.html">
-      <div class="entry-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
+    <div class="result" id="kpResult">
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>导入知识点清单后，点击按钮开始抽取</span>
       </div>
-      <h2>盲盒抽取系统</h2>
-      <p>同时上传学生名单与知识点，随机抽取一名学生与一个知识点，未完成即触发惩罚。</p>
-      <span class="entry-go">进入盲盒 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
+    </div>
+  </section>
+
+  <!-- ========== 盲盒抽取 ========== -->
+  <section class="panel" id="panel-box" role="tabpanel">
+    <div class="duo">
+      <div class="import-card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>学生名单</h3>
+        <div class="import-row">
+          <input type="file" id="boxNameFile" class="file-input" accept=".txt" />
+          <span class="badge empty" id="boxNameBadge">未导入</span>
+        </div>
+      </div>
+      <div class="import-card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>知识点清单</h3>
+        <div class="import-row">
+          <input type="file" id="boxTopicFile" class="file-input" accept=".txt" />
+          <span class="badge empty" id="boxTopicBadge">未导入</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ops">
+      <button class="btn btn-primary" id="boxDraw">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        开始抽奖
+      </button>
+    </div>
+    <p class="status" id="boxStatus"></p>
+
+    <div class="result" id="boxResult">
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
+        <span>同时导入学生名单与知识点，点击抽奖</span>
+      </div>
+    </div>
   </section>
 </main>
 
-<footer class="foot">课堂互动工具集 · 本地离线可用</footer>
+<script>
+/* ========== 工具函数 ========== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function shuffle(arr){ return [...arr].sort(() => 0.5 - Math.random()); }
+function setStatus(el, msg, type){
+  el.textContent = msg || '';
+  el.className = 'status' + (type ? ' ' + type : '');
+}
+function parseTxt(content){
+  return content.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+}
+function bindFile(fileInputId, badgeId, onLoad, statusEl){
+  document.getElementById(fileInputId).addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => onLoad(ev.target.result);
+    reader.readAsText(file);
+  });
+}
+
+/* ========== Tab 切换 ========== */
+const tabs = document.querySelectorAll('.tab');
+const panels = document.querySelectorAll('.panel');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const key = tab.dataset.tab;
+    tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected','true');
+    panels.forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + key).classList.add('active');
+  });
+});
+
+/* ========== 随机点名 ========== */
+let studentList = [];
+const rollBadge = document.getElementById('rollBadge');
+const rollStatus = document.getElementById('rollStatus');
+const rollResult = document.getElementById('rollResult');
+
+bindFile('rollFile', 'rollBadge', content => {
+  studentList = parseTxt(content);
+  rollBadge.textContent = '已导入 ' + studentList.length + ' 名学生';
+  rollBadge.classList.remove('empty');
+  setStatus(rollStatus, '成功导入 ' + studentList.length + ' 名学生', 'ok');
+}, rollStatus);
+
+document.getElementById('rollPasteToggle').addEventListener('click', () => {
+  document.getElementById('rollPasteBox').classList.toggle('open');
+});
+document.getElementById('rollPasteLoad').addEventListener('click', () => {
+  const txt = document.getElementById('rollPasteText').value;
+  studentList = parseTxt(txt);
+  if(studentList.length === 0){ setStatus(rollStatus, '粘贴内容为空', 'err'); return; }
+  rollBadge.textContent = '已导入 ' + studentList.length + ' 名学生';
+  rollBadge.classList.remove('empty');
+  setStatus(rollStatus, '已从粘贴文本导入 ' + studentList.length + ' 名学生', 'ok');
+});
+
+function renderRollResult(selected){
+  if(selected.length === 1){
+    rollResult.innerHTML = '<div class="rlabel">抽中同学</div><div class="big-name">' + escapeHtml(selected[0]) + '</div>';
+  } else {
+    let html = '<div class="rlabel">抽中 ' + selected.length + ' 位同学</div><div class="multi-grid">';
+    selected.forEach(n => { html += '<div class="multi-card">' + escapeHtml(n) + '</div>'; });
+    html += '</div>';
+    rollResult.innerHTML = html;
+  }
+}
+function rollDraw(count){
+  if(studentList.length === 0){ setStatus(rollStatus, '请先导入学生名单！', 'err'); return; }
+  if(count > studentList.length){ setStatus(rollStatus, '名单人数不足，当前共 ' + studentList.length + ' 人。', 'err'); return; }
+  setStatus(rollStatus, '', '');
+  renderRollResult(shuffle(studentList).slice(0, count));
+}
+document.getElementById('rollDraw1').addEventListener('click', () => rollDraw(1));
+document.getElementById('rollDrawRand').addEventListener('click', () => {
+  if(studentList.length === 0){ setStatus(rollStatus, '请先导入学生名单！', 'err'); return; }
+  const max = Math.min(studentList.length, 10);
+  rollDraw(Math.floor(Math.random() * max) + 1);
+});
+document.getElementById('rollDrawCustom').addEventListener('click', () => {
+  if(studentList.length === 0){ setStatus(rollStatus, '请先导入学生名单！', 'err'); return; }
+  let c = parseInt(document.getElementById('rollCustomCount').value, 10);
+  if(isNaN(c) || c <= 0){ setStatus(rollStatus, '请输入有效的正整数！', 'err'); return; }
+  c = Math.min(c, 10);
+  rollDraw(c);
+});
+
+/* ========== 知识点抽取 ========== */
+let knowledgeList = [];
+const kpBadge = document.getElementById('kpBadge');
+const kpStatus = document.getElementById('kpStatus');
+const kpResult = document.getElementById('kpResult');
+
+bindFile('kpFile', 'kpBadge', content => {
+  knowledgeList = parseTxt(content);
+  kpBadge.textContent = '已导入 ' + knowledgeList.length + ' 条知识点';
+  kpBadge.classList.remove('empty');
+  setStatus(kpStatus, '成功导入 ' + knowledgeList.length + ' 条知识点', 'ok');
+}, kpStatus);
+
+const PUNISHMENTS = [
+  "原地转10圈","做5个俯卧撑","唱一首歌","模仿一个动物叫",
+  "绕教室跑一圈","值日劳动","作业激怒计划（增加作业）",
+  "知识点图表","表情包配音背诵","角色扮演背诵法"
+];
+
+function kpDraw(count){
+  if(knowledgeList.length === 0){ setStatus(kpStatus, '请先导入知识点清单！', 'err'); return; }
+  if(count > knowledgeList.length){ setStatus(kpStatus, '知识点数量不足，当前共 ' + knowledgeList.length + ' 条。', 'err'); return; }
+  setStatus(kpStatus, '', '');
+  const selected = shuffle(knowledgeList).slice(0, count);
+  let html = '<div class="rlabel">抽到的知识点</div><ul class="kp-list">';
+  selected.forEach(it => { html += '<li>' + escapeHtml(it) + '</li>'; });
+  html += '</ul>';
+  kpResult.innerHTML = html;
+}
+document.getElementById('kpDraw1').addEventListener('click', () => kpDraw(1));
+document.getElementById('kpDraw5').addEventListener('click', () => kpDraw(5));
+document.getElementById('kpPunish').addEventListener('click', () => {
+  setStatus(kpStatus, '', '');
+  const selected = shuffle(PUNISHMENTS).slice(0, 3);
+  let html = '<div class="rlabel">今日幸运惩罚（任选其一）</div><div class="punish-grid">';
+  selected.forEach((it, i) => {
+    html += '<div class="punish-card"><span class="num">选项 ' + (i+1) + '</span>' + escapeHtml(it) + '</div>';
+  });
+  html += '</div>';
+  kpResult.innerHTML = html;
+});
+
+/* ========== 盲盒抽取 ========== */
+let boxNameList = [];
+let boxTopicList = [];
+const boxStatus = document.getElementById('boxStatus');
+const boxResult = document.getElementById('boxResult');
+
+bindFile('boxNameFile', 'boxNameBadge', content => {
+  boxNameList = parseTxt(content);
+  const b = document.getElementById('boxNameBadge');
+  b.textContent = '已导入 ' + boxNameList.length + ' 名学生';
+  b.classList.remove('empty');
+  setStatus(boxStatus, '成功导入 ' + boxNameList.length + ' 名学生', 'ok');
+}, boxStatus);
+
+bindFile('boxTopicFile', 'boxTopicBadge', content => {
+  boxTopicList = parseTxt(content);
+  const b = document.getElementById('boxTopicBadge');
+  b.textContent = '已导入 ' + boxTopicList.length + ' 个知识点';
+  b.classList.remove('empty');
+  setStatus(boxStatus, '成功导入 ' + boxTopicList.length + ' 个知识点', 'ok');
+}, boxStatus);
+
+document.getElementById('boxDraw').addEventListener('click', () => {
+  if(boxNameList.length === 0 || boxTopicList.length === 0){
+    setStatus(boxStatus, '请先同时上传学生名单和知识点文件！', 'err');
+    return;
+  }
+  setStatus(boxStatus, '', '');
+  const name = boxNameList[Math.floor(Math.random() * boxNameList.length)];
+  const topic = boxTopicList[Math.floor(Math.random() * boxTopicList.length)];
+  const punish = PUNISHMENTS[Math.floor(Math.random() * PUNISHMENTS.length)];
+  boxResult.innerHTML =
+    '<div class="rlabel">盲盒揭晓</div>' +
+    '<div class="bb-name">恭喜同学抽中<b>' + escapeHtml(name) + '</b></div>' +
+    '<div class="bb-topic">抽到的知识点<div class="topic-box">' + escapeHtml(topic) + '</div></div>' +
+    '<div class="bb-punish">若未完成，请接受惩罚<div class="p-box">' + escapeHtml(punish) + '</div></div>';
+});
+</script>
 
 </body>
 </html>

@@ -11,13 +11,13 @@
 :root{
   --bg-gradient: linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
   --surface:#FFFFFF; --surface-2:#F8FAFF;
-  --radius-lg:18px; --radius:12px; --radius-sm:10px;
+  --radius-lg:20px; --radius:14px; --radius-sm:10px;
   --shadow-card:0 4px 24px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
   --shadow-hover:0 8px 32px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
   --accent:#4F6BFF; --accent-hover:#3D56E0; --accent-soft:rgba(79,107,255,.08);
   --cyan:#38BDF8; --green:#22C55E; --orange:#F59E0B; --red:#EF4444;
   --text:#0F172A; --text-2:#334155; --text-3:#64748B;
-  --border:rgba(79,107,255,.14);
+  --border:rgba(79,107,255,.12);
   --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
   --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 }
@@ -27,10 +27,21 @@ body{font-family:var(--font);color:var(--text);line-height:1.55;font-size:14px;
   background:var(--bg-gradient);background-attachment:fixed;
   background-image:var(--bg-gradient),radial-gradient(rgba(79,107,255,.06) 1px,transparent 1px);
   background-size:auto,22px 22px;}
-.wrap{max-width:1280px;margin:0 auto;padding:24px 32px 32px}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 24px 32px}
+
+/* ---------- 小屏提示条 ---------- */
+.mobile-hint{display:none;position:fixed;top:0;left:0;right:0;z-index:300;
+  background:rgba(255,255,255,.96);border-bottom:1px solid var(--border);
+  padding:10px 44px 10px 16px;font-size:13px;color:var(--text-2);text-align:center;
+  box-shadow:var(--shadow-card);backdrop-filter:blur(8px);transition:opacity .3s,transform .3s}
+.mobile-hint.hide{opacity:0;transform:translateY(-120%)}
+.mobile-hint button{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;border:none;background:var(--accent-soft);color:var(--text-2);
+  border-radius:50%;cursor:pointer;font-size:18px;line-height:1;padding:0}
+@media(max-width:767px){.mobile-hint{display:block}.wrap{padding-top:56px}}
 
 /* ---------- 头部 ---------- */
-.page-head{text-align:center;margin-bottom:16px}
+.page-head{text-align:center;margin-bottom:14px}
 .capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;
   padding:6px 16px;box-shadow:var(--shadow-card);font-size:11px;letter-spacing:1.2px;
   color:var(--accent);font-weight:600}
@@ -44,47 +55,38 @@ body{font-family:var(--font);color:var(--text);line-height:1.55;font-size:14px;
 @media(min-width:768px){.stats{grid-template-columns:repeat(4,1fr)}}
 .stat{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
   padding:12px 14px;display:flex;align-items:center;gap:12px}
-.stat .ic{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);
+.stat .ic{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);
   display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
 .stat .ic svg{width:19px;height:19px}
 .stat .num{font-size:24px;font-weight:800;color:var(--accent);line-height:1.1}
 .stat .num small{font-size:12px;font-weight:600;color:var(--text-3);margin-left:2px}
 .stat .lbl{font-size:12px;color:var(--text-3);margin-top:1px}
 
-/* ---------- 工作区 ---------- */
-.workspace{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
-@media(min-width:1024px){.workspace{grid-template-columns:320px 1fr}}
+/* ---------- 上下结构：上方设置区网格 ---------- */
+.settings-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:14px;align-items:start}
+@media(min-width:768px){.settings-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1280px){.settings-grid{grid-template-columns:repeat(4,1fr)}}
 
 .card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
-  padding:16px;margin-bottom:12px;transition:box-shadow .25s ease}
-.card:last-child{margin-bottom:0}
+  padding:16px;transition:box-shadow .25s ease}
 .card:hover{box-shadow:var(--shadow-hover)}
-.sec-head{display:flex;align-items:center;gap:9px}
+.sec-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .sec-bar{width:4px;height:16px;border-radius:2px;background:var(--grad-text);flex:none}
 .sec-head h2{font-size:14.5px;font-weight:700}
 .sec-head p{font-size:11.5px;color:var(--text-3);margin-top:0}
 
-/* 折叠面板 */
-.cpanel{padding:0;overflow:hidden}
-.cpanel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
-  padding:14px 16px;min-height:44px}
-.cpanel>summary::-webkit-details-marker{display:none}
-.cpanel>summary .chev{margin-left:auto;color:var(--text-3);transition:transform .2s;flex:none}
-.cpanel[open]>summary .chev{transform:rotate(180deg)}
-.cpanel .sec-body{padding:2px 16px 16px;border-top:1px dashed var(--border);margin-top:2px;padding-top:12px}
-
 .field{margin-bottom:10px;min-width:0}
 .field:last-child{margin-bottom:0}
 .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--text-2)}
-.field small{display:block;font-size:11.5px;color:var(--text-3);margin-top:4px}
+.field small{display:block;font-size:11.5px;color:var(--text-3);margin-top:4px;line-height:1.5}
 input[type=number],input[type=text],select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border);
   border-radius:var(--radius-sm);background:#fff;font-size:14px;font-family:var(--font);color:var(--text);min-height:40px}
 input:focus,select:focus,textarea:focus{outline:none;border:1.5px solid var(--accent)}
-textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:vertical;font-size:13px}
+textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:vertical;font-size:13px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 16px;
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 14px;
   border-radius:11px;border:1px solid transparent;font-size:13px;font-weight:600;cursor:pointer;
   transition:all .2s ease;font-family:var(--font)}
 .btn svg{width:15px;height:15px}
@@ -96,7 +98,7 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 .btn-danger:hover:not(:disabled){border-color:var(--red);background:rgba(239,68,68,.06)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-block{width:100%}
-.btn-lg{min-height:46px;padding:10px 24px;font-size:14px;border-radius:12px}
+.btn-lg{min-height:46px;padding:10px 20px;font-size:14px;border-radius:12px}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 
 /* tabs */
@@ -107,71 +109,77 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 .tabpane{display:none}.tabpane.active{display:block}
 
 /* upload */
-.drop{border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;
+.drop{border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;
   cursor:pointer;background:var(--surface-2);transition:.2s}
 .drop:hover,.drop.drag{background:var(--accent-soft);border-color:var(--accent)}
-.drop .ic{width:28px;height:28px;color:var(--accent);margin:0 auto 4px}
-.drop p{font-size:12.5px;color:var(--text-2)}
-.drop .fmt{font-size:11px;color:var(--text-3);margin-top:2px}
-.file-info{font-size:12px;color:var(--text-3);margin-top:6px;word-break:break-all}
+.drop .ic{width:26px;height:26px;color:var(--accent);margin:0 auto 4px}
+.drop p{font-size:12px;color:var(--text-2)}
+.drop .fmt{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.file-info{font-size:11.5px;color:var(--text-3);margin-top:6px;word-break:break-all}
+
+/* import stats */
+#importStats{margin-top:10px;background:var(--accent-soft);border:1px solid var(--border);
+  border-radius:10px;padding:8px 10px;font-size:11.5px;color:var(--text-2);line-height:1.7;display:none}
+#importStats b{color:var(--accent)}
 
 /* radio cards */
 .opts{display:grid;grid-template-columns:1fr;gap:7px}
 .opt{display:flex;gap:9px;align-items:flex-start;border:1.5px solid var(--border);border-radius:11px;
-  padding:9px 11px;cursor:pointer;background:#fff;transition:.15s;min-height:44px}
+  padding:8px 10px;cursor:pointer;background:#fff;transition:.15s;min-height:44px}
 .opt:hover{border-color:var(--accent)}
 .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
 .opt input{margin-top:3px;accent-color:var(--accent);width:15px;height:15px;flex:none}
-.opt b{font-size:13px;display:block}
-.opt small{font-size:11px;color:var(--text-3)}
+.opt b{font-size:12.5px;display:block}
+.opt small{font-size:10.5px;color:var(--text-3)}
 
 /* 小组人数快捷按钮 */
-.gsize-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.gsize-row input{width:74px;flex:none;text-align:center}
+.gsize-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gsize-row input{width:64px;flex:none;text-align:center;min-height:36px;padding:4px 6px}
 .gsize-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-#groupInfo{font-size:11.5px;color:var(--accent);font-weight:600}
+#groupInfo{font-size:11px;color:var(--accent);font-weight:600;margin-top:6px;display:block}
 
 /* constraint list */
-.clist{list-style:none;max-height:180px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.clist{list-style:none;max-height:150px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:5px}
 .citem{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface-2);
-  border:1px solid var(--border);border-radius:9px;padding:6px 10px;font-size:12px}
+  border:1px solid var(--border);border-radius:9px;padding:6px 10px;font-size:11.5px}
 .citem .tag{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;margin-right:5px}
 .tag.pair{background:rgba(239,68,68,.12);color:var(--red)}
 .tag.front{background:rgba(245,158,11,.14);color:#B45309}
-.tag.mfront{background:rgba(79,107,255,.12);color:var(--accent)}
 .tag.seat{background:rgba(56,189,248,.14);color:#0284C7}
 .tag.gender{background:rgba(34,197,94,.14);color:#16A34A}
-.mini{min-height:32px;padding:3px 10px;font-size:11.5px;border-radius:8px}
+.mini{min-height:32px;padding:4px 10px;font-size:11.5px;border-radius:8px}
 .empty-hint{font-size:11.5px;color:var(--text-3);padding:8px;text-align:center}
 
 /* aisle editor */
-.aisle-edit{display:grid;gap:4px;width:max-content;margin:6px auto 0}
-.acell{width:28px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);
-  cursor:pointer;transition:.12s}
+.aisle-edit{display:grid;gap:3px;width:max-content;margin:6px auto 0}
+.acell{width:24px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--surface-2);cursor:pointer;transition:.12s}
 .acell:hover{border-color:var(--accent)}
-.acell.is-aisle{background:repeating-linear-gradient(45deg,#E0E7FF,#E0E7FF 4px,#F1F5FF 4px,#F1F5FF 8px);border-color:var(--accent)}
+.acell.is-aisle{background:repeating-linear-gradient(45deg,#E0E7FF,#E0E7FF 3px,#F1F5FF 3px,#F1F5FF 6px);border-color:var(--accent)}
 
-/* ---------- 座位图 ---------- */
-.map-card{padding:16px}
-.map-head{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
-.map-head h2{font-size:15px;font-weight:700;white-space:nowrap}
+/* ---------- 座位图（下半部分，尽量大） ---------- */
+.map-card{padding:18px}
+.map-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.map-head h2{font-size:16px;font-weight:700}
 .map-head p{font-size:11.5px;color:var(--text-3)}
-.map-head .head-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .map-head .btn-row{margin:0;flex:none;gap:6px}
-.map-head .btn{padding:7px 14px;font-size:12.5px;min-height:34px;border-radius:9px}
+.map-head .btn{padding:8px 16px;font-size:12.5px;min-height:38px;border-radius:9px}
 .map-head .btn svg{width:13px;height:13px}
-.classroom{overflow-x:auto;padding:8px 4px 4px}
-.podium{background:linear-gradient(135deg,#CBD5E1,#94A3B8);color:#fff;text-align:center;font-size:12px;
-  font-weight:600;border-radius:9px;padding:7px;margin:0 auto 12px;letter-spacing:2px;width:80%;
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
-.podium.side{width:100%;margin:0}
-.grid-wrap{display:flex;gap:12px;align-items:stretch;justify-content:center}
-.class-grid{display:grid;gap:8px;justify-content:center;width:max-content;margin:0 auto}
-.seat{width:88px;height:58px;border-radius:10px;border:1.5px solid var(--border);background:#fff;
+
+.classroom{width:100%;overflow-x:hidden;padding:6px 2px}
+.side-wrap{display:flex;gap:10px;align-items:stretch;justify-content:center}
+.podium-side{background:linear-gradient(180deg,#475569,#1E293B);color:#fff;text-align:center;
+  border-radius:10px;padding:8px 6px;letter-spacing:2px;font-size:12px;font-weight:600;
+  writing-mode:vertical-rl;flex:none;display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.seat-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.seat-row{display:flex;gap:6px;align-items:stretch}
+.row-label{width:46px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--text-3);font-weight:600}
+.seat{flex:1;min-width:0;min-height:58px;border-radius:10px;border:1.5px solid var(--border);background:#fff;
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   padding:3px;cursor:pointer;position:relative;transition:.15s;user-select:none}
 .seat:hover{border-color:var(--accent);box-shadow:var(--shadow-hover)}
-.seat .nm{font-weight:600;color:var(--text);font-size:13px;line-height:1.2}
+.seat .nm{font-weight:600;color:var(--text);font-size:13px;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seat .sc{font-size:10px;color:var(--text-3);margin-top:1px}
 .seat.tier-high{background:rgba(79,107,255,.09);border-color:rgba(79,107,255,.45)}
 .seat.tier-mid{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.4)}
@@ -189,7 +197,12 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 .seat .gbadge{position:absolute;top:3px;left:4px;font-size:9.5px;font-weight:700;color:#fff;
   background:var(--accent);border-radius:5px;padding:0 5px;line-height:15px;min-width:20px;text-align:center}
 
-/* 小组配色（淡色底 + 同色边框） */
+/* 讲台（融入座位行） */
+.podium-cell{border-radius:10px;background:linear-gradient(135deg,#64748B,#1E293B);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  letter-spacing:4px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);flex-grow:2;min-height:58px}
+
+/* 小组配色（淡色底 + 同色边框，12色循环） */
 .g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
 .g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
 .g2{background:#F0FDF4 !important;border-color:#22C55E !important}
@@ -203,34 +216,31 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 .g10{background:#FDF4FF !important;border-color:#D946EF !important}
 .g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
 
-.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:11.5px;color:var(--text-3);justify-content:center}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11.5px;color:var(--text-3);justify-content:center}
 .legend-item{display:flex;align-items:center;gap:5px}
 .chip{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border)}
 
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--text);
   color:#fff;padding:10px 20px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;
-  transition:.25s;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:80vw;text-align:center}
+  transition:.25s;z-index:400;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:80vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--red)}
 
-#mapEmpty{padding:28px 16px;text-align:center;color:var(--text-3);font-size:12.5px}
-#mapEmpty .ic{width:36px;height:36px;margin:0 auto 8px;color:var(--accent);opacity:.45}
-#mapEmpty .ic svg{width:36px;height:36px}
-#mapEmpty b{display:none}
+#mapEmpty{padding:40px 16px;text-align:center;color:var(--text-3);font-size:13px}
+#mapEmpty .ic{width:40px;height:40px;margin:0 auto 10px;color:var(--accent);opacity:.45}
+#mapEmpty .ic svg{width:40px;height:40px}
 
 .footer{text-align:center;color:var(--text-3);font-size:11.5px;padding:18px 0 0}
 
 /* ---------- 打印 ---------- */
 @media print{
   body{background:#fff !important;background-image:none !important}
-  .stats,.config-panel,.map-head .btn,.tabs,.legend,.footer,.page-head p,.capsule{display:none !important}
+  .stats,.settings-grid,.map-head .btn,.tabs,.legend,.footer,.page-head p,.capsule,.mobile-hint{display:none !important}
   .page-head{margin-bottom:8px}
   .page-head h1{font-size:20px}
   .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
-  .cpanel{padding:18px}
-  .cpanel .sec-body{display:block !important;border:none;margin:0;padding:10px 0 0}
-  .workspace{grid-template-columns:1fr !important}
   .seat{border:1px solid #999 !important;box-shadow:none !important}
+  .podium-cell{background:#475569 !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
   .g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
   .g2{background:#F0FDF4 !important;border-color:#22C55E !important}
@@ -244,20 +254,27 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
   .g10{background:#FDF4FF !important;border-color:#D946EF !important}
   .g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
 }
-@media(max-width:768px){
-  .wrap{padding:16px 12px 24px}
-  .page-head h1{font-size:23px}
-  .seat{width:72px;height:52px;font-size:12px}
-  .seat .nm{font-size:12px}
+@media(max-width:767px){
+  .wrap{padding:14px 10px 24px}
+  .page-head h1{font-size:22px}
+  .seat{min-height:50px}
+  .seat .nm{font-size:11.5px}
+  .row-label{width:32px;font-size:10px}
   input[type=number],input[type=text],select,textarea{font-size:15px;min-height:44px}
   .btn{min-height:44px}
-  .map-head{flex-wrap:wrap}
-  .map-head .head-txt{white-space:normal;overflow:visible;text-overflow:clip}
-  .map-head .btn{min-height:44px;padding:8px 16px;font-size:13px}
+  .map-head{flex-direction:column;align-items:stretch}
+  .map-head .btn-row{justify-content:flex-end}
 }
 </style>
 </head>
 <body>
+
+<!-- 小屏提示条 -->
+<div class="mobile-hint" id="mobileHint">
+  <span>建议横屏或切换大屏后使用</span>
+  <button id="mobileHintClose" aria-label="关闭">&times;</button>
+</div>
+
 <div class="wrap">
 
   <header class="page-head">
@@ -268,216 +285,168 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 
   <!-- 统计 -->
   <section class="stats">
-    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 40 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <div><div class="num" id="stStudents">0<small>人</small></div><div class="lbl">已导入学生</div></div></div>
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+      <div><div class="num" id="stSubjects">0<small>科</small></div><div class="lbl">识别科目</div></div></div>
     <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div>
       <div><div class="num" id="stSeats">0<small>个</small></div><div class="lbl">可用座位</div></div></div>
-    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-      <div><div class="num" id="stEmpty">0<small>个</small></div><div class="lbl">当前空位</div></div></div>
     <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></div>
       <div><div class="num" id="stGroups">0<small>组</small></div><div class="lbl">当前小组数</div></div></div>
   </section>
 
-  <div class="workspace">
+  <!-- ============ 上方：基本设置区（紧凑网格） ============ -->
+  <section class="settings-grid">
 
-    <!-- ============ 左侧配置（折叠面板） ============ -->
-    <aside class="config-panel">
-
-      <!-- 1 导入（默认展开） -->
-      <details class="card cpanel" open>
-        <summary>
-          <span class="sec-bar"></span>
-          <div><h2>导入学生名单</h2><p>Excel 上传或直接粘贴文本</p></div>
-          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="sec-body">
-        <div class="tabs">
-          <button class="tab active" data-tabpane="paneFile">Excel 文件</button>
-          <button class="tab" data-tabpane="panePaste">粘贴文本</button>
+    <!-- 1 导入名单 -->
+    <div class="card">
+      <div class="sec-head"><span class="sec-bar"></span>
+        <div><h2>导入名单</h2><p>Excel 或粘贴文本</p></div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tabpane="paneFile">Excel 文件</button>
+        <button class="tab" data-tabpane="panePaste">粘贴文本</button>
+      </div>
+      <div id="paneFile" class="tabpane active">
+        <div class="drop" id="drop">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+          <p>点击选择 / 拖入文件</p>
+          <p class="fmt">.xlsx / .xls / .csv　表头须含「姓名」「性别」列</p>
         </div>
-
-        <div id="paneFile" class="tabpane active">
-          <div class="drop" id="drop">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
-            <p>点击选择，或将文件拖到此处</p>
-            <p class="fmt">.xlsx / .xls / .csv　首行表头，须含「姓名」列</p>
-          </div>
-          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
-          <div class="file-info" id="fileInfo">尚未选择文件</div>
-          <div class="btn-row">
-            <button class="btn btn-secondary mini" id="tplBtn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>下载模板
-            </button>
-            <button class="btn btn-primary mini" id="parseBtn">解析并导入</button>
-          </div>
-        </div>
-
-        <div id="panePaste" class="tabpane">
-          <div class="field">
-            <textarea id="pasteBox" placeholder="每行一名学生：&#10;张三&#10;李四,男,88,95,76&#10;王五,女,90,82,88"></textarea>
-            <small>格式：姓名　或　姓名,性别,成绩1,成绩2…　性别可省略</small>
-          </div>
-          <button class="btn btn-primary btn-block" id="pasteBtn">从文本导入</button>
-        </div>
-        </div>
-      </details>
-
-      <!-- 2 布局（默认折叠） -->
-      <details class="card cpanel">
-        <summary>
-          <span class="sec-bar"></span>
-          <div><h2>教室布局</h2><p>行列数 · 讲台位置 · 过道</p></div>
-          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="sec-body">
-        <div class="row2">
-          <div class="field"><label>行数（排）</label><input type="number" id="rowsInput" min="1" max="16" value="6"></div>
-          <div class="field"><label>列数（每排座位）</label><input type="number" id="colsInput" min="1" max="16" value="6"></div>
-        </div>
-        <div class="field">
-          <label>讲台位置</label>
-          <select id="podiumSel">
-            <option value="top">教室前方（顶部）</option>
-            <option value="bottom">教室后方（底部）</option>
-            <option value="left">左侧</option>
-            <option value="right">右侧</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>过道设置（点击格子切换）</label>
-          <div class="aisle-edit" id="aisleEdit"></div>
-          <div class="btn-row">
-            <button class="btn btn-secondary mini" id="clearAisleBtn">清空过道</button>
-          </div>
-        </div>
-        </div>
-      </details>
-
-      <!-- 3 排座方式（默认展开） -->
-      <details class="card cpanel" open>
-        <summary>
-          <span class="sec-bar"></span>
-          <div><h2>排座方式</h2><p>生成时自动应用下方全部约束</p></div>
-          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="sec-body">
-        <div class="opts">
-          <label class="opt sel"><input type="radio" name="strat" value="balanced" checked><span><b>成绩均衡分布</b><small>高分学生打散到各排各列，相邻不扎堆</small></span></label>
-          <label class="opt"><input type="radio" name="strat" value="random"><span><b>随机排座</b><small>随机打乱，保证约束不冲突</small></span></label>
-          <label class="opt"><input type="radio" name="strat" value="order"><span><b>按成绩顺序</b><small>高分靠前，从前往后排布</small></span></label>
-          <label class="opt"><input type="radio" name="strat" value="group"><span><b>小组排座</b><small>优中差搭配成小组，组间成绩均衡，按色块入座</small></span></label>
-        </div>
-
-        <!-- 小组人数设置 -->
-        <div id="groupPanel" style="display:none;margin-top:10px;border:1px dashed var(--border);border-radius:11px;padding:10px;background:var(--surface-2)">
-          <div class="field" style="margin-bottom:7px">
-            <label>每组人数</label>
-            <div class="gsize-row">
-              <button class="btn btn-secondary mini gsize-btn active" data-n="4">4人组</button>
-              <button class="btn btn-secondary mini gsize-btn" data-n="6">6人组</button>
-              <button class="btn btn-secondary mini gsize-btn" data-n="8">8人组</button>
-              <input type="number" id="groupSizeInput" min="2" max="12" value="4" title="自定义每组人数 2~12">
-            </div>
-            <small id="groupInfo">导入学生后自动计算分组数量</small>
-          </div>
-        </div>
-
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn btn-primary btn-lg btn-block" id="genBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            生成座位表
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+        <div class="file-info" id="fileInfo">尚未选择文件</div>
+        <div class="btn-row">
+          <button class="btn btn-secondary mini" id="tplBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>模板
           </button>
-        </div>
-        </div>
-      </details>
-
-      <!-- 4 约束（默认折叠） -->
-      <details class="card cpanel">
-        <summary>
-          <span class="sec-bar"></span>
-          <div><h2>约束条件</h2><p>生成时真正参与排座算法</p></div>
-          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="sec-body">
-        <div class="field">
-          <label>不能相邻（两人不坐同桌/前后桌）</label>
-          <div class="row2">
-            <select id="pairA"><option value="">学生 A</option></select>
-            <select id="pairB"><option value="">学生 B</option></select>
-          </div>
-          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addPairBtn">添加「不邻座」</button>
-        </div>
-
-        <div class="field">
-          <label>不坐前 N 排</label>
-          <div class="row2">
-            <select id="frStudent"><option value="">选择学生</option></select>
-            <input type="number" id="frRows" min="1" max="10" value="2" placeholder="前N排">
-          </div>
-          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addFrBtn">添加前排限制</button>
-        </div>
-
-        <div class="field">
-          <label>必须坐前 N 排（指定靠前）</label>
-          <div class="row2">
-            <select id="mfStudent"><option value="">选择学生</option></select>
-            <input type="number" id="mfRows" min="1" max="10" value="2" placeholder="前N排">
-          </div>
-          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addMfBtn">添加前排要求</button>
-        </div>
-
-        <div class="field">
-          <label>指定固定座位</label>
-          <div class="row3">
-            <select id="fixStudent"><option value="">学生</option></select>
-            <input type="number" id="fixRow" min="1" placeholder="排">
-            <input type="number" id="fixCol" min="1" placeholder="列">
-          </div>
-          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addFixBtn">固定到该位置</button>
-        </div>
-
-        <label class="opt" style="margin-top:6px">
-          <input type="checkbox" id="genderAlt">
-          <span><b>男女间隔排座</b><small>数据含性别时尽量男女交替相邻</small></span>
-        </label>
-
-        <ul class="clist" id="conList"></ul>
-        </div>
-      </details>
-
-    </aside>
-
-    <!-- ============ 右侧座位图 ============ -->
-    <section class="card map-card">
-      <div class="map-head">
-        <div class="head-txt"><h2>座位表预览</h2><p>拖拽换座 · 点选互换</p></div>
-        <div class="btn-row" style="margin:0">
-          <button class="btn btn-secondary" id="printBtn" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>打印</button>
-          <button class="btn btn-primary" id="exportBtn" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>导出 Excel</button>
+          <button class="btn btn-primary mini" id="parseBtn">解析导入</button>
         </div>
       </div>
-
-      <div id="mapEmpty">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16M15 4v16"/></svg></div>
-        <div>导入学生并设置布局后，点击「生成座位表」</div>
-      </div>
-
-      <div class="classroom" id="classroom" style="display:none">
-        <div id="podiumTop" class="podium">讲　台</div>
-        <div class="grid-wrap">
-          <div id="podiumLeft" class="podium side" style="writing-mode:vertical-rl;display:none">讲台</div>
-          <div class="class-grid" id="classGrid"></div>
-          <div id="podiumRight" class="podium side" style="writing-mode:vertical-rl;display:none">讲台</div>
+      <div id="panePaste" class="tabpane">
+        <div class="field">
+          <textarea id="pasteBox" placeholder="表头：性别 姓名 语文 数学 英语&#10;男 张三 88 95 76&#10;女 李四 90 82 88"></textarea>
+          <small>支持逗号 / 制表符 / 空格分隔；首行表头，其余数值列自动识别为科目</small>
         </div>
-        <div id="podiumBottom" class="podium" style="margin-top:12px;display:none">讲　台</div>
-
-        <div class="legend" id="legend"></div>
+        <button class="btn btn-primary btn-block mini" id="pasteBtn">从文本导入</button>
       </div>
-    </section>
+      <div id="importStats"></div>
+    </div>
 
-  </div>
+    <!-- 2 教室布局 -->
+    <div class="card">
+      <div class="sec-head"><span class="sec-bar"></span>
+        <div><h2>教室布局</h2><p>行列 · 讲台位置</p></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>行数（排）</label><input type="number" id="rowsInput" min="1" max="16" value="6"></div>
+        <div class="field"><label>列数（列）</label><input type="number" id="colsInput" min="1" max="16" value="6"></div>
+      </div>
+      <div class="field">
+        <label>讲台位置</label>
+        <select id="podiumSel">
+          <option value="bottom" selected>教室前方（底部中间，融入第一排）</option>
+          <option value="top">教室前方（顶部中间，融入第一排）</option>
+          <option value="left">左侧</option>
+          <option value="right">右侧</option>
+          <option value="none">无讲台</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>过道（点击格子切换，可选）</label>
+        <div class="aisle-edit" id="aisleEdit"></div>
+        <div class="btn-row"><button class="btn btn-secondary mini" id="clearAisleBtn">清空过道</button></div>
+      </div>
+    </div>
+
+    <!-- 3 排座方式 -->
+    <div class="card">
+      <div class="sec-head"><span class="sec-bar"></span>
+        <div><h2>排座方式</h2><p>自动应用全部约束</p></div>
+      </div>
+      <div class="opts">
+        <label class="opt sel"><input type="radio" name="strat" value="balanced" checked><span><b>成绩均衡分布</b><small>高分打散到各排各列</small></span></label>
+        <label class="opt"><input type="radio" name="strat" value="random"><span><b>随机排座</b><small>Fisher-Yates 严格洗牌</small></span></label>
+        <label class="opt"><input type="radio" name="strat" value="order"><span><b>按成绩顺序</b><small>高分从前往后坐</small></span></label>
+        <label class="opt"><input type="radio" name="strat" value="group"><span><b>小组排座</b><small>组间均衡，每科有带头人</small></span></label>
+      </div>
+      <div id="groupPanel" style="display:none;margin-top:10px;border:1px dashed var(--border);border-radius:11px;padding:9px;background:var(--surface-2)">
+        <div class="field" style="margin-bottom:4px">
+          <label>每组人数</label>
+          <div class="gsize-row">
+            <button class="btn btn-secondary mini gsize-btn active" data-n="4">4人</button>
+            <button class="btn btn-secondary mini gsize-btn" data-n="6">6人</button>
+            <button class="btn btn-secondary mini gsize-btn" data-n="8">8人</button>
+            <input type="number" id="groupSizeInput" min="2" max="12" value="4" title="自定义每组人数 2~12">
+          </div>
+          <span id="groupInfo">导入学生后自动计算分组数量</span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-primary btn-lg btn-block" id="genBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          生成座位表
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 约束条件 -->
+    <div class="card">
+      <div class="sec-head"><span class="sec-bar"></span>
+        <div><h2>约束条件</h2><p>参与小组 / 随机排座</p></div>
+      </div>
+      <div class="field">
+        <label>不邻座（两人不相邻）</label>
+        <div class="row2">
+          <select id="pairA"><option value="">学生 A</option></select>
+          <select id="pairB"><option value="">学生 B</option></select>
+        </div>
+        <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addPairBtn">添加不邻座</button>
+      </div>
+      <div class="field">
+        <label>前排优先（须坐前 N 排）</label>
+        <div class="row2">
+          <select id="mfStudent"><option value="">选择学生</option></select>
+          <input type="number" id="mfRows" min="1" max="10" value="2" placeholder="前N排">
+        </div>
+        <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addMfBtn">添加前排要求</button>
+      </div>
+      <div class="field">
+        <label>固定位置（排 / 列，从讲台旁第1排数起）</label>
+        <div class="row3">
+          <select id="fixStudent"><option value="">学生</option></select>
+          <input type="number" id="fixRow" min="1" placeholder="排">
+          <input type="number" id="fixCol" min="1" placeholder="列">
+        </div>
+        <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addFixBtn">固定到该位置</button>
+      </div>
+      <label class="opt" style="margin-top:6px">
+        <input type="checkbox" id="genderAlt">
+        <span><b>男女间隔</b><small>相邻座位男女交替</small></span>
+      </label>
+      <ul class="clist" id="conList"></ul>
+    </div>
+
+  </section>
+
+  <!-- ============ 下半部分：座位表预览 ============ -->
+  <section class="card map-card">
+    <div class="map-head">
+      <div><h2>座位表预览</h2><p>拖拽换座 · 点选互换 · 行号从讲台旁第 1 排数起</p></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="printBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>打印</button>
+        <button class="btn btn-primary" id="exportBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>导出 Excel</button>
+      </div>
+    </div>
+
+    <div id="mapEmpty">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16M15 4v16"/></svg></div>
+      <div>导入学生并设置布局后，点击「生成座位表」</div>
+    </div>
+
+    <div class="classroom" id="classroom" style="display:none"></div>
+  </section>
 
   <div class="footer">智能座位编排系统 · 纯前端单文件 · 数据不出本机</div>
 </div>
@@ -488,23 +457,38 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:ve
 /* ============================================================
  * 状态
  * ============================================================ */
-let students = [];        // {id, name, gender, total, scores:{}, isHigh, _group}
+let students = [];        // {id,name,gender,total,scores:{subj:v}}
 let scoreCols = [];       // 科目列名
-let layout = { rows: 6, cols: 6, aisle: new Set(), podium: 'top' };
+let layout = { rows: 6, cols: 6, aisle: new Set(), podium: 'bottom' };
 let constraints = [];
-let seatMap = [];         // [r][c] -> null | {t:'aisle'} | {t:'s', s:student}
+let seatMap = [];         // [r][c] -> null | {t:'aisle'} | {t:'podium'} | {t:'s', s}
 let fileData = null;
 let genStrategy = 'balanced';
 let groupSize = 4;
-let groupList = [];       // 小组模式下：[[student,...], ...]
+let groupList = [];       // [[student,...], ...]
 
 const $ = id => document.getElementById(id);
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 let toastTimer=null;
 function toast(msg, isErr){
   const t=$('toast'); t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
+
+/* ============================================================
+ * 小屏提示条
+ * ============================================================ */
+(function(){
+  const bar=$('mobileHint');
+  let auto=null;
+  function show(){
+    if(window.innerWidth<768){ bar.classList.remove('hide'); auto=setTimeout(()=>bar.classList.add('hide'),5000); }
+    else { bar.classList.add('hide'); }
+  }
+  $('mobileHintClose').addEventListener('click',()=>{ bar.classList.add('hide'); clearTimeout(auto); });
+  window.addEventListener('resize',show);
+  show();
+})();
 
 /* ============================================================
  * Tabs / 排座方式选择
@@ -532,20 +516,18 @@ document.querySelectorAll('.gsize-btn').forEach(b=>b.addEventListener('click',()
 $('groupSizeInput').addEventListener('input',()=>{
   let v=parseInt($('groupSizeInput').value);
   if(isNaN(v))return;
-  v=Math.max(2,Math.min(12,v));
-  groupSize=v;
+  v=Math.max(2,Math.min(12,v)); groupSize=v;
   document.querySelectorAll('.gsize-btn').forEach(x=>x.classList.toggle('active',parseInt(x.dataset.n)===v));
   updateGroupInfo();
 });
 function updateGroupInfo(){
   if(!students.length){$('groupInfo').textContent='导入学生后自动计算分组数量';return;}
-  const n=Math.ceil(students.length/groupSize);
-  const per=students.length+'人 ÷ '+groupSize+'人/组 → 共 '+n+' 组';
-  $('groupInfo').textContent=per;
+  const n=Math.max(1,Math.ceil(students.length/groupSize));
+  $('groupInfo').textContent=students.length+'人 ÷ '+groupSize+'人/组 → 共 '+n+' 组';
 }
 
 /* ============================================================
- * 1. 导入：Excel
+ * 3. 成绩识别：统一 AOA 解析
  * ============================================================ */
 const drop=$('drop'), fileInput=$('fileInput');
 drop.addEventListener('click',()=>fileInput.click());
@@ -553,19 +535,17 @@ drop.addEventListener('click',()=>fileInput.click());
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();drop.classList.remove('drag');}));
 drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0]; if(f) pickFile(f);});
 fileInput.addEventListener('change',e=>{if(e.target.files[0]) pickFile(e.target.files[0]);});
+function pickFile(f){ fileData=f; $('fileInfo').textContent='已选择：'+f.name; }
 
-function pickFile(f){
-  fileData=f; $('fileInfo').textContent='已选择：'+f.name;
-}
-
+/* 下载模板：性别、姓名、科目列，无总分列 */
 $('tplBtn').addEventListener('click',()=>{
   const ws=XLSX.utils.aoa_to_sheet([
-    ['姓名','性别','语文','数学','英语'],
-    ['张三','男',88,95,76],
-    ['李四','女',90,82,88],
-    ['王五','男',76,69,80]
+    ['性别','姓名','语文','数学','英语'],
+    ['男','张三',88,95,76],
+    ['女','李四',90,82,88],
+    ['男','王五',76,69,80]
   ]);
-  ws['!cols']=[{wch:12},{wch:8},{wch:8},{wch:8},{wch:8}];
+  ws['!cols']=[{wch:8},{wch:12},{wch:8},{wch:8},{wch:8}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'学生模板');
   XLSX.writeFile(wb,'学生成绩导入模板.xlsx');
   toast('模板已下载');
@@ -577,114 +557,156 @@ $('parseBtn').addEventListener('click',()=>{
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      let rows=[];
+      let aoa;
       if(ext==='csv'){
         const txt=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
-        const ws=XLSX.utils.aoa_to_sheet(csvToAoa(txt));
-        rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        aoa=txt.trim().split(/\r?\n/).map(l=>l.split(/[,\t]/));
       }else{
         const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
         const ws=wb.Sheets[wb.SheetNames[0]];
-        rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       }
-      importRows(rows);
+      importAOA(aoa);
     }catch(err){console.error(err);toast('文件解析失败，请检查格式',true);}
   };
   reader.readAsArrayBuffer(f);
 });
-function csvToAoa(txt){return txt.trim().split(/\r?\n/).map(l=>l.split(','));}
 
-function importRows(rows){
-  if(!rows || rows.length===0){toast('未读取到数据',true);return;}
-  let list=[];
-  if(Array.isArray(rows[0])){
-    const h=rows[0].map(x=>String(x).trim());
-    list=rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]);return o;});
-  }else{
-    list=rows;
+/* 粘贴文本导入 → 拼成 AOA → 统一解析 */
+$('pasteBtn').addEventListener('click',()=>{
+  const txt=$('pasteBox').value.trim();
+  if(!txt){toast('请先粘贴学生名单',true);return;}
+  const aoa=txt.split(/\r?\n/).map(line=>{
+    return line.split(/[\t,，;；]+/).flatMap(seg=>{
+      const t=seg.trim(); return t===''?[]:t.split(/\s+/);
+    });
+  }).filter(r=>r.length);
+  importAOA(aoa);
+});
+
+/* 统一 AOA 解析：含「姓名」列→姓名，含「性别」列→性别，其余数值列→科目；总分自动求和 */
+function importAOA(aoa){
+  if(!aoa || !aoa.length){toast('未读取到数据',true);return;}
+  let hIdx=aoa.findIndex(row=>row.some(cell=>String(cell).includes('姓名')));
+  if(hIdx<0) hIdx=0;
+  const header=aoa[hIdx].map(x=>String(x).trim());
+  const nameCol=header.findIndex(h=>h.includes('姓名'));
+  const genderCol=header.findIndex(h=>h.includes('性别'));
+  const dataRows=aoa.slice(hIdx+1).filter(r=>r && r.length && r.some(v=>String(v).trim()!==''));
+
+  // 识别科目列：非姓名/性别列，且数据为数值
+  const subjCols=[];
+  for(let c=0;c<header.length;c++){
+    if(c===nameCol||c===genderCol) continue;
+    const sample=dataRows.map(r=>r[c]).find(v=>v!==''&&v!=null);
+    if(sample!==''&&sample!=null && !isNaN(Number(sample))) subjCols.push(c);
   }
-  const keys=Object.keys(list[0]);
-  const nameKey=keys.find(k=>k.includes('姓名'))||keys[0];
-  const genderKey=keys.find(k=>k.includes('性别'))||null;
-  const skipKeys=[nameKey,genderKey,'学号','id','ID','特殊需求','备注'].filter(Boolean);
-  const commonSub=['语文','数学','英语','物理','化学','生物','历史','地理','政治','体育'];
-  const numKeys=[];
-  keys.forEach(k=>{
-    if(skipKeys.includes(k))return;
-    const sample=list.find(r=>r[k]!==''&&r[k]!=null);
-    const isNum=sample!==''&&sample!=null&&!isNaN(Number(sample));
-    const isSub=commonSub.some(s=>k.includes(s));
-    if(isNum||isSub) numKeys.push(k);
-  });
-  scoreCols=numKeys;
+  scoreCols=subjCols.map((c,j)=>header[c]||('科目'+(j+1)));
+
   students=[];
-  list.forEach((r,i)=>{
-    const name=String(r[nameKey]||'').trim();
-    if(!name)return;
-    const rawGender=genderKey?String(r[genderKey]||'').trim():'';
+  dataRows.forEach((r,i)=>{
+    const name=(nameCol>=0?String(r[nameCol]??''):String(r[0]??'')).trim();
+    if(!name) return;
     let gender='';
-    if(/^(男|M|m)$/.test(rawGender))gender='M';
-    else if(/^(女|F|f)$/.test(rawGender))gender='F';
-    const s={id:'S'+(i+1),name,gender,total:0,scores:{},isHigh:false,_group:null};
-    numKeys.forEach(k=>{const v=parseFloat(r[k]);s.scores[k]=isNaN(v)?0:v;s.total+=s.scores[k];});
+    if(genderCol>=0){const g=String(r[genderCol]??'').trim(); if(/^男|M/i.test(g))gender='M'; else if(/^女|F/i.test(g))gender='F';}
+    else {
+      // 无性别列：在 token 中找性别词
+      const gi=r.findIndex(v=>/^(男|女|M|F)$/i.test(String(v).trim()));
+      if(gi>=0){ gender=/^(男|M)/i.test(String(r[gi]).trim())?'M':'F'; }
+    }
+    const s={id:'S'+(i+1),name,gender,total:0,scores:{},_group:null};
+    subjCols.forEach((c,j)=>{const v=parseFloat(r[c]); s.scores[scoreCols[j]]=isNaN(v)?0:v; s.total+=s.scores[scoreCols[j]];});
     students.push(s);
   });
-  if(students.length===0){toast('未解析到有效学生（首列须为姓名）',true);return;}
-  markHigh();
+  if(!students.length){toast('未解析到有效学生',true);return;}
+
+  // 自动确定默认行列
+  const auto=autoLayout(students.length);
+  layout.rows=auto.rows; layout.cols=auto.cols;
+  $('rowsInput').value=auto.rows; $('colsInput').value=auto.cols;
+  layout.aisle.clear();
+  buildAisleEditor();
+
   afterImport();
   toast('成功导入 '+students.length+' 名学生');
 }
 
-function markHigh(){
-  if(!students.length)return;
-  const sorted=[...students].sort((a,b)=>b.total-a.total);
-  const cut=Math.max(1,Math.floor(sorted.length/3));
-  sorted.slice(0,cut).forEach(s=>s.isHigh=true);
+/* ⑧ 默认行列：列≥行，尽量接近正方形，扣掉讲台后可用座位≥人数，留少量空位 */
+function autoLayout(n){
+  const pw = (C)=> C>=8?2:1;
+  let best=null;
+  for(let C=Math.ceil(Math.sqrt(n)); C<=Math.ceil(Math.sqrt(n))+5; C++){
+    for(let R=Math.ceil(n/C); R<=C; R++){
+      const avail=R*C-pw(C);
+      if(avail>=n){
+        const score=Math.abs(C-R)*10+(avail-n); // 先求方正，再求少空位
+        if(!best||score<best.score) best={rows:R,cols:C,score};
+      }
+    }
+  }
+  if(!best) best={rows:Math.ceil(Math.sqrt(n)),cols:Math.ceil(Math.sqrt(n))};
+  best.rows=Math.max(2,Math.min(16,best.rows));
+  best.cols=Math.max(4,Math.min(16,best.cols));
+  return {rows:best.rows, cols:best.cols};
 }
 
-/* ============================================================
- * 1b. 粘贴文本导入
- * ============================================================ */
-$('pasteBtn').addEventListener('click',()=>{
-  const txt=$('pasteBox').value.trim();
-  if(!txt){toast('请先粘贴学生名单',true);return;}
-  scoreCols=[];
-  students=[];
-  txt.split(/\r?\n/).forEach((line,i)=>{
-    const parts=line.split(/[\t,，]/).map(x=>x.trim()).filter(x=>x!=='');
-    if(!parts.length)return;
-    const name=parts[0];
-    let gender='',idx=1;
-    if(parts[1]&&/^(男|M|女|F)$/i.test(parts[1])){gender=/^(男|M)/i.test(parts[1])?'M':'F';idx=2;}
-    const nums=parts.slice(idx).map(Number).filter(n=>!isNaN(n));
-    const s={id:'S'+(i+1),name,gender,total:nums.reduce((a,b)=>a+b,0),scores:{},isHigh:false,_group:null};
-    nums.forEach((n,j)=>{s.scores['成绩'+(j+1)]=n;});
-    if(nums.length&&!scoreCols.length){scoreCols=Object.keys(s.scores);}
-    students.push(s);
-  });
-  if(!students.length){toast('未解析到学生',true);return;}
-  markHigh();
-  afterImport();
-  toast('已从文本导入 '+students.length+' 名学生');
-});
-
+/* 导入后统计：人数 + 各科平均分 */
 function afterImport(){
   const ids=students.map(s=>({id:s.id,name:s.name}));
-  ['pairA','pairB','frStudent','mfStudent','fixStudent'].forEach(pid=>{
-    const sel=$(pid); const keep=sel.querySelector('option')?sel.querySelector('option').outerHTML:'';
-    sel.innerHTML=keep||'<option value="">选择学生</option>';
+  const placeholder={pairA:'学生 A',pairB:'学生 B',mfStudent:'选择学生',fixStudent:'学生'};
+  ['pairA','pairB','mfStudent','fixStudent'].forEach(pid=>{
+    const sel=$(pid);
+    sel.innerHTML='<option value="">'+(placeholder[pid]||'选择学生')+'</option>';
     ids.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
   });
-  updateGroupInfo();
-  refreshStats();
+  // 导入统计行
+  let html='已导入 <b>'+students.length+'</b> 人';
+  if(scoreCols.length){
+    const avgs=scoreCols.map(k=>{
+      const avg=students.reduce((a,s)=>a+(s.scores[k]||0),0)/students.length;
+      return k+'均分 <b>'+avg.toFixed(1)+'</b>';
+    });
+    html+='<br>'+avgs.join(' · ');
+  }
+  const gN=students.filter(s=>s.gender==='M').length, gF=students.filter(s=>s.gender==='F').length;
+  html+='<br>男 '+gN+' · 女 '+gF;
+  const box=$('importStats'); box.innerHTML=html; box.style.display='block';
+
+  updateGroupInfo(); refreshStats();
 }
 function refreshStats(){
   $('stStudents').innerHTML=students.length+'<small>人</small>';
-  const avail=layout.rows*layout.cols-layout.aisle.size;
+  $('stSubjects').innerHTML=scoreCols.length+'<small>科</small>';
+  const avail=layout.rows*layout.cols-layout.aisle.size-podiumCells().length;
   $('stSeats').innerHTML=avail+'<small>个</small>';
-  const placed=seatMap.flat().filter(c=>c&&c.t==='s').length;
-  $('stEmpty').innerHTML=(avail-placed)+'<small>个</small>';
+  const placed=seatMap.length?seatMap.flat().filter(c=>c&&c.t==='s').length:0;
   $('stGroups').innerHTML=(groupList.length||0)+'<small>组</small>';
+}
+
+/* ============================================================
+ * 7. 讲台：默认底部中间，融入第一排（占中间 1~2 格）
+ * ============================================================ */
+function podiumCells(){
+  if(layout.podium==='bottom'||layout.podium==='top'){
+    const r=layout.podium==='bottom'?layout.rows-1:0;
+    const pw=layout.cols>=8?2:1;
+    const c0=Math.floor((layout.cols-pw)/2);
+    const cells=[]; for(let i=0;i<pw;i++) cells.push([r,c0+i]);
+    return cells;
+  }
+  return [];
+}
+function frontIsBottom(){ return layout.podium==='bottom'; }
+/* 显示排号：1 = 离讲台最近那一排 */
+function dispRowOf(r){ return frontIsBottom() ? (layout.rows - r) : (r + 1); }
+/* 内部 r ↔ 用户输入的显示排号 d(1基) */
+function dispToInternalRow(d){ return frontIsBottom() ? (layout.rows - d) : (d - 1); }
+/* 前 N 排（离讲台最近）包含哪些内部行 */
+function frontRowsSet(N){
+  const s=new Set();
+  if(frontIsBottom()){ for(let r=layout.rows-1; r>=0 && s.size<N; r--) s.add(r); }
+  else { for(let r=0; r<layout.rows && s.size<N; r++) s.add(r); }
+  return s;
 }
 
 /* ============================================================
@@ -699,12 +721,15 @@ function readLayout(){
 function buildAisleEditor(){
   readLayout();
   const box=$('aisleEdit'); box.innerHTML='';
-  box.style.gridTemplateColumns=`repeat(${layout.cols},28px)`;
+  box.style.gridTemplateColumns=`repeat(${layout.cols},24px)`;
+  const pc=new Set(podiumCells().map(([r,c])=>r+','+c));
   for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
     const d=document.createElement('div');
     d.className='acell'+(layout.aisle.has(r+','+c)?' is-aisle':'');
+    d.title='排'+dispRowOf(r)+' 列'+(c+1);
     d.addEventListener('click',()=>{
       const k=r+','+c;
+      if(pc.has(k)){toast('讲台位置不能设为过道',true);return;}
       layout.aisle.has(k)?layout.aisle.delete(k):layout.aisle.add(k);
       buildAisleEditor(); refreshStats();
       if(seatMap.length) generateSeats(true);
@@ -712,38 +737,36 @@ function buildAisleEditor(){
     box.appendChild(d);
   }
 }
-$('rowsInput').addEventListener('change',buildAisleEditor);
-$('colsInput').addEventListener('change',buildAisleEditor);
-$('podiumSel').addEventListener('change',()=>{layout.podium=$('podiumSel').value; if(seatMap.length)renderGrid();});
+$('rowsInput').addEventListener('change',()=>{buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
+$('colsInput').addEventListener('change',()=>{buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
+$('podiumSel').addEventListener('change',()=>{readLayout();buildAisleEditor();refreshStats();if(seatMap.length)renderGrid();});
 $('clearAisleBtn').addEventListener('click',()=>{layout.aisle.clear();buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
 
 /* ============================================================
- * 3. 约束管理
+ * 约束管理
  * ============================================================ */
 $('addPairBtn').addEventListener('click',()=>{
   const a=$('pairA').value,b=$('pairB').value;
   if(!a||!b){toast('请选择两名学生',true);return;}
   if(a===b){toast('不能选择同一名学生',true);return;}
-  const dup=constraints.some(c=>c.type==='pair'&&((c.a===a&&c.b===b)||(c.a===b&&c.b===a)));
-  if(dup){toast('该不邻座约束已存在',true);return;}
+  if(constraints.some(c=>c.type==='pair'&&((c.a===a&&c.b===b)||(c.a===b&&c.b===a)))){toast('该不邻座约束已存在',true);return;}
   constraints.push({type:'pair',a,b}); renderConstraints();
 });
-$('addFrBtn').addEventListener('click',()=>{
-  const id=$('frStudent').value, rows=parseInt($('frRows').value)||2;
-  if(!id){toast('请选择学生',true);return;}
-  constraints=constraints.filter(c=>!(c.type==='front'&&c.id===id));
-  constraints.push({type:'front',id,rows}); renderConstraints();
-});
 $('addMfBtn').addEventListener('click',()=>{
-  const id=$('mfStudent').value, rows=parseInt($('mfRows').value)||2;
+  const id=$('mfStudent').value, rows=Math.max(1,parseInt($('mfRows').value)||2);
   if(!id){toast('请选择学生',true);return;}
   constraints=constraints.filter(c=>!(c.type==='mfront'&&c.id===id));
   constraints.push({type:'mfront',id,rows}); renderConstraints();
 });
 $('addFixBtn').addEventListener('click',()=>{
-  const id=$('fixStudent').value, r=parseInt($('fixRow').value)-1, c=parseInt($('fixCol').value)-1;
+  const id=$('fixStudent').value;
   if(!id){toast('请选择学生',true);return;}
-  if(isNaN(r)||isNaN(c)||r<0||c<0||r>=layout.rows||c>=layout.cols){toast('座位排/列超出范围',true);return;}
+  const dRow=parseInt($('fixRow').value), dCol=parseInt($('fixCol').value);
+  if(isNaN(dRow)||isNaN(dCol)){toast('请输入排和列',true);return;}
+  const r=dispToInternalRow(dRow), c=dCol-1;
+  if(r<0||c<0||r>=layout.rows||c>=layout.cols){toast('座位排/列超出范围',true);return;}
+  if(podiumCells().some(([pr,pc])=>pr===r&&pc===c)){toast('该位置是讲台，请换一个座位',true);return;}
+  if(layout.aisle.has(r+','+c)){toast('该位置是过道，请换一个座位',true);return;}
   constraints=constraints.filter(x=>!(x.type==='fix'&&x.id===id));
   constraints.push({type:'fix',id,r,c}); renderConstraints();
 });
@@ -761,11 +784,10 @@ function renderConstraints(){
     const li=document.createElement('li'); li.className='citem';
     let html='';
     if(c.type==='pair'){html='<span class="tag pair">不邻座</span>'+esc(nameOf(c.a))+' 与 '+esc(nameOf(c.b));}
-    else if(c.type==='front'){html='<span class="tag front">避前排</span>'+esc(nameOf(c.id))+' 不坐前 '+c.rows+' 排';}
-    else if(c.type==='mfront'){html='<span class="tag mfront">须前排</span>'+esc(nameOf(c.id))+' 须坐前 '+c.rows+' 排';}
-    else if(c.type==='fix'){html='<span class="tag seat">固定位</span>'+esc(nameOf(c.id))+' 固定 '+(c.r+1)+'排'+(c.c+1)+'列';}
-    else if(c.type==='gender'){html='<span class="tag gender">男女间隔</span>相邻座位男女交替';}
-    li.innerHTML='<span>'+html+'</span>';
+    else if(c.type==='mfront'){html='<span class="tag front">前排优先</span>'+esc(nameOf(c.id))+' 须坐前 '+c.rows+' 排';}
+    else if(c.type==='fix'){html='<span class="tag seat">固定位</span>'+esc(nameOf(c.id))+' 固定 '+(dispRowOf(c.r))+'排'+(c.c+1)+'列';}
+    else if(c.type==='gender'){html='<span class="tag gender">男女间隔</span>相邻男女交替';}
+    li.innerHTML='<span style="overflow:hidden;text-overflow:ellipsis">'+html+'</span>';
     const del=document.createElement('button'); del.className='btn btn-danger mini'; del.textContent='删除';
     del.addEventListener('click',()=>{
       if(c.type==='gender'){$('genderAlt').checked=false;}
@@ -776,15 +798,17 @@ function renderConstraints(){
 }
 
 /* ============================================================
- * 4. 生成算法
+ * 排座算法
  * ============================================================ */
 function getStudent(id){return students.find(s=>s.id===id);}
 function cellKey(r,c){return r+','+c;}
 
-function passesStatic(s,r){
+/* 前排约束：mfront 必须在前N排；无"避前排"约束 */
+function passesFrontConstraint(s,r){
   for(const c of constraints){
-    if(c.type==='front'&&c.id===s.id&&r<c.rows) return false;
-    if(c.type==='mfront'&&c.id===s.id&&r>=c.rows) return false;
+    if(c.type==='mfront'&&c.id===s.id){
+      if(!frontRowsSet(c.rows).has(r)) return false;
+    }
   }
   return true;
 }
@@ -809,30 +833,67 @@ function neighbors(r,c){
   return out;
 }
 
-/* —— 小组划分：按总分蛇形分法，保证组间均分接近、组内优中差搭配 —— */
+/* —— ④ 小组划分：蛇形分组 + 每科前30%带头人检查与微调 —— */
 function computeGroups(){
   groupList=[];
   students.forEach(s=>s._group=null);
-  const sorted=[...students].sort((a,b)=>b.total-a.total);
-  const n=Math.max(1,Math.ceil(sorted.length/groupSize));
+  const n=Math.max(1,Math.ceil(students.length/groupSize));
   for(let i=0;i<n;i++)groupList.push([]);
+  const sorted=[...students].sort((a,b)=>b.total-a.total);
   let g=0,dir=1;
   sorted.forEach(s=>{
-    groupList[g].push(s);
-    s._group=g;
+    groupList[g].push(s); s._group=g;
     if(dir===1){ if(g<n-1) g++; else dir=-1; }
     else { if(g>0) g--; else dir=1; }
   });
+  balanceLeaders();
   return groupList;
+}
+/* 每科前30%作为"带头人"集合 */
+function subjectLeaderSets(){
+  const sets={};
+  scoreCols.forEach(subj=>{
+    const sorted=[...students].sort((a,b)=>b.scores[subj]-a.scores[subj]);
+    const k=Math.max(1,Math.ceil(students.length*0.30));
+    sets[subj]=new Set(sorted.slice(0,k).map(s=>s.id));
+  });
+  return sets;
+}
+/* 微调：若某组某科没有带头人，从有富余带头人的组交换一名 */
+function balanceLeaders(){
+  if(!scoreCols.length) return;
+  const leaders=subjectLeaderSets();
+  scoreCols.forEach(subj=>{
+    const lead=leaders[subj];
+    for(let iter=0;iter<30;iter++){
+      const defIdx=groupList.findIndex(grp=>!grp.some(s=>lead.has(s.id)));
+      if(defIdx<0) break;
+      let donorIdx=-1, donorMem=null, recvMem=null;
+      for(let i=0;i<groupList.length;i++){
+        if(i===defIdx) continue;
+        const lc=groupList[i].filter(s=>lead.has(s.id)).length;
+        if(lc>=2){
+          donorMem=groupList[i].filter(s=>lead.has(s.id)).sort((a,b)=>a.total-b.total)[0];
+          recvMem=groupList[defIdx].filter(s=>!lead.has(s.id)).sort((a,b)=>b.total-a.total)[0];
+          if(donorMem&&recvMem){donorIdx=i;break;}
+        }
+      }
+      if(donorIdx<0) break;
+      const di=groupList[donorIdx].indexOf(donorMem);
+      const ri=groupList[defIdx].indexOf(recvMem);
+      groupList[donorIdx][di]=recvMem; recvMem._group=donorIdx;
+      groupList[defIdx][ri]=donorMem; donorMem._group=defIdx;
+    }
+  });
 }
 
 function generateSeats(silent){
   readLayout();
   if(!students.length){toast('请先导入学生名单',true);return;}
-  const totalSeats=layout.rows*layout.cols-layout.aisle.size;
-  if(students.length>totalSeats){toast('学生 '+students.length+' 人超过座位 '+totalSeats+' 个，请增加行列或减少过道',true);return;}
+  const totalSeats=layout.rows*layout.cols-layout.aisle.size-podiumCells().length;
+  if(students.length>totalSeats){toast('学生 '+students.length+' 人超过座位 '+totalSeats+' 个，请增加行列',true);return;}
 
-  let best=null,bestViol=Infinity;
+  let best=null,bestViol=Infinity,bestReport='';
   if(genStrategy==='group'){
     computeGroups();
     for(let attempt=0;attempt<6;attempt++){
@@ -846,8 +907,7 @@ function generateSeats(silent){
       if(viol===0)break;
     }
   }else{
-    groupList=[];
-    students.forEach(s=>s._group=null);
+    groupList=[]; students.forEach(s=>s._group=null);
     for(let attempt=0;attempt<8;attempt++){
       const grid=buildGrid();
       placeFixed(grid);
@@ -861,22 +921,40 @@ function generateSeats(silent){
     }
   }
   seatMap=best;
-  renderGrid();
-  refreshStats();
+  renderGrid(); refreshStats();
   $('exportBtn').disabled=false; $('printBtn').disabled=false;
   if(!silent){
     if(genStrategy==='group'){
-      toast('小组排座完成：共 '+groupList.length+' 组，每组约 '+groupSize+' 人');
+      // 统计带头人覆盖情况
+      const cov=leaderCoverage();
+      toast('小组排座完成：共 '+groupList.length+' 组'+(cov?('（'+cov+'）'):''));
     }else{
-      toast(bestViol===0?'座位表生成完成，全部约束已满足':'座位表已生成（'+bestViol+' 处约束未完全满足，可手动拖拽微调）');
+      toast(bestViol===0?'座位表生成完成，全部约束已满足':'座位表已生成（'+bestViol+' 处约束未完全满足，可拖拽微调）');
     }
   }
+}
+function leaderCoverage(){
+  if(!scoreCols.length) return '';
+  const leaders=subjectLeaderSets();
+  let miss=0,total=0;
+  groupList.forEach(grp=>{
+    scoreCols.forEach(subj=>{
+      total++;
+      if(!grp.some(s=>leaders[subj].has(s.id))) miss++;
+    });
+  });
+  if(miss===0) return '每组每科均有带头人';
+  return miss+'/'+total+' 组·科缺少带头人（已最优近似）';
 }
 
 function buildGrid(){
   const g=[];
+  const pc=new Set(podiumCells().map(([r,c])=>r+','+c));
   for(let r=0;r<layout.rows;r++){g.push([]);for(let c=0;c<layout.cols;c++){
-    g[r].push(layout.aisle.has(cellKey(r,c))?{t:'aisle'}:null);
+    const k=r+','+c;
+    if(pc.has(k)) g[r].push({t:'podium'});
+    else if(layout.aisle.has(k)) g[r].push({t:'aisle'});
+    else g[r].push(null);
   }}
   return g;
 }
@@ -890,12 +968,19 @@ function placeFixed(g){
     const s=getStudent(con.id);
     if(s&&!g[con.r][con.c]) g[con.r][con.c]={t:'s',s};
   });
+  /* 前排优先：把须前排的学生先放到前 N 排空位 */
   constraints.filter(c=>c.type==='mfront').forEach(con=>{
     const s=getStudent(con.id); if(!s)return;
-    if(g[con.r]&&g[con.c]&&g[con.r][con.c]&&g[con.r][con.c].s===s)return;
-    for(let r=0;r<con.rows;r++)for(let c=0;c<layout.cols;c++){
-      if(!g[r][c]&&passesStatic(s,r)){g[r][c]={t:'s',s};return;}
+    // 已在固定位则跳过
+    let already=false;
+    for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+      if(g[r][c]&&g[r][c].t==='s'&&g[r][c].s.id===s.id){already=true;break;}
     }
+    if(already)return;
+    const fr=frontRowsSet(con.rows);
+    for(const r of fr){ for(let c=0;c<layout.cols;c++){
+      if(!g[r][c]){g[r][c]={t:'s',s};return;}
+    }}
   });
 }
 function placedIds(g){
@@ -903,27 +988,38 @@ function placedIds(g){
   g.forEach(row=>row.forEach(cell=>{if(cell&&cell.t==='s')set.add(cell.s.id);}));
   return set;
 }
+/* ⑤ 严格 Fisher-Yates 洗牌 */
+function fisherYates(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
 function buildQueue(grid){
   const placed=placedIds(grid);
   let q=students.filter(s=>!placed.has(s.id));
-  if(genStrategy==='balanced') q.sort((a,b)=>b.total-a.total);
-  else if(genStrategy==='order') q.sort((a,b)=>b.total-a.total);
-  else {for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}}
+  if(genStrategy==='balanced'||genStrategy==='order') q.sort((a,b)=>b.total-a.total);
+  else q=fisherYates(q);   // random：严格洗牌
   return q;
 }
-
+function isHighTotal(s){
+  const sorted=[...students].sort((a,b)=>b.total-a.total);
+  const cut=Math.max(1,Math.floor(sorted.length/3));
+  return sorted.indexOf(s)<cut;
+}
 function greedyPlace(grid,queue,attempt){
   const free=freeCells(grid);
   queue.forEach(s=>{
-    let cands=free.filter(([r,c])=>!grid[r][c]&&passesStatic(s,r));
+    let cands=free.filter(([r,c])=>!grid[r][c]&&passesFrontConstraint(s,r));
     if(!cands.length) cands=free.filter(([r,c])=>!grid[r][c]);
     if(!cands.length)return;
     let scored=cands.map(([r,c])=>{
       let pen=0;
       if(violatesPair(s,r,c,grid)) pen+=10000;
       if(genStrategy==='balanced'){
-        const highCount=neighbors(r,c).filter(([nr,nc])=>grid[nr][nc]&&grid[nr][nc].t==='s'&&grid[nr][nc].s.isHigh).length;
-        if(s.isHigh) pen+=highCount*100;
+        const highCount=neighbors(r,c).filter(([nr,nc])=>grid[nr][nc]&&grid[nr][nc].t==='s'&&isHighTotal(grid[nr][nc].s)).length;
+        if(isHighTotal(s)) pen+=highCount*100;
         else pen+=highCount*3;
       }
       pen+=Math.random()*((attempt%2)?4:0.01);
@@ -935,7 +1031,7 @@ function greedyPlace(grid,queue,attempt){
   });
 }
 
-/* —— 小组落位：每组找一块连续矩形座位区，优中差混合填入 —— */
+/* —— 小组落位：每组整块矩形入座 —— */
 function blockDims(){
   let bw=Math.ceil(Math.sqrt(groupSize)), bh=Math.ceil(groupSize/bw);
   if(bw>layout.cols){[bw,bh]=[bh,bw];}
@@ -943,7 +1039,7 @@ function blockDims(){
   return {bw,bh};
 }
 function restrictScore(s){
-  return constraints.filter(c=>(c.type==='front'||c.type==='mfront')&&c.id===s.id).length;
+  return constraints.filter(c=>c.type==='mfront'&&c.id===s.id).length;
 }
 function placeGroupsOnGrid(g,attempt){
   const {bw,bh}=blockDims();
@@ -951,7 +1047,6 @@ function placeGroupsOnGrid(g,attempt){
   if(attempt%2)order.reverse();
   order.forEach(gi=>{
     const grp=groupList[gi];
-    // 找第一个能容纳 bh×bw 整块的空位锚点
     let anchor=null;
     outer:
     for(let r=0;r<=layout.rows-bh;r++)for(let c=0;c<=layout.cols-bw;c++){
@@ -965,11 +1060,10 @@ function placeGroupsOnGrid(g,attempt){
     const [ar,ac]=anchor;
     const cells=[];
     for(let rr=ar;rr<ar+bh;rr++)for(let cc=ac;cc<ac+bw;cc++)cells.push([rr,cc]);
-    // 受限学生优先安排到满足前排约束的行
     const members=[...grp].sort((a,b)=>restrictScore(b)-restrictScore(a));
     cells.forEach(([rr,cc])=>{
       if(!members.length)return;
-      let idx=members.findIndex(m=>passesStatic(m,rr));
+      let idx=members.findIndex(m=>passesFrontConstraint(m,rr));
       if(idx<0)idx=0;
       const m=members.splice(idx,1)[0];
       g[rr][cc]={t:'s',s:m};
@@ -977,7 +1071,6 @@ function placeGroupsOnGrid(g,attempt){
     if(members.length)scatterGroup(g,members);
   });
 }
-/* 兜底：整块放不下时，把组员散进空位，优先挨着同组同学 */
 function scatterGroup(g,grp){
   grp.forEach(m=>{
     const cands=freeCells(g);
@@ -1009,11 +1102,11 @@ function fixPairs(grid){
         outer:
         for(let nr=0;nr<layout.rows;nr++)for(let nc=0;nc<layout.cols;nc++){
           const t=grid[nr][nc];
-          if(t&&t.t==='aisle')continue;
+          if(t&&(t.t==='aisle'||t.t==='podium'))continue;
           if(nr===r&&nc===c)continue;
           const tmpS=t?t.s:null;
-          if(tmpS&&!passesStatic(cell.s,nr))continue;
-          if(tmpS&&!passesStatic(tmpS,r))continue;
+          if(tmpS&&!passesFrontConstraint(cell.s,nr))continue;
+          if(tmpS&&!passesFrontConstraint(tmpS,r))continue;
           grid[nr][nc]={t:'s',s:cell.s};
           grid[r][c]=tmpS?{t:'s',s:tmpS}:null;
           const stillBad=neighbors(nr,nc).some(([ar,ac])=>{
@@ -1032,7 +1125,6 @@ function fixPairs(grid){
     if(!changed)break;
   }
 }
-
 function fixGender(grid){
   const hasGender=students.every(s=>s.gender);
   if(!hasGender)return;
@@ -1049,7 +1141,7 @@ function fixGender(grid){
         if(t.s.gender===a.s.gender)continue;
         if(nr===r&&(nc===c||nc===c+1))continue;
         const saved=grid[r][c]; grid[r][c]=t; grid[nr][nc]=saved;
-        const ok=!violatesPair(t.s,r,c,grid)&&!violatesPair(saved.s,nr,nc,grid)&&passesStatic(t.s,r)&&passesStatic(saved.s,nr);
+        const ok=!violatesPair(t.s,r,c,grid)&&!violatesPair(saved.s,nr,nc,grid)&&passesFrontConstraint(t.s,r)&&passesFrontConstraint(saved.s,nr);
         if(ok){changed=true;break outer;}
         grid[r][c]=saved; grid[nr][nc]=t;
       }
@@ -1058,7 +1150,6 @@ function fixGender(grid){
     if(!changed)break;
   }
 }
-
 function countViolations(grid){
   let v=0;
   for(const con of constraints){
@@ -1069,12 +1160,12 @@ function countViolations(grid){
         if(cell.s.id!==con.a&&cell.s.id!==con.b)continue;
         if(neighbors(r,c).some(([nr,nc])=>{const n=grid[nr][nc];return n&&n.t==='s'&&(n.s.id===con.a||n.s.id===con.b);})){v++;break;}
       }
-    }else if(con.type==='front'||con.type==='mfront'){
+    }else if(con.type==='mfront'){
       outer:
       for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
         const cell=grid[r][c];
         if(cell&&cell.t==='s'&&cell.s.id===con.id){
-          if(!passesStatic(cell.s,r))v++;
+          if(!passesFrontConstraint(cell.s,r))v++;
           break outer;
         }
       }
@@ -1089,74 +1180,94 @@ $('genBtn').addEventListener('click',()=>generateSeats(false));
  * 5. 渲染座位图 + 拖拽 / 点选换座
  * ============================================================ */
 function tierClass(s){
-  if(!s.isHigh){
-    const meds=[...students].sort((a,b)=>a.total-b.total);
-    const med=meds[Math.floor(meds.length/2)].total;
-    return s.total<med?'tier-low':'tier-mid';
-  }
-  return 'tier-high';
+  if(isHighTotal(s)) return 'tier-high';
+  const meds=[...students].sort((a,b)=>a.total-b.total);
+  const med=meds[Math.floor(meds.length/2)].total;
+  return s.total<med?'tier-low':'tier-mid';
 }
 
 function renderGrid(){
   readLayout();
-  const grid=$('classGrid'); grid.innerHTML='';
+  const box=$('classroom'); box.innerHTML='';
   $('mapEmpty').style.display=seatMap.length?'none':'block';
-  $('classroom').style.display=seatMap.length?'block':'none';
+  box.style.display=seatMap.length?'block':'none';
   if(!seatMap.length)return;
-  $('podiumTop').style.display=layout.podium==='top'?'block':'none';
-  $('podiumBottom').style.display=layout.podium==='bottom'?'block':'none';
-  $('podiumLeft').style.display=layout.podium==='left'?'flex':'none';
-  $('podiumRight').style.display=layout.podium==='right'?'flex':'none';
 
   const groupMode=genStrategy==='group';
-  grid.style.gridTemplateColumns=`repeat(${layout.cols},88px)`;
-  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
-    const cell=seatMap[r][c];
-    const el=document.createElement('div');
-    el.dataset.r=r; el.dataset.c=c;
-    if(cell&&cell.t==='aisle'){
-      el.className='seat aisle'; el.textContent='过道';
-    }else if(cell&&cell.t==='s'){
-      let cls='seat ';
-      if(groupMode&&cell.s._group!=null) cls+='g'+cell.s._group+' ';
-      else cls+=tierClass(cell.s)+' ';
-      cls+=(cell.s.gender==='M'?' male':cell.s.gender==='F'?' female':'');
-      el.className=cls;
-      el.draggable=true;
-      if(groupMode&&cell.s._group!=null){
-        const bd=document.createElement('div'); bd.className='gbadge'; bd.textContent=(cell.s._group+1)+'组';
-        el.appendChild(bd);
-      }
-      const nm=document.createElement('div'); nm.className='nm'; nm.textContent=cell.s.name;
-      const sc=document.createElement('div'); sc.className='sc';
-      sc.textContent=Object.keys(cell.s.scores).length?('总分 '+cell.s.total):'—';
-      el.appendChild(nm); el.appendChild(sc);
-      el.addEventListener('dragstart',dragStart);
-      el.addEventListener('dragover',dragOver);
-      el.addEventListener('drop',onDrop);
-      el.addEventListener('dragend',dragEnd);
-      el.addEventListener('click',seatClick);
-    }else{
-      el.className='seat empty'; el.textContent='空座位';
-      el.draggable=true;
-      el.addEventListener('dragstart',emptyDragStart);
-      el.addEventListener('dragover',dragOver);
-      el.addEventListener('drop',onDrop);
-      el.addEventListener('dragend',dragEnd);
-      el.addEventListener('click',seatClick);
-    }
-    grid.appendChild(el);
-  }
-  renderLegend(groupMode);
-}
+  const pc=new Set(podiumCells().map(([r,c])=>r+','+c));
+  const pw=layout.cols>=8?2:1;
 
-function renderLegend(groupMode){
-  const lg=$('legend'); lg.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='side-wrap';
+  // 左侧讲台
+  if(layout.podium==='left'){
+    const p=document.createElement('div'); p.className='podium-side'; p.textContent='讲　台'; wrap.appendChild(p);
+  }
+  const col=document.createElement('div'); col.className='seat-col';
+
+  // 渲染：内部 r=0 在屏幕顶部；frontIsBottom 时 r=rows-1 为第1排（底部）
+  for(let r=0;r<layout.rows;r++){
+    const row=document.createElement('div'); row.className='seat-row';
+    const lab=document.createElement('div'); lab.className='row-label'; lab.textContent=dispRowOf(r)+'排';
+    row.appendChild(lab);
+    for(let c=0;c<layout.cols;c++){
+      const cell=seatMap[r][c];
+      const el=document.createElement('div');
+      el.dataset.r=r; el.dataset.c=c;
+      if(cell&&cell.t==='podium'){
+        el.className='podium-cell'; el.style.flexGrow=String(pw); el.textContent='讲　台';
+      }else if(cell&&cell.t==='aisle'){
+        el.className='seat aisle'; el.textContent='过道';
+      }else if(cell&&cell.t==='s'){
+        let cls='seat ';
+        if(groupMode&&cell.s._group!=null) cls+='g'+(cell.s._group%12)+' ';
+        else cls+=tierClass(cell.s)+' ';
+        cls+=(cell.s.gender==='M'?' male':cell.s.gender==='F'?' female':'');
+        el.className=cls; el.draggable=true;
+        if(groupMode&&cell.s._group!=null){
+          const bd=document.createElement('div'); bd.className='gbadge'; bd.textContent=(cell.s._group+1)+'组';
+          el.appendChild(bd);
+        }
+        const nm=document.createElement('div'); nm.className='nm'; nm.textContent=cell.s.name;
+        const sc=document.createElement('div'); sc.className='sc';
+        sc.textContent=Object.keys(cell.s.scores).length?('总分 '+cell.s.total):'';
+        el.appendChild(nm); el.appendChild(sc);
+        el.addEventListener('dragstart',dragStart);
+        el.addEventListener('dragover',dragOver);
+        el.addEventListener('drop',onDrop);
+        el.addEventListener('dragend',dragEnd);
+        el.addEventListener('click',seatClick);
+      }else{
+        el.className='seat empty'; el.textContent='空';
+        el.draggable=true;
+        el.addEventListener('dragstart',emptyDragStart);
+        el.addEventListener('dragover',dragOver);
+        el.addEventListener('drop',onDrop);
+        el.addEventListener('dragend',dragEnd);
+        el.addEventListener('click',seatClick);
+      }
+      row.appendChild(el);
+    }
+    col.appendChild(row);
+  }
+  wrap.appendChild(col);
+  // 右侧讲台
+  if(layout.podium==='right'){
+    const p=document.createElement('div'); p.className='podium-side'; p.textContent='讲　台'; wrap.appendChild(p);
+  }
+  box.appendChild(wrap);
+
+  // 图例
+  const legend=document.createElement('div'); legend.className='legend';
+  renderLegendInto(legend,groupMode);
+  box.appendChild(legend);
+}
+function renderLegendInto(lg,groupMode){
+  lg.innerHTML='';
   if(groupMode&&groupList.length){
     groupList.forEach((grp,i)=>{
       const avg=grp.length?Math.round(grp.reduce((a,s)=>a+s.total,0)/grp.length):0;
       const item=document.createElement('span'); item.className='legend-item';
-      item.innerHTML='<span class="chip g'+i+'"></span>第'+(i+1)+'组 · '+grp.length+'人'+(avg?(' · 均分'+avg):'');
+      item.innerHTML='<span class="chip g'+(i%12)+'"></span>第'+(i+1)+'组 · '+grp.length+'人 · 均分'+avg;
       lg.appendChild(item);
     });
     return;
@@ -1195,7 +1306,7 @@ function seatClick(){
   if(justDragged)return;
   const r=+this.dataset.r,c=+this.dataset.c;
   const cell=seatMap[r][c];
-  if(cell&&cell.t==='aisle')return;
+  if(cell&&(cell.t==='aisle'||cell.t==='podium'))return;
   const isEmpty=!(cell&&cell.t==='s');
   if(!selected){selected={r,c,isEmpty};this.classList.add('selected-source');}
   else{
@@ -1206,8 +1317,8 @@ function seatClick(){
 }
 function doSwap(sr,sc,tr,tc,srcEmpty){
   const src=seatMap[sr][sc],tgt=seatMap[tr][tc];
-  if(src&&src.t==='aisle')return;
-  if(tgt&&tgt.t==='aisle')return;
+  if(src&&(src.t==='aisle'||src.t==='podium'))return;
+  if(tgt&&(tgt.t==='aisle'||tgt.t==='podium'))return;
   if(srcEmpty){seatMap[sr][sc]=tgt;seatMap[tr][tc]=null;}
   else{seatMap[sr][sc]=tgt;seatMap[tr][tc]=src;}
   clearSel(); renderGrid(); refreshStats();
@@ -1220,14 +1331,16 @@ $('exportBtn').addEventListener('click',()=>{
   if(!seatMap.length){toast('请先生成座位表',true);return;}
   const groupMode=genStrategy==='group';
   const data=[['班级座位表'],['排座方式：'+({balanced:'成绩均衡分布',random:'随机排座',order:'按成绩顺序',group:'小组排座'})[genStrategy]],
-    ['讲台方向：'+({top:'前方',bottom:'后方',left:'左侧',right:'右侧'})[layout.podium]],[]];
+    ['讲台：'+({bottom:'底部中间（融入第一排）',top:'顶部中间',left:'左侧',right:'右侧',none:'无讲台'})[layout.podium]],[]];
   data.push(['排\\列',...Array.from({length:layout.cols},(_,i)=>'第'+(i+1)+'列')]);
+  // 按显示顺序输出（屏幕上到下），排号用 dispRowOf
   for(let r=0;r<layout.rows;r++){
-    const row=['第'+(r+1)+'排'];
+    const row=['第'+dispRowOf(r)+'排'];
     for(let c=0;c<layout.cols;c++){
       const cell=seatMap[r][c];
       if(!cell)row.push('空');
       else if(cell.t==='aisle')row.push('过道');
+      else if(cell.t==='podium')row.push('讲台');
       else row.push(groupMode&&cell.s._group!=null?cell.s.name+'（'+(cell.s._group+1)+'组）':cell.s.name);
     }
     data.push(row);
@@ -1258,6 +1371,7 @@ $('printBtn').addEventListener('click',()=>{if(seatMap.length)window.print();});
 
 /* 初始化 */
 buildAisleEditor();
+renderConstraints();
 refreshStats();
 </script>
 </body>
