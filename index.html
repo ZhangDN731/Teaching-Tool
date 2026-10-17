@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教学工具合辑</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234F6BFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c3 3 9 3 12 0v-5'/></svg>">
+<style>
+:root{
+  --bg:linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
+  --surface:#FFFFFF;--surface-2:#F8FAFF;
+  --radius-lg:18px;--radius:12px;--radius-sm:9px;
+  --shadow:0 4px 20px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 28px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
+  --accent:#4F6BFF;--accent-hover:#3D56E0;--accent-soft:rgba(79,107,255,.08);
+  --cyan:#38BDF8;--green:#22C55E;--orange:#F59E0B;
+  --text:#0F172A;--text-2:#334155;--text-3:#64748B;
+  --border:rgba(79,107,255,.12);
+  --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
+  --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:var(--font);color:var(--text-2);
+  background:var(--bg);background-attachment:fixed;
+  position:relative;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle at 15% 20%,rgba(79,107,255,.06) 0,transparent 40%),
+                   radial-gradient(circle at 85% 70%,rgba(56,189,248,.06) 0,transparent 40%);
+}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px 32px}
+
+/* 顶部 */
+.hero{text-align:center;margin-bottom:20px}
+.capsule{
+  display:inline-flex;align-items:center;gap:7px;
+  background:#fff;border-radius:999px;padding:5px 14px;
+  box-shadow:var(--shadow);font-size:11px;letter-spacing:1.2px;
+  color:var(--accent);font-weight:600;text-transform:uppercase;margin-bottom:12px;
+}
+.capsule .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+h1{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.25}
+h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.subtitle{margin-top:8px;color:var(--text-3);font-size:13.5px}
+
+/* 统计条 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow);text-align:center}
+.stat-card .num{font-size:24px;font-weight:800;color:var(--accent);line-height:1.1}
+.stat-card .label{font-size:12px;color:var(--text-3);margin-top:2px}
+
+/* 分区标题 */
+.section-title{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:16px;font-weight:700;color:var(--text)}
+.section-title .bar{width:3.5px;height:17px;border-radius:3px;background:var(--accent)}
+
+/* 工具卡片网格 */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.card{
+  background:var(--surface);border-radius:var(--radius-lg);padding:18px 20px;
+  box-shadow:var(--shadow);transition:transform .25s ease,box-shadow .25s ease;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+.card .icon-box{
+  width:44px;height:44px;border-radius:12px;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:var(--accent);
+}
+.card .icon-box svg{width:24px;height:24px}
+.card h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px}
+.card p{font-size:12.5px;color:var(--text-3);line-height:1.55;flex:1;margin-bottom:12px}
+.card .enter{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:5px;
+  background:var(--accent);color:#fff;border:none;border-radius:10px;
+  padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  text-decoration:none;transition:background .2s;
+}
+.card .enter:hover{background:var(--accent-hover)}
+.card .enter svg{width:14px;height:14px}
+.card .tag{
+  position:absolute;top:14px;right:14px;font-size:10.5px;font-weight:600;
+  background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:999px;letter-spacing:.3px;
+}
+.card .tag.ext{background:rgba(56,189,248,.1);color:#0284C7}
+
+/* 页脚 */
+footer{margin-top:32px;text-align:center;color:var(--text-3);font-size:12px;line-height:1.7}
+footer .power{font-weight:600;color:var(--text-2)}
+
+/* 响应式 */
+@media (max-width:640px){
+  .wrap{padding:20px 14px 28px}
+  .grid{grid-template-columns:1fr;gap:12px}
+  .stats{gap:8px}
+  .stat-card{padding:10px 8px}
+  .stat-card .num{font-size:20px}
+  .stat-card .label{font-size:10.5px}
+  h1{font-size:24px}
+  .card{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="capsule"><span class="dot"></span>TEACHING TOOL SUITE · 教学工具合辑</div>
+    <h1>一站式<span class="grad">课堂教学</span>工具集</h1>
+    <p class="subtitle">点名 · 互动 · 成绩分析 · 座位编排，全流程覆盖</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">4</div><div class="label">工具模块</div></div>
+    <div class="stat-card"><div class="num">7+</div><div class="label">功能页面</div></div>
+    <div class="stat-card"><div class="num">100%</div><div class="label">纯前端可用</div></div>
+  </div>
+
+  <div class="section-title"><span class="bar"></span>全部工具</div>
+
+  <div class="grid">
+
+    <!-- 点名系统 -->
+    <div class="card">
+      <span class="tag">4 页</span>
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>点名系统</h3>
+      <p>上传学生名单，支持随机抽 1 人、1-10 人、自定义人数；含知识点提问与盲盒抽取，课堂互动三合一。</p>
+      <a class="enter" href="点名系统/index.html">进入点名
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- 课堂互动 -->
+    <div class="card">
+      <span class="tag">互动</span>
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      </div>
+      <h3>课堂互动大厅</h3>
+      <p>Tab 切换数字炸弹（自定义范围）与大冒险转盘，支持上传自定义内容、下载模板、历史记录。</p>
+      <a class="enter" href="课堂互动/小游戏大厅.html">进入大厅
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- 成绩分析（外链） -->
+    <div class="card">
+      <span class="tag ext">在线版</span>
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+      </div>
+      <h3>成绩分析助手</h3>
+      <p>龙泉校区班级成绩变化趋势展示工具，已发布在 GitHub Pages，可在线直接访问使用。</p>
+      <a class="enter" href="https://zhangdn731.github.io/lqxqcjfx/" target="_blank" rel="noopener">打开在线工具
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+
+    <!-- 座位编排 -->
+    <div class="card">
+      <span class="tag">全功能</span>
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </div>
+      <h3>座位编排系统</h3>
+      <p>导入学生成绩，支持成绩均衡/随机/小组排座，多条件约束、教室布局配置、拖拽与点选换座、导出座位表。</p>
+      <a class="enter" href="座位编排/index.html">开始排座
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="power">PowerBy 楠</div>
+    <div>所有工具纯前端可直接双击打开</div>
+  </footer>
+
+</div>
+</body>
+</html>

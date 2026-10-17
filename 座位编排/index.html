@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智能座位编排 · 成绩均衡 / 小组排座系统</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='4' width='18' height='16' rx='3' fill='%234F6BFF'/%3E%3Crect x='6.5' y='7.5' width='4' height='4' rx='1' fill='white'/%3E%3Crect x='13.5' y='7.5' width='4' height='4' rx='1' fill='white' opacity='.85'/%3E%3Crect x='6.5' y='14.5' width='4' height='4' rx='1' fill='white' opacity='.6'/%3E%3Crect x='13.5' y='14.5' width='4' height='4' rx='1' fill='white' opacity='.6'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<style>
+:root{
+  --bg-gradient: linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
+  --surface:#FFFFFF; --surface-2:#F8FAFF;
+  --radius-lg:18px; --radius:12px; --radius-sm:10px;
+  --shadow-card:0 4px 24px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 32px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
+  --accent:#4F6BFF; --accent-hover:#3D56E0; --accent-soft:rgba(79,107,255,.08);
+  --cyan:#38BDF8; --green:#22C55E; --orange:#F59E0B; --red:#EF4444;
+  --text:#0F172A; --text-2:#334155; --text-3:#64748B;
+  --border:rgba(79,107,255,.14);
+  --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
+  --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{font-family:var(--font);color:var(--text);line-height:1.55;font-size:14px;
+  background:var(--bg-gradient);background-attachment:fixed;
+  background-image:var(--bg-gradient),radial-gradient(rgba(79,107,255,.06) 1px,transparent 1px);
+  background-size:auto,22px 22px;}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 32px 32px}
+
+/* ---------- 头部 ---------- */
+.page-head{text-align:center;margin-bottom:16px}
+.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;
+  padding:6px 16px;box-shadow:var(--shadow-card);font-size:11px;letter-spacing:1.2px;
+  color:var(--accent);font-weight:600}
+.capsule::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.page-head h1{font-size:28px;font-weight:800;margin-top:10px;letter-spacing:.5px}
+.page-head h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.page-head p{color:var(--text-3);font-size:12.5px;margin-top:4px}
+
+/* ---------- 统计卡 ---------- */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+@media(min-width:768px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
+  padding:12px 14px;display:flex;align-items:center;gap:12px}
+.stat .ic{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
+.stat .ic svg{width:19px;height:19px}
+.stat .num{font-size:24px;font-weight:800;color:var(--accent);line-height:1.1}
+.stat .num small{font-size:12px;font-weight:600;color:var(--text-3);margin-left:2px}
+.stat .lbl{font-size:12px;color:var(--text-3);margin-top:1px}
+
+/* ---------- 工作区 ---------- */
+.workspace{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+@media(min-width:1024px){.workspace{grid-template-columns:320px 1fr}}
+
+.card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
+  padding:16px;margin-bottom:12px;transition:box-shadow .25s ease}
+.card:last-child{margin-bottom:0}
+.card:hover{box-shadow:var(--shadow-hover)}
+.sec-head{display:flex;align-items:center;gap:9px}
+.sec-bar{width:4px;height:16px;border-radius:2px;background:var(--grad-text);flex:none}
+.sec-head h2{font-size:14.5px;font-weight:700}
+.sec-head p{font-size:11.5px;color:var(--text-3);margin-top:0}
+
+/* 折叠面板 */
+.cpanel{padding:0;overflow:hidden}
+.cpanel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
+  padding:14px 16px;min-height:44px}
+.cpanel>summary::-webkit-details-marker{display:none}
+.cpanel>summary .chev{margin-left:auto;color:var(--text-3);transition:transform .2s;flex:none}
+.cpanel[open]>summary .chev{transform:rotate(180deg)}
+.cpanel .sec-body{padding:2px 16px 16px;border-top:1px dashed var(--border);margin-top:2px;padding-top:12px}
+
+.field{margin-bottom:10px;min-width:0}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--text-2)}
+.field small{display:block;font-size:11.5px;color:var(--text-3);margin-top:4px}
+input[type=number],input[type=text],select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:#fff;font-size:14px;font-family:var(--font);color:var(--text);min-height:40px}
+input:focus,select:focus,textarea:focus{outline:none;border:1.5px solid var(--accent)}
+textarea{font-family:Consolas,"Courier New",monospace;min-height:104px;resize:vertical;font-size:13px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 16px;
+  border-radius:11px;border:1px solid transparent;font-size:13px;font-weight:600;cursor:pointer;
+  transition:all .2s ease;font-family:var(--font)}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:linear-gradient(135deg,#4F6BFF,#5B7CFF);color:#fff;box-shadow:0 4px 14px rgba(79,107,255,.3)}
+.btn-primary:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px)}
+.btn-secondary{background:#fff;color:var(--accent);border-color:var(--border)}
+.btn-secondary:hover:not(:disabled){background:var(--accent-soft)}
+.btn-danger{background:#fff;color:var(--red);border-color:var(--border)}
+.btn-danger:hover:not(:disabled){border-color:var(--red);background:rgba(239,68,68,.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-lg{min-height:46px;padding:10px 24px;font-size:14px;border-radius:12px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+
+/* tabs */
+.tabs{display:flex;gap:5px;background:var(--surface-2);padding:3px;border-radius:10px;margin-bottom:10px}
+.tab{flex:1;text-align:center;padding:6px 4px;font-size:12.5px;font-weight:600;color:var(--text-3);
+  border-radius:8px;cursor:pointer;border:none;background:transparent;font-family:var(--font);min-height:34px}
+.tab.active{background:#fff;color:var(--accent);box-shadow:var(--shadow-card)}
+.tabpane{display:none}.tabpane.active{display:block}
+
+/* upload */
+.drop{border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;
+  cursor:pointer;background:var(--surface-2);transition:.2s}
+.drop:hover,.drop.drag{background:var(--accent-soft);border-color:var(--accent)}
+.drop .ic{width:28px;height:28px;color:var(--accent);margin:0 auto 4px}
+.drop p{font-size:12.5px;color:var(--text-2)}
+.drop .fmt{font-size:11px;color:var(--text-3);margin-top:2px}
+.file-info{font-size:12px;color:var(--text-3);margin-top:6px;word-break:break-all}
+
+/* radio cards */
+.opts{display:grid;grid-template-columns:1fr;gap:7px}
+.opt{display:flex;gap:9px;align-items:flex-start;border:1.5px solid var(--border);border-radius:11px;
+  padding:9px 11px;cursor:pointer;background:#fff;transition:.15s;min-height:44px}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt input{margin-top:3px;accent-color:var(--accent);width:15px;height:15px;flex:none}
+.opt b{font-size:13px;display:block}
+.opt small{font-size:11px;color:var(--text-3)}
+
+/* 小组人数快捷按钮 */
+.gsize-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.gsize-row input{width:74px;flex:none;text-align:center}
+.gsize-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+#groupInfo{font-size:11.5px;color:var(--accent);font-weight:600}
+
+/* constraint list */
+.clist{list-style:none;max-height:180px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.citem{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:9px;padding:6px 10px;font-size:12px}
+.citem .tag{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;margin-right:5px}
+.tag.pair{background:rgba(239,68,68,.12);color:var(--red)}
+.tag.front{background:rgba(245,158,11,.14);color:#B45309}
+.tag.mfront{background:rgba(79,107,255,.12);color:var(--accent)}
+.tag.seat{background:rgba(56,189,248,.14);color:#0284C7}
+.tag.gender{background:rgba(34,197,94,.14);color:#16A34A}
+.mini{min-height:32px;padding:3px 10px;font-size:11.5px;border-radius:8px}
+.empty-hint{font-size:11.5px;color:var(--text-3);padding:8px;text-align:center}
+
+/* aisle editor */
+.aisle-edit{display:grid;gap:4px;width:max-content;margin:6px auto 0}
+.acell{width:28px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);
+  cursor:pointer;transition:.12s}
+.acell:hover{border-color:var(--accent)}
+.acell.is-aisle{background:repeating-linear-gradient(45deg,#E0E7FF,#E0E7FF 4px,#F1F5FF 4px,#F1F5FF 8px);border-color:var(--accent)}
+
+/* ---------- 座位图 ---------- */
+.map-card{padding:16px}
+.map-head{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.map-head h2{font-size:15px;font-weight:700;white-space:nowrap}
+.map-head p{font-size:11.5px;color:var(--text-3)}
+.map-head .head-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-head .btn-row{margin:0;flex:none;gap:6px}
+.map-head .btn{padding:7px 14px;font-size:12.5px;min-height:34px;border-radius:9px}
+.map-head .btn svg{width:13px;height:13px}
+.classroom{overflow-x:auto;padding:8px 4px 4px}
+.podium{background:linear-gradient(135deg,#CBD5E1,#94A3B8);color:#fff;text-align:center;font-size:12px;
+  font-weight:600;border-radius:9px;padding:7px;margin:0 auto 12px;letter-spacing:2px;width:80%;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.podium.side{width:100%;margin:0}
+.grid-wrap{display:flex;gap:12px;align-items:stretch;justify-content:center}
+.class-grid{display:grid;gap:8px;justify-content:center;width:max-content;margin:0 auto}
+.seat{width:88px;height:58px;border-radius:10px;border:1.5px solid var(--border);background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:3px;cursor:pointer;position:relative;transition:.15s;user-select:none}
+.seat:hover{border-color:var(--accent);box-shadow:var(--shadow-hover)}
+.seat .nm{font-weight:600;color:var(--text);font-size:13px;line-height:1.2}
+.seat .sc{font-size:10px;color:var(--text-3);margin-top:1px}
+.seat.tier-high{background:rgba(79,107,255,.09);border-color:rgba(79,107,255,.45)}
+.seat.tier-mid{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.4)}
+.seat.tier-low{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.4)}
+.seat.empty{border-style:dashed;background:transparent;color:var(--text-3);font-size:11px}
+.seat.aisle{background:repeating-linear-gradient(45deg,#EEF2FF,#EEF2FF 5px,#F8FAFF 5px,#F8FAFF 10px);
+  border-color:transparent;color:var(--text-3);font-size:11px;cursor:default}
+.seat.aisle:hover{box-shadow:none;border-color:transparent}
+.seat.dragging{opacity:.35}
+.seat.drag-over{border-color:var(--green);background:rgba(34,197,94,.12);transform:scale(1.04)}
+.seat.selected-source{border-color:var(--green);background:rgba(34,197,94,.16);box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.seat.male::after,.seat.female::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%}
+.seat.male::after{background:var(--accent)}
+.seat.female::after{background:#EC4899}
+.seat .gbadge{position:absolute;top:3px;left:4px;font-size:9.5px;font-weight:700;color:#fff;
+  background:var(--accent);border-radius:5px;padding:0 5px;line-height:15px;min-width:20px;text-align:center}
+
+/* 小组配色（淡色底 + 同色边框） */
+.g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
+.g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
+.g2{background:#F0FDF4 !important;border-color:#22C55E !important}
+.g3{background:#FFF7ED !important;border-color:#F59E0B !important}
+.g4{background:#FDF2F8 !important;border-color:#EC4899 !important}
+.g5{background:#F5F3FF !important;border-color:#8B5CF6 !important}
+.g6{background:#FFF1F2 !important;border-color:#F43F5E !important}
+.g7{background:#F0F9FF !important;border-color:#0EA5E9 !important}
+.g8{background:#F7FEE7 !important;border-color:#84CC16 !important}
+.g9{background:#FEFCE8 !important;border-color:#EAB308 !important}
+.g10{background:#FDF4FF !important;border-color:#D946EF !important}
+.g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:11.5px;color:var(--text-3);justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px}
+.chip{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border)}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--text);
+  color:#fff;padding:10px 20px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:80vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+
+#mapEmpty{padding:28px 16px;text-align:center;color:var(--text-3);font-size:12.5px}
+#mapEmpty .ic{width:36px;height:36px;margin:0 auto 8px;color:var(--accent);opacity:.45}
+#mapEmpty .ic svg{width:36px;height:36px}
+#mapEmpty b{display:none}
+
+.footer{text-align:center;color:var(--text-3);font-size:11.5px;padding:18px 0 0}
+
+/* ---------- 打印 ---------- */
+@media print{
+  body{background:#fff !important;background-image:none !important}
+  .stats,.config-panel,.map-head .btn,.tabs,.legend,.footer,.page-head p,.capsule{display:none !important}
+  .page-head{margin-bottom:8px}
+  .page-head h1{font-size:20px}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
+  .cpanel{padding:18px}
+  .cpanel .sec-body{display:block !important;border:none;margin:0;padding:10px 0 0}
+  .workspace{grid-template-columns:1fr !important}
+  .seat{border:1px solid #999 !important;box-shadow:none !important}
+  .g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
+  .g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
+  .g2{background:#F0FDF4 !important;border-color:#22C55E !important}
+  .g3{background:#FFF7ED !important;border-color:#F59E0B !important}
+  .g4{background:#FDF2F8 !important;border-color:#EC4899 !important}
+  .g5{background:#F5F3FF !important;border-color:#8B5CF6 !important}
+  .g6{background:#FFF1F2 !important;border-color:#F43F5E !important}
+  .g7{background:#F0F9FF !important;border-color:#0EA5E9 !important}
+  .g8{background:#F7FEE7 !important;border-color:#84CC16 !important}
+  .g9{background:#FEFCE8 !important;border-color:#EAB308 !important}
+  .g10{background:#FDF4FF !important;border-color:#D946EF !important}
+  .g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
+}
+@media(max-width:768px){
+  .wrap{padding:16px 12px 24px}
+  .page-head h1{font-size:23px}
+  .seat{width:72px;height:52px;font-size:12px}
+  .seat .nm{font-size:12px}
+  input[type=number],input[type=text],select,textarea{font-size:15px;min-height:44px}
+  .btn{min-height:44px}
+  .map-head{flex-wrap:wrap}
+  .map-head .head-txt{white-space:normal;overflow:visible;text-overflow:clip}
+  .map-head .btn{min-height:44px;padding:8px 16px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <span class="capsule">HEBEI SHANGXUE · SEAT ARRANGEMENT</span>
+    <h1>智能<span class="grad">座位编排</span>系统</h1>
+    <p>成绩均衡 · 小组排座 · 多条件约束 · 拖拽微调 · 一键导出</p>
+  </header>
+
+  <!-- 统计 -->
+  <section class="stats">
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div><div class="num" id="stStudents">0<small>人</small></div><div class="lbl">已导入学生</div></div></div>
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div>
+      <div><div class="num" id="stSeats">0<small>个</small></div><div class="lbl">可用座位</div></div></div>
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <div><div class="num" id="stEmpty">0<small>个</small></div><div class="lbl">当前空位</div></div></div>
+    <div class="stat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></div>
+      <div><div class="num" id="stGroups">0<small>组</small></div><div class="lbl">当前小组数</div></div></div>
+  </section>
+
+  <div class="workspace">
+
+    <!-- ============ 左侧配置（折叠面板） ============ -->
+    <aside class="config-panel">
+
+      <!-- 1 导入（默认展开） -->
+      <details class="card cpanel" open>
+        <summary>
+          <span class="sec-bar"></span>
+          <div><h2>导入学生名单</h2><p>Excel 上传或直接粘贴文本</p></div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="sec-body">
+        <div class="tabs">
+          <button class="tab active" data-tabpane="paneFile">Excel 文件</button>
+          <button class="tab" data-tabpane="panePaste">粘贴文本</button>
+        </div>
+
+        <div id="paneFile" class="tabpane active">
+          <div class="drop" id="drop">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+            <p>点击选择，或将文件拖到此处</p>
+            <p class="fmt">.xlsx / .xls / .csv　首行表头，须含「姓名」列</p>
+          </div>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+          <div class="file-info" id="fileInfo">尚未选择文件</div>
+          <div class="btn-row">
+            <button class="btn btn-secondary mini" id="tplBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>下载模板
+            </button>
+            <button class="btn btn-primary mini" id="parseBtn">解析并导入</button>
+          </div>
+        </div>
+
+        <div id="panePaste" class="tabpane">
+          <div class="field">
+            <textarea id="pasteBox" placeholder="每行一名学生：&#10;张三&#10;李四,男,88,95,76&#10;王五,女,90,82,88"></textarea>
+            <small>格式：姓名　或　姓名,性别,成绩1,成绩2…　性别可省略</small>
+          </div>
+          <button class="btn btn-primary btn-block" id="pasteBtn">从文本导入</button>
+        </div>
+        </div>
+      </details>
+
+      <!-- 2 布局（默认折叠） -->
+      <details class="card cpanel">
+        <summary>
+          <span class="sec-bar"></span>
+          <div><h2>教室布局</h2><p>行列数 · 讲台位置 · 过道</p></div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="sec-body">
+        <div class="row2">
+          <div class="field"><label>行数（排）</label><input type="number" id="rowsInput" min="1" max="16" value="6"></div>
+          <div class="field"><label>列数（每排座位）</label><input type="number" id="colsInput" min="1" max="16" value="6"></div>
+        </div>
+        <div class="field">
+          <label>讲台位置</label>
+          <select id="podiumSel">
+            <option value="top">教室前方（顶部）</option>
+            <option value="bottom">教室后方（底部）</option>
+            <option value="left">左侧</option>
+            <option value="right">右侧</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>过道设置（点击格子切换）</label>
+          <div class="aisle-edit" id="aisleEdit"></div>
+          <div class="btn-row">
+            <button class="btn btn-secondary mini" id="clearAisleBtn">清空过道</button>
+          </div>
+        </div>
+        </div>
+      </details>
+
+      <!-- 3 排座方式（默认展开） -->
+      <details class="card cpanel" open>
+        <summary>
+          <span class="sec-bar"></span>
+          <div><h2>排座方式</h2><p>生成时自动应用下方全部约束</p></div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="sec-body">
+        <div class="opts">
+          <label class="opt sel"><input type="radio" name="strat" value="balanced" checked><span><b>成绩均衡分布</b><small>高分学生打散到各排各列，相邻不扎堆</small></span></label>
+          <label class="opt"><input type="radio" name="strat" value="random"><span><b>随机排座</b><small>随机打乱，保证约束不冲突</small></span></label>
+          <label class="opt"><input type="radio" name="strat" value="order"><span><b>按成绩顺序</b><small>高分靠前，从前往后排布</small></span></label>
+          <label class="opt"><input type="radio" name="strat" value="group"><span><b>小组排座</b><small>优中差搭配成小组，组间成绩均衡，按色块入座</small></span></label>
+        </div>
+
+        <!-- 小组人数设置 -->
+        <div id="groupPanel" style="display:none;margin-top:10px;border:1px dashed var(--border);border-radius:11px;padding:10px;background:var(--surface-2)">
+          <div class="field" style="margin-bottom:7px">
+            <label>每组人数</label>
+            <div class="gsize-row">
+              <button class="btn btn-secondary mini gsize-btn active" data-n="4">4人组</button>
+              <button class="btn btn-secondary mini gsize-btn" data-n="6">6人组</button>
+              <button class="btn btn-secondary mini gsize-btn" data-n="8">8人组</button>
+              <input type="number" id="groupSizeInput" min="2" max="12" value="4" title="自定义每组人数 2~12">
+            </div>
+            <small id="groupInfo">导入学生后自动计算分组数量</small>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary btn-lg btn-block" id="genBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            生成座位表
+          </button>
+        </div>
+        </div>
+      </details>
+
+      <!-- 4 约束（默认折叠） -->
+      <details class="card cpanel">
+        <summary>
+          <span class="sec-bar"></span>
+          <div><h2>约束条件</h2><p>生成时真正参与排座算法</p></div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="sec-body">
+        <div class="field">
+          <label>不能相邻（两人不坐同桌/前后桌）</label>
+          <div class="row2">
+            <select id="pairA"><option value="">学生 A</option></select>
+            <select id="pairB"><option value="">学生 B</option></select>
+          </div>
+          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addPairBtn">添加「不邻座」</button>
+        </div>
+
+        <div class="field">
+          <label>不坐前 N 排</label>
+          <div class="row2">
+            <select id="frStudent"><option value="">选择学生</option></select>
+            <input type="number" id="frRows" min="1" max="10" value="2" placeholder="前N排">
+          </div>
+          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addFrBtn">添加前排限制</button>
+        </div>
+
+        <div class="field">
+          <label>必须坐前 N 排（指定靠前）</label>
+          <div class="row2">
+            <select id="mfStudent"><option value="">选择学生</option></select>
+            <input type="number" id="mfRows" min="1" max="10" value="2" placeholder="前N排">
+          </div>
+          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addMfBtn">添加前排要求</button>
+        </div>
+
+        <div class="field">
+          <label>指定固定座位</label>
+          <div class="row3">
+            <select id="fixStudent"><option value="">学生</option></select>
+            <input type="number" id="fixRow" min="1" placeholder="排">
+            <input type="number" id="fixCol" min="1" placeholder="列">
+          </div>
+          <button class="btn btn-secondary btn-block mini" style="margin-top:6px" id="addFixBtn">固定到该位置</button>
+        </div>
+
+        <label class="opt" style="margin-top:6px">
+          <input type="checkbox" id="genderAlt">
+          <span><b>男女间隔排座</b><small>数据含性别时尽量男女交替相邻</small></span>
+        </label>
+
+        <ul class="clist" id="conList"></ul>
+        </div>
+      </details>
+
+    </aside>
+
+    <!-- ============ 右侧座位图 ============ -->
+    <section class="card map-card">
+      <div class="map-head">
+        <div class="head-txt"><h2>座位表预览</h2><p>拖拽换座 · 点选互换</p></div>
+        <div class="btn-row" style="margin:0">
+          <button class="btn btn-secondary" id="printBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>打印</button>
+          <button class="btn btn-primary" id="exportBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>导出 Excel</button>
+        </div>
+      </div>
+
+      <div id="mapEmpty">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16M15 4v16"/></svg></div>
+        <div>导入学生并设置布局后，点击「生成座位表」</div>
+      </div>
+
+      <div class="classroom" id="classroom" style="display:none">
+        <div id="podiumTop" class="podium">讲　台</div>
+        <div class="grid-wrap">
+          <div id="podiumLeft" class="podium side" style="writing-mode:vertical-rl;display:none">讲台</div>
+          <div class="class-grid" id="classGrid"></div>
+          <div id="podiumRight" class="podium side" style="writing-mode:vertical-rl;display:none">讲台</div>
+        </div>
+        <div id="podiumBottom" class="podium" style="margin-top:12px;display:none">讲　台</div>
+
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer">智能座位编排系统 · 纯前端单文件 · 数据不出本机</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ * 状态
+ * ============================================================ */
+let students = [];        // {id, name, gender, total, scores:{}, isHigh, _group}
+let scoreCols = [];       // 科目列名
+let layout = { rows: 6, cols: 6, aisle: new Set(), podium: 'top' };
+let constraints = [];
+let seatMap = [];         // [r][c] -> null | {t:'aisle'} | {t:'s', s:student}
+let fileData = null;
+let genStrategy = 'balanced';
+let groupSize = 4;
+let groupList = [];       // 小组模式下：[[student,...], ...]
+
+const $ = id => document.getElementById(id);
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+let toastTimer=null;
+function toast(msg, isErr){
+  const t=$('toast'); t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ============================================================
+ * Tabs / 排座方式选择
+ * ============================================================ */
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); $(b.dataset.tabpane).classList.add('active');
+}));
+document.querySelectorAll('input[name=strat]').forEach(r=>r.addEventListener('change',()=>{
+  genStrategy=r.value;
+  document.querySelectorAll('input[name=strat]').forEach(x=>x.closest('.opt').classList.toggle('sel',x.checked));
+  $('groupPanel').style.display=(genStrategy==='group')?'block':'none';
+  if(genStrategy==='group') updateGroupInfo();
+  refreshStats();
+}));
+
+/* 小组人数快捷按钮 + 自定义输入 */
+document.querySelectorAll('.gsize-btn').forEach(b=>b.addEventListener('click',()=>{
+  groupSize=parseInt(b.dataset.n)||4;
+  $('groupSizeInput').value=groupSize;
+  document.querySelectorAll('.gsize-btn').forEach(x=>x.classList.toggle('active',x===b));
+  updateGroupInfo();
+}));
+$('groupSizeInput').addEventListener('input',()=>{
+  let v=parseInt($('groupSizeInput').value);
+  if(isNaN(v))return;
+  v=Math.max(2,Math.min(12,v));
+  groupSize=v;
+  document.querySelectorAll('.gsize-btn').forEach(x=>x.classList.toggle('active',parseInt(x.dataset.n)===v));
+  updateGroupInfo();
+});
+function updateGroupInfo(){
+  if(!students.length){$('groupInfo').textContent='导入学生后自动计算分组数量';return;}
+  const n=Math.ceil(students.length/groupSize);
+  const per=students.length+'人 ÷ '+groupSize+'人/组 → 共 '+n+' 组';
+  $('groupInfo').textContent=per;
+}
+
+/* ============================================================
+ * 1. 导入：Excel
+ * ============================================================ */
+const drop=$('drop'), fileInput=$('fileInput');
+drop.addEventListener('click',()=>fileInput.click());
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0]; if(f) pickFile(f);});
+fileInput.addEventListener('change',e=>{if(e.target.files[0]) pickFile(e.target.files[0]);});
+
+function pickFile(f){
+  fileData=f; $('fileInfo').textContent='已选择：'+f.name;
+}
+
+$('tplBtn').addEventListener('click',()=>{
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['姓名','性别','语文','数学','英语'],
+    ['张三','男',88,95,76],
+    ['李四','女',90,82,88],
+    ['王五','男',76,69,80]
+  ]);
+  ws['!cols']=[{wch:12},{wch:8},{wch:8},{wch:8},{wch:8}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'学生模板');
+  XLSX.writeFile(wb,'学生成绩导入模板.xlsx');
+  toast('模板已下载');
+});
+
+$('parseBtn').addEventListener('click',()=>{
+  if(!fileData){toast('请先选择 Excel / CSV 文件',true);return;}
+  const f=fileData, ext=f.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      let rows=[];
+      if(ext==='csv'){
+        const txt=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
+        const ws=XLSX.utils.aoa_to_sheet(csvToAoa(txt));
+        rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      }else{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      }
+      importRows(rows);
+    }catch(err){console.error(err);toast('文件解析失败，请检查格式',true);}
+  };
+  reader.readAsArrayBuffer(f);
+});
+function csvToAoa(txt){return txt.trim().split(/\r?\n/).map(l=>l.split(','));}
+
+function importRows(rows){
+  if(!rows || rows.length===0){toast('未读取到数据',true);return;}
+  let list=[];
+  if(Array.isArray(rows[0])){
+    const h=rows[0].map(x=>String(x).trim());
+    list=rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]);return o;});
+  }else{
+    list=rows;
+  }
+  const keys=Object.keys(list[0]);
+  const nameKey=keys.find(k=>k.includes('姓名'))||keys[0];
+  const genderKey=keys.find(k=>k.includes('性别'))||null;
+  const skipKeys=[nameKey,genderKey,'学号','id','ID','特殊需求','备注'].filter(Boolean);
+  const commonSub=['语文','数学','英语','物理','化学','生物','历史','地理','政治','体育'];
+  const numKeys=[];
+  keys.forEach(k=>{
+    if(skipKeys.includes(k))return;
+    const sample=list.find(r=>r[k]!==''&&r[k]!=null);
+    const isNum=sample!==''&&sample!=null&&!isNaN(Number(sample));
+    const isSub=commonSub.some(s=>k.includes(s));
+    if(isNum||isSub) numKeys.push(k);
+  });
+  scoreCols=numKeys;
+  students=[];
+  list.forEach((r,i)=>{
+    const name=String(r[nameKey]||'').trim();
+    if(!name)return;
+    const rawGender=genderKey?String(r[genderKey]||'').trim():'';
+    let gender='';
+    if(/^(男|M|m)$/.test(rawGender))gender='M';
+    else if(/^(女|F|f)$/.test(rawGender))gender='F';
+    const s={id:'S'+(i+1),name,gender,total:0,scores:{},isHigh:false,_group:null};
+    numKeys.forEach(k=>{const v=parseFloat(r[k]);s.scores[k]=isNaN(v)?0:v;s.total+=s.scores[k];});
+    students.push(s);
+  });
+  if(students.length===0){toast('未解析到有效学生（首列须为姓名）',true);return;}
+  markHigh();
+  afterImport();
+  toast('成功导入 '+students.length+' 名学生');
+}
+
+function markHigh(){
+  if(!students.length)return;
+  const sorted=[...students].sort((a,b)=>b.total-a.total);
+  const cut=Math.max(1,Math.floor(sorted.length/3));
+  sorted.slice(0,cut).forEach(s=>s.isHigh=true);
+}
+
+/* ============================================================
+ * 1b. 粘贴文本导入
+ * ============================================================ */
+$('pasteBtn').addEventListener('click',()=>{
+  const txt=$('pasteBox').value.trim();
+  if(!txt){toast('请先粘贴学生名单',true);return;}
+  scoreCols=[];
+  students=[];
+  txt.split(/\r?\n/).forEach((line,i)=>{
+    const parts=line.split(/[\t,，]/).map(x=>x.trim()).filter(x=>x!=='');
+    if(!parts.length)return;
+    const name=parts[0];
+    let gender='',idx=1;
+    if(parts[1]&&/^(男|M|女|F)$/i.test(parts[1])){gender=/^(男|M)/i.test(parts[1])?'M':'F';idx=2;}
+    const nums=parts.slice(idx).map(Number).filter(n=>!isNaN(n));
+    const s={id:'S'+(i+1),name,gender,total:nums.reduce((a,b)=>a+b,0),scores:{},isHigh:false,_group:null};
+    nums.forEach((n,j)=>{s.scores['成绩'+(j+1)]=n;});
+    if(nums.length&&!scoreCols.length){scoreCols=Object.keys(s.scores);}
+    students.push(s);
+  });
+  if(!students.length){toast('未解析到学生',true);return;}
+  markHigh();
+  afterImport();
+  toast('已从文本导入 '+students.length+' 名学生');
+});
+
+function afterImport(){
+  const ids=students.map(s=>({id:s.id,name:s.name}));
+  ['pairA','pairB','frStudent','mfStudent','fixStudent'].forEach(pid=>{
+    const sel=$(pid); const keep=sel.querySelector('option')?sel.querySelector('option').outerHTML:'';
+    sel.innerHTML=keep||'<option value="">选择学生</option>';
+    ids.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+  });
+  updateGroupInfo();
+  refreshStats();
+}
+function refreshStats(){
+  $('stStudents').innerHTML=students.length+'<small>人</small>';
+  const avail=layout.rows*layout.cols-layout.aisle.size;
+  $('stSeats').innerHTML=avail+'<small>个</small>';
+  const placed=seatMap.flat().filter(c=>c&&c.t==='s').length;
+  $('stEmpty').innerHTML=(avail-placed)+'<small>个</small>';
+  $('stGroups').innerHTML=(groupList.length||0)+'<small>组</small>';
+}
+
+/* ============================================================
+ * 2. 布局 & 过道编辑器
+ * ============================================================ */
+function readLayout(){
+  layout.rows=Math.max(1,Math.min(16,parseInt($('rowsInput').value)||6));
+  layout.cols=Math.max(1,Math.min(16,parseInt($('colsInput').value)||6));
+  layout.podium=$('podiumSel').value;
+  [...layout.aisle].forEach(k=>{const[r,c]=k.split(',').map(Number);if(r>=layout.rows||c>=layout.cols)layout.aisle.delete(k);});
+}
+function buildAisleEditor(){
+  readLayout();
+  const box=$('aisleEdit'); box.innerHTML='';
+  box.style.gridTemplateColumns=`repeat(${layout.cols},28px)`;
+  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+    const d=document.createElement('div');
+    d.className='acell'+(layout.aisle.has(r+','+c)?' is-aisle':'');
+    d.addEventListener('click',()=>{
+      const k=r+','+c;
+      layout.aisle.has(k)?layout.aisle.delete(k):layout.aisle.add(k);
+      buildAisleEditor(); refreshStats();
+      if(seatMap.length) generateSeats(true);
+    });
+    box.appendChild(d);
+  }
+}
+$('rowsInput').addEventListener('change',buildAisleEditor);
+$('colsInput').addEventListener('change',buildAisleEditor);
+$('podiumSel').addEventListener('change',()=>{layout.podium=$('podiumSel').value; if(seatMap.length)renderGrid();});
+$('clearAisleBtn').addEventListener('click',()=>{layout.aisle.clear();buildAisleEditor();refreshStats();if(seatMap.length)generateSeats(true);});
+
+/* ============================================================
+ * 3. 约束管理
+ * ============================================================ */
+$('addPairBtn').addEventListener('click',()=>{
+  const a=$('pairA').value,b=$('pairB').value;
+  if(!a||!b){toast('请选择两名学生',true);return;}
+  if(a===b){toast('不能选择同一名学生',true);return;}
+  const dup=constraints.some(c=>c.type==='pair'&&((c.a===a&&c.b===b)||(c.a===b&&c.b===a)));
+  if(dup){toast('该不邻座约束已存在',true);return;}
+  constraints.push({type:'pair',a,b}); renderConstraints();
+});
+$('addFrBtn').addEventListener('click',()=>{
+  const id=$('frStudent').value, rows=parseInt($('frRows').value)||2;
+  if(!id){toast('请选择学生',true);return;}
+  constraints=constraints.filter(c=>!(c.type==='front'&&c.id===id));
+  constraints.push({type:'front',id,rows}); renderConstraints();
+});
+$('addMfBtn').addEventListener('click',()=>{
+  const id=$('mfStudent').value, rows=parseInt($('mfRows').value)||2;
+  if(!id){toast('请选择学生',true);return;}
+  constraints=constraints.filter(c=>!(c.type==='mfront'&&c.id===id));
+  constraints.push({type:'mfront',id,rows}); renderConstraints();
+});
+$('addFixBtn').addEventListener('click',()=>{
+  const id=$('fixStudent').value, r=parseInt($('fixRow').value)-1, c=parseInt($('fixCol').value)-1;
+  if(!id){toast('请选择学生',true);return;}
+  if(isNaN(r)||isNaN(c)||r<0||c<0||r>=layout.rows||c>=layout.cols){toast('座位排/列超出范围',true);return;}
+  constraints=constraints.filter(x=>!(x.type==='fix'&&x.id===id));
+  constraints.push({type:'fix',id,r,c}); renderConstraints();
+});
+$('genderAlt').addEventListener('change',()=>{
+  const on=$('genderAlt').checked;
+  constraints=constraints.filter(c=>c.type!=='gender');
+  if(on)constraints.push({type:'gender'});
+  renderConstraints();
+});
+function nameOf(id){const s=students.find(x=>x.id===id);return s?s.name:id;}
+function renderConstraints(){
+  const ul=$('conList'); ul.innerHTML='';
+  if(!constraints.length){ul.innerHTML='<div class="empty-hint">暂无约束条件</div>';return;}
+  constraints.forEach((c,i)=>{
+    const li=document.createElement('li'); li.className='citem';
+    let html='';
+    if(c.type==='pair'){html='<span class="tag pair">不邻座</span>'+esc(nameOf(c.a))+' 与 '+esc(nameOf(c.b));}
+    else if(c.type==='front'){html='<span class="tag front">避前排</span>'+esc(nameOf(c.id))+' 不坐前 '+c.rows+' 排';}
+    else if(c.type==='mfront'){html='<span class="tag mfront">须前排</span>'+esc(nameOf(c.id))+' 须坐前 '+c.rows+' 排';}
+    else if(c.type==='fix'){html='<span class="tag seat">固定位</span>'+esc(nameOf(c.id))+' 固定 '+(c.r+1)+'排'+(c.c+1)+'列';}
+    else if(c.type==='gender'){html='<span class="tag gender">男女间隔</span>相邻座位男女交替';}
+    li.innerHTML='<span>'+html+'</span>';
+    const del=document.createElement('button'); del.className='btn btn-danger mini'; del.textContent='删除';
+    del.addEventListener('click',()=>{
+      if(c.type==='gender'){$('genderAlt').checked=false;}
+      constraints.splice(i,1); renderConstraints();
+    });
+    li.appendChild(del); ul.appendChild(li);
+  });
+}
+
+/* ============================================================
+ * 4. 生成算法
+ * ============================================================ */
+function getStudent(id){return students.find(s=>s.id===id);}
+function cellKey(r,c){return r+','+c;}
+
+function passesStatic(s,r){
+  for(const c of constraints){
+    if(c.type==='front'&&c.id===s.id&&r<c.rows) return false;
+    if(c.type==='mfront'&&c.id===s.id&&r>=c.rows) return false;
+  }
+  return true;
+}
+function violatesPair(s,r,c,grid){
+  for(const con of constraints){
+    if(con.type!=='pair')continue;
+    const otherId=con.a===s.id?con.b:(con.b===s.id?con.a:null);
+    if(!otherId)continue;
+    return neighbors(r,c).some(([nr,nc])=>{
+      const cell=grid[nr][nc];
+      return cell&&cell.t==='s'&&cell.s.id===otherId;
+    });
+  }
+  return false;
+}
+function neighbors(r,c){
+  const out=[];
+  if(r>0)out.push([r-1,c]);
+  if(r<layout.rows-1)out.push([r+1,c]);
+  if(c>0)out.push([r,c-1]);
+  if(c<layout.cols-1)out.push([r,c+1]);
+  return out;
+}
+
+/* —— 小组划分：按总分蛇形分法，保证组间均分接近、组内优中差搭配 —— */
+function computeGroups(){
+  groupList=[];
+  students.forEach(s=>s._group=null);
+  const sorted=[...students].sort((a,b)=>b.total-a.total);
+  const n=Math.max(1,Math.ceil(sorted.length/groupSize));
+  for(let i=0;i<n;i++)groupList.push([]);
+  let g=0,dir=1;
+  sorted.forEach(s=>{
+    groupList[g].push(s);
+    s._group=g;
+    if(dir===1){ if(g<n-1) g++; else dir=-1; }
+    else { if(g>0) g--; else dir=1; }
+  });
+  return groupList;
+}
+
+function generateSeats(silent){
+  readLayout();
+  if(!students.length){toast('请先导入学生名单',true);return;}
+  const totalSeats=layout.rows*layout.cols-layout.aisle.size;
+  if(students.length>totalSeats){toast('学生 '+students.length+' 人超过座位 '+totalSeats+' 个，请增加行列或减少过道',true);return;}
+
+  let best=null,bestViol=Infinity;
+  if(genStrategy==='group'){
+    computeGroups();
+    for(let attempt=0;attempt<6;attempt++){
+      const grid=buildGrid();
+      placeFixed(grid);
+      placeGroupsOnGrid(grid,attempt);
+      fixPairs(grid);
+      if(constraints.some(c=>c.type==='gender')) fixGender(grid);
+      const viol=countViolations(grid);
+      if(viol<bestViol){bestViol=viol;best=grid;}
+      if(viol===0)break;
+    }
+  }else{
+    groupList=[];
+    students.forEach(s=>s._group=null);
+    for(let attempt=0;attempt<8;attempt++){
+      const grid=buildGrid();
+      placeFixed(grid);
+      const queue=buildQueue(grid);
+      greedyPlace(grid,queue,attempt);
+      fixPairs(grid);
+      if(constraints.some(c=>c.type==='gender')) fixGender(grid);
+      const viol=countViolations(grid);
+      if(viol<bestViol){bestViol=viol;best=grid;}
+      if(viol===0)break;
+    }
+  }
+  seatMap=best;
+  renderGrid();
+  refreshStats();
+  $('exportBtn').disabled=false; $('printBtn').disabled=false;
+  if(!silent){
+    if(genStrategy==='group'){
+      toast('小组排座完成：共 '+groupList.length+' 组，每组约 '+groupSize+' 人');
+    }else{
+      toast(bestViol===0?'座位表生成完成，全部约束已满足':'座位表已生成（'+bestViol+' 处约束未完全满足，可手动拖拽微调）');
+    }
+  }
+}
+
+function buildGrid(){
+  const g=[];
+  for(let r=0;r<layout.rows;r++){g.push([]);for(let c=0;c<layout.cols;c++){
+    g[r].push(layout.aisle.has(cellKey(r,c))?{t:'aisle'}:null);
+  }}
+  return g;
+}
+function freeCells(g){
+  const out=[];
+  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++) if(!g[r][c]) out.push([r,c]);
+  return out;
+}
+function placeFixed(g){
+  constraints.filter(c=>c.type==='fix').forEach(con=>{
+    const s=getStudent(con.id);
+    if(s&&!g[con.r][con.c]) g[con.r][con.c]={t:'s',s};
+  });
+  constraints.filter(c=>c.type==='mfront').forEach(con=>{
+    const s=getStudent(con.id); if(!s)return;
+    if(g[con.r]&&g[con.c]&&g[con.r][con.c]&&g[con.r][con.c].s===s)return;
+    for(let r=0;r<con.rows;r++)for(let c=0;c<layout.cols;c++){
+      if(!g[r][c]&&passesStatic(s,r)){g[r][c]={t:'s',s};return;}
+    }
+  });
+}
+function placedIds(g){
+  const set=new Set();
+  g.forEach(row=>row.forEach(cell=>{if(cell&&cell.t==='s')set.add(cell.s.id);}));
+  return set;
+}
+function buildQueue(grid){
+  const placed=placedIds(grid);
+  let q=students.filter(s=>!placed.has(s.id));
+  if(genStrategy==='balanced') q.sort((a,b)=>b.total-a.total);
+  else if(genStrategy==='order') q.sort((a,b)=>b.total-a.total);
+  else {for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}}
+  return q;
+}
+
+function greedyPlace(grid,queue,attempt){
+  const free=freeCells(grid);
+  queue.forEach(s=>{
+    let cands=free.filter(([r,c])=>!grid[r][c]&&passesStatic(s,r));
+    if(!cands.length) cands=free.filter(([r,c])=>!grid[r][c]);
+    if(!cands.length)return;
+    let scored=cands.map(([r,c])=>{
+      let pen=0;
+      if(violatesPair(s,r,c,grid)) pen+=10000;
+      if(genStrategy==='balanced'){
+        const highCount=neighbors(r,c).filter(([nr,nc])=>grid[nr][nc]&&grid[nr][nc].t==='s'&&grid[nr][nc].s.isHigh).length;
+        if(s.isHigh) pen+=highCount*100;
+        else pen+=highCount*3;
+      }
+      pen+=Math.random()*((attempt%2)?4:0.01);
+      return {r,c,pen};
+    });
+    scored.sort((a,b)=>a.pen-b.pen);
+    const pick=scored[0];
+    grid[pick.r][pick.c]={t:'s',s};
+  });
+}
+
+/* —— 小组落位：每组找一块连续矩形座位区，优中差混合填入 —— */
+function blockDims(){
+  let bw=Math.ceil(Math.sqrt(groupSize)), bh=Math.ceil(groupSize/bw);
+  if(bw>layout.cols){[bw,bh]=[bh,bw];}
+  if(bw>layout.cols){bw=layout.cols;bh=Math.ceil(groupSize/bw);}
+  return {bw,bh};
+}
+function restrictScore(s){
+  return constraints.filter(c=>(c.type==='front'||c.type==='mfront')&&c.id===s.id).length;
+}
+function placeGroupsOnGrid(g,attempt){
+  const {bw,bh}=blockDims();
+  const order=groupList.map((_,i)=>i);
+  if(attempt%2)order.reverse();
+  order.forEach(gi=>{
+    const grp=groupList[gi];
+    // 找第一个能容纳 bh×bw 整块的空位锚点
+    let anchor=null;
+    outer:
+    for(let r=0;r<=layout.rows-bh;r++)for(let c=0;c<=layout.cols-bw;c++){
+      let ok=true;
+      for(let rr=r;rr<r+bh;rr++)for(let cc=c;cc<c+bw;cc++){
+        if(g[rr][cc]){ok=false;break;}
+      }
+      if(ok){anchor=[r,c];break outer;}
+    }
+    if(!anchor){scatterGroup(g,grp);return;}
+    const [ar,ac]=anchor;
+    const cells=[];
+    for(let rr=ar;rr<ar+bh;rr++)for(let cc=ac;cc<ac+bw;cc++)cells.push([rr,cc]);
+    // 受限学生优先安排到满足前排约束的行
+    const members=[...grp].sort((a,b)=>restrictScore(b)-restrictScore(a));
+    cells.forEach(([rr,cc])=>{
+      if(!members.length)return;
+      let idx=members.findIndex(m=>passesStatic(m,rr));
+      if(idx<0)idx=0;
+      const m=members.splice(idx,1)[0];
+      g[rr][cc]={t:'s',s:m};
+    });
+    if(members.length)scatterGroup(g,members);
+  });
+}
+/* 兜底：整块放不下时，把组员散进空位，优先挨着同组同学 */
+function scatterGroup(g,grp){
+  grp.forEach(m=>{
+    const cands=freeCells(g);
+    if(!cands.length)return;
+    cands.sort((A,B)=>{
+      const sameA=neighbors(A[0],A[1]).filter(([nr,nc])=>g[nr][nc]&&g[nr][nc].t==='s'&&g[nr][nc].s._group===m._group).length;
+      const sameB=neighbors(B[0],B[1]).filter(([nr,nc])=>g[nr][nc]&&g[nr][nc].t==='s'&&g[nr][nc].s._group===m._group).length;
+      return sameB-sameA;
+    });
+    const pick=cands[0];
+    g[pick[0]][pick[1]]={t:'s',s:m};
+  });
+}
+
+function fixPairs(grid){
+  for(let iter=0;iter<3;iter++){
+    let changed=false;
+    for(const con of constraints){
+      if(con.type!=='pair')continue;
+      for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+        const cell=grid[r][c];
+        if(!cell||cell.t!=='s')continue;
+        if(cell.s.id!==con.a&&cell.s.id!==con.b)continue;
+        const bad=neighbors(r,c).some(([nr,nc])=>{
+          const n=grid[nr][nc];
+          return n&&n.t==='s'&&(n.s.id===con.a||n.s.id===con.b);
+        });
+        if(!bad)continue;
+        outer:
+        for(let nr=0;nr<layout.rows;nr++)for(let nc=0;nc<layout.cols;nc++){
+          const t=grid[nr][nc];
+          if(t&&t.t==='aisle')continue;
+          if(nr===r&&nc===c)continue;
+          const tmpS=t?t.s:null;
+          if(tmpS&&!passesStatic(cell.s,nr))continue;
+          if(tmpS&&!passesStatic(tmpS,r))continue;
+          grid[nr][nc]={t:'s',s:cell.s};
+          grid[r][c]=tmpS?{t:'s',s:tmpS}:null;
+          const stillBad=neighbors(nr,nc).some(([ar,ac])=>{
+            const n=grid[ar][ac];
+            return n&&n.t==='s'&&(n.s.id===con.a||n.s.id===con.b);
+          });
+          if(stillBad){
+            grid[r][c]={t:'s',s:cell.s};
+            grid[nr][nc]=tmpS?{t:'s',s:tmpS}:null;
+            continue;
+          }
+          changed=true; break outer;
+        }
+      }
+    }
+    if(!changed)break;
+  }
+}
+
+function fixGender(grid){
+  const hasGender=students.every(s=>s.gender);
+  if(!hasGender)return;
+  for(let iter=0;iter<80;iter++){
+    let changed=false;
+    for(let r=0;r<layout.rows&&!changed;r++)for(let c=0;c<layout.cols-1;c++){
+      const a=grid[r][c],b=grid[r][c+1];
+      if(!a||!b||a.t!=='s'||b.t!=='s')continue;
+      if(a.s.gender!==b.s.gender)continue;
+      outer:
+      for(let nr=0;nr<layout.rows;nr++)for(let nc=0;nc<layout.cols;nc++){
+        const t=grid[nr][nc];
+        if(!t||t.t!=='s')continue;
+        if(t.s.gender===a.s.gender)continue;
+        if(nr===r&&(nc===c||nc===c+1))continue;
+        const saved=grid[r][c]; grid[r][c]=t; grid[nr][nc]=saved;
+        const ok=!violatesPair(t.s,r,c,grid)&&!violatesPair(saved.s,nr,nc,grid)&&passesStatic(t.s,r)&&passesStatic(saved.s,nr);
+        if(ok){changed=true;break outer;}
+        grid[r][c]=saved; grid[nr][nc]=t;
+      }
+      if(changed)break;
+    }
+    if(!changed)break;
+  }
+}
+
+function countViolations(grid){
+  let v=0;
+  for(const con of constraints){
+    if(con.type==='pair'){
+      for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+        const cell=grid[r][c];
+        if(!cell||cell.t!=='s')continue;
+        if(cell.s.id!==con.a&&cell.s.id!==con.b)continue;
+        if(neighbors(r,c).some(([nr,nc])=>{const n=grid[nr][nc];return n&&n.t==='s'&&(n.s.id===con.a||n.s.id===con.b);})){v++;break;}
+      }
+    }else if(con.type==='front'||con.type==='mfront'){
+      outer:
+      for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+        const cell=grid[r][c];
+        if(cell&&cell.t==='s'&&cell.s.id===con.id){
+          if(!passesStatic(cell.s,r))v++;
+          break outer;
+        }
+      }
+    }
+  }
+  return v;
+}
+
+$('genBtn').addEventListener('click',()=>generateSeats(false));
+
+/* ============================================================
+ * 5. 渲染座位图 + 拖拽 / 点选换座
+ * ============================================================ */
+function tierClass(s){
+  if(!s.isHigh){
+    const meds=[...students].sort((a,b)=>a.total-b.total);
+    const med=meds[Math.floor(meds.length/2)].total;
+    return s.total<med?'tier-low':'tier-mid';
+  }
+  return 'tier-high';
+}
+
+function renderGrid(){
+  readLayout();
+  const grid=$('classGrid'); grid.innerHTML='';
+  $('mapEmpty').style.display=seatMap.length?'none':'block';
+  $('classroom').style.display=seatMap.length?'block':'none';
+  if(!seatMap.length)return;
+  $('podiumTop').style.display=layout.podium==='top'?'block':'none';
+  $('podiumBottom').style.display=layout.podium==='bottom'?'block':'none';
+  $('podiumLeft').style.display=layout.podium==='left'?'flex':'none';
+  $('podiumRight').style.display=layout.podium==='right'?'flex':'none';
+
+  const groupMode=genStrategy==='group';
+  grid.style.gridTemplateColumns=`repeat(${layout.cols},88px)`;
+  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+    const cell=seatMap[r][c];
+    const el=document.createElement('div');
+    el.dataset.r=r; el.dataset.c=c;
+    if(cell&&cell.t==='aisle'){
+      el.className='seat aisle'; el.textContent='过道';
+    }else if(cell&&cell.t==='s'){
+      let cls='seat ';
+      if(groupMode&&cell.s._group!=null) cls+='g'+cell.s._group+' ';
+      else cls+=tierClass(cell.s)+' ';
+      cls+=(cell.s.gender==='M'?' male':cell.s.gender==='F'?' female':'');
+      el.className=cls;
+      el.draggable=true;
+      if(groupMode&&cell.s._group!=null){
+        const bd=document.createElement('div'); bd.className='gbadge'; bd.textContent=(cell.s._group+1)+'组';
+        el.appendChild(bd);
+      }
+      const nm=document.createElement('div'); nm.className='nm'; nm.textContent=cell.s.name;
+      const sc=document.createElement('div'); sc.className='sc';
+      sc.textContent=Object.keys(cell.s.scores).length?('总分 '+cell.s.total):'—';
+      el.appendChild(nm); el.appendChild(sc);
+      el.addEventListener('dragstart',dragStart);
+      el.addEventListener('dragover',dragOver);
+      el.addEventListener('drop',onDrop);
+      el.addEventListener('dragend',dragEnd);
+      el.addEventListener('click',seatClick);
+    }else{
+      el.className='seat empty'; el.textContent='空座位';
+      el.draggable=true;
+      el.addEventListener('dragstart',emptyDragStart);
+      el.addEventListener('dragover',dragOver);
+      el.addEventListener('drop',onDrop);
+      el.addEventListener('dragend',dragEnd);
+      el.addEventListener('click',seatClick);
+    }
+    grid.appendChild(el);
+  }
+  renderLegend(groupMode);
+}
+
+function renderLegend(groupMode){
+  const lg=$('legend'); lg.innerHTML='';
+  if(groupMode&&groupList.length){
+    groupList.forEach((grp,i)=>{
+      const avg=grp.length?Math.round(grp.reduce((a,s)=>a+s.total,0)/grp.length):0;
+      const item=document.createElement('span'); item.className='legend-item';
+      item.innerHTML='<span class="chip g'+i+'"></span>第'+(i+1)+'组 · '+grp.length+'人'+(avg?(' · 均分'+avg):'');
+      lg.appendChild(item);
+    });
+    return;
+  }
+  [
+    ['background:rgba(79,107,255,.25);border-color:#4F6BFF','高分段'],
+    ['background:rgba(56,189,248,.25);border-color:#38BDF8','中分段'],
+    ['background:rgba(245,158,11,.25);border-color:#F59E0B','低分段'],
+    ['background:#fff','空位'],
+  ].forEach(([style,label])=>{
+    const item=document.createElement('span'); item.className='legend-item';
+    item.innerHTML='<span class="chip" style="'+style+'"></span>'+label;
+    lg.appendChild(item);
+  });
+}
+
+/* 拖拽 */
+let dragFrom=null, dragEmpty=false, justDragged=false;
+function dragStart(e){dragFrom=this;dragEmpty=false;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','seat');this.classList.add('dragging');}
+function emptyDragStart(e){dragFrom=this;dragEmpty=true;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','empty');this.classList.add('dragging');}
+function dragOver(e){if(e.preventDefault)e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='move';this.classList.add('drag-over');return false;}
+function onDrop(e){
+  if(e.stopPropagation)e.stopPropagation();
+  if(!dragFrom)return false;
+  const sr=+dragFrom.dataset.r,sc=+dragFrom.dataset.c,tr=+this.dataset.r,tc=+this.dataset.c;
+  doSwap(sr,sc,tr,tc,dragEmpty);
+  justDragged=true; setTimeout(()=>justDragged=false,120);
+  return false;
+}
+function dragEnd(){this.classList.remove('dragging');document.querySelectorAll('.seat.drag-over').forEach(x=>x.classList.remove('drag-over'));dragFrom=null;}
+
+/* 点选 */
+let selected=null;
+function clearSel(){selected=null;document.querySelectorAll('.seat.selected-source').forEach(x=>x.classList.remove('selected-source'));}
+function seatClick(){
+  if(justDragged)return;
+  const r=+this.dataset.r,c=+this.dataset.c;
+  const cell=seatMap[r][c];
+  if(cell&&cell.t==='aisle')return;
+  const isEmpty=!(cell&&cell.t==='s');
+  if(!selected){selected={r,c,isEmpty};this.classList.add('selected-source');}
+  else{
+    if(selected.r===r&&selected.c===c){clearSel();return;}
+    doSwap(selected.r,selected.c,r,c,selected.isEmpty);
+    clearSel();
+  }
+}
+function doSwap(sr,sc,tr,tc,srcEmpty){
+  const src=seatMap[sr][sc],tgt=seatMap[tr][tc];
+  if(src&&src.t==='aisle')return;
+  if(tgt&&tgt.t==='aisle')return;
+  if(srcEmpty){seatMap[sr][sc]=tgt;seatMap[tr][tc]=null;}
+  else{seatMap[sr][sc]=tgt;seatMap[tr][tc]=src;}
+  clearSel(); renderGrid(); refreshStats();
+}
+
+/* ============================================================
+ * 6. 导出 / 打印
+ * ============================================================ */
+$('exportBtn').addEventListener('click',()=>{
+  if(!seatMap.length){toast('请先生成座位表',true);return;}
+  const groupMode=genStrategy==='group';
+  const data=[['班级座位表'],['排座方式：'+({balanced:'成绩均衡分布',random:'随机排座',order:'按成绩顺序',group:'小组排座'})[genStrategy]],
+    ['讲台方向：'+({top:'前方',bottom:'后方',left:'左侧',right:'右侧'})[layout.podium]],[]];
+  data.push(['排\\列',...Array.from({length:layout.cols},(_,i)=>'第'+(i+1)+'列')]);
+  for(let r=0;r<layout.rows;r++){
+    const row=['第'+(r+1)+'排'];
+    for(let c=0;c<layout.cols;c++){
+      const cell=seatMap[r][c];
+      if(!cell)row.push('空');
+      else if(cell.t==='aisle')row.push('过道');
+      else row.push(groupMode&&cell.s._group!=null?cell.s.name+'（'+(cell.s._group+1)+'组）':cell.s.name);
+    }
+    data.push(row);
+  }
+  data.push([]);
+  if(groupMode&&groupList.length){
+    data.push(['小组构成']);
+    groupList.forEach((grp,i)=>{
+      const avg=grp.length?(grp.reduce((a,s)=>a+s.total,0)/grp.length).toFixed(1):'-';
+      data.push(['第'+(i+1)+'组','人数：'+grp.length,'均分：'+avg,grp.map(s=>s.name).join('、')]);
+    });
+    data.push([]);
+  }
+  data.push(['学生明细']);
+  data.push(groupMode?['小组','姓名','性别','总分',...scoreCols]:['姓名','性别','总分',...scoreCols]);
+  students.forEach(s=>{
+    const row=[s.name,s.gender==='M'?'男':s.gender==='F'?'女':'',s.total,...scoreCols.map(k=>s.scores[k]??'')];
+    if(groupMode)row.unshift(s._group!=null?('第'+(s._group+1)+'组'):'-');
+    data.push(row);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:10},{wch:10},{wch:8},{wch:8},...Array.from({length:Math.max(0,layout.cols-1)},()=>({wch:10}))];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'座位表');
+  XLSX.writeFile(wb,'班级座位表.xlsx');
+  toast('座位表已导出');
+});
+$('printBtn').addEventListener('click',()=>{if(seatMap.length)window.print();});
+
+/* 初始化 */
+buildAisleEditor();
+refreshStats();
+</script>
+</body>
+</html>

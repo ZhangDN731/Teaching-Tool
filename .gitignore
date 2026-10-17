@@ -1,0 +1,18 @@
+# 含 token 的同步脚本，禁止上传到 GitHub
+同步到GitHub.bat
+
+# 自检截图（各工具目录下）
+_shots/
+**/_shots/
+
+# 原始版本备份
+_backup/
+**/_backup/
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 日志
+*.log

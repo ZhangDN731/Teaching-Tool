@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课堂互动大厅</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234F6BFF'/%3E%3Ccircle cx='9' cy='12' r='2' fill='white'/%3E%3Ccircle cx='15' cy='12' r='2' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg-gradient: linear-gradient(135deg, #E6ECFF 0%, #DCEEFF 45%, #EDE8FF 100%);
+  --surface:#FFFFFF;
+  --surface-2:#F8FAFF;
+  --radius-lg:20px;
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow-card:0 4px 24px rgba(79,107,255,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-hover:0 8px 32px rgba(79,107,255,0.14), 0 2px 6px rgba(0,0,0,0.05);
+  --accent:#4F6BFF;
+  --accent-hover:#3D56E0;
+  --accent-soft:rgba(79,107,255,0.08);
+  --cyan:#38BDF8;
+  --green:#22C55E;
+  --orange:#F59E0B;
+  --red:#EF4444;
+  --text:#0F172A;
+  --text-2:#334155;
+  --text-3:#64748B;
+  --border:rgba(79,107,255,0.12);
+  --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
+  --font:"Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{overflow-x:hidden}
+body{
+  font-family:var(--font);
+  background:var(--bg-gradient);
+  background-attachment:fixed;
+  color:var(--text);
+  line-height:1.55;
+  font-size:14px;
+  min-height:100vh;
+}
+button{font-family:inherit}
+
+/* ============ 通用容器（紧凑） ============ */
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 32px}
+
+/* ============ 胶囊标签 ============ */
+.capsule{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border-radius:999px;
+  padding:4px 12px;
+  font-size:10px;letter-spacing:1.2px;color:var(--text-3);
+  box-shadow:var(--shadow-card);
+  text-transform:uppercase;
+}
+.capsule::before{
+  content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);
+}
+
+/* ============ 顶部标题区（紧凑） ============ */
+.hero{text-align:center;padding:10px 0 14px}
+.hero h1{
+  font-size:26px;font-weight:800;color:var(--text);
+  margin:8px 0 4px;line-height:1.2;
+}
+.hero h1 .grad{
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero .sub{color:var(--text-3);font-size:13px}
+
+/* ============ Tab 选项卡栏 ============ */
+.tab-bar{
+  display:flex;justify-content:center;gap:6px;
+  background:#fff;border-radius:999px;
+  padding:5px;
+  box-shadow:var(--shadow-card);
+  margin:0 auto 16px;
+  max-width:480px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  flex:1;min-width:96px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 14px;border-radius:999px;
+  background:transparent;border:none;
+  font-size:13px;font-weight:600;color:var(--text-3);
+  cursor:pointer;min-height:44px;
+  transition:all .2s ease;
+  white-space:nowrap;
+}
+.tab-btn svg{width:15px;height:15px}
+.tab-btn:hover{color:var(--accent)}
+.tab-btn.active{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(79,107,255,0.28);
+}
+
+/* ============ Tab 面板 ============ */
+.tab-panel{display:none;animation:fadeIn .25s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ 卡片（紧凑 padding 18） ============ */
+.card{
+  background:var(--surface);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:18px 16px;
+}
+.card + .card{margin-top:12px}
+.card-center{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+
+h2{font-size:17px;font-weight:700;color:var(--text)}
+.desc{color:var(--text-3);font-size:12px}
+
+/* ============ 数字炸弹（紧凑） ============ */
+.nb-setup{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.nb-setup-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+.nb-label{font-size:13px;color:var(--text-2);font-weight:600;flex:none}
+.nb-max-input{max-width:140px;text-align:center}
+.nb-range{
+  font-size:32px;font-weight:800;line-height:1.15;
+  color:var(--accent);
+  background:var(--accent-soft);
+  padding:10px 22px;border-radius:12px;
+  min-width:180px;
+}
+.nb-range.boom{color:var(--red);background:rgba(239,68,68,0.08)}
+.input-num{
+  width:100%;max-width:280px;
+  background:#fff;border:1px solid var(--border);
+  border-radius:10px;padding:9px;font-size:16px;
+  text-align:center;color:var(--text);outline:none;min-height:44px;
+}
+.input-num:focus{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent-soft)}
+
+/* ============ 按钮（紧凑 8/18, 13px） ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 18px;border-radius:10px;
+  border:1px solid transparent;
+  font-size:13px;font-weight:600;cursor:pointer;
+  min-height:44px;transition:all .2s ease;
+}
+.btn:active{transform:scale(.98)}
+.btn-primary{
+  background:linear-gradient(135deg,#4F6BFF,#38BDF8);
+  color:#fff;
+}
+.btn-primary:hover{box-shadow:var(--shadow-hover)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-secondary{
+  background:#fff;color:var(--accent);
+  border:1px solid var(--border);
+}
+.btn-secondary:hover{background:var(--accent-soft)}
+.btn.small{padding:6px 12px;font-size:12px;min-height:38px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* ============ 历史记录（紧凑） ============ */
+.history{
+  width:100%;max-width:480px;
+  max-height:120px;overflow-y:auto;
+  background:var(--surface-2);
+  border-radius:var(--radius-sm);
+  padding:8px 10px;
+  text-align:left;font-size:12px;color:var(--text-2);
+}
+.history p{margin:3px 0}
+.history h3{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.history h3 svg{width:14px;height:14px;color:var(--accent)}
+.history-empty{color:var(--text-3);text-align:center;padding:8px 0}
+
+/* ============ 转盘（紧凑） ============ */
+.wheel-card{display:flex;flex-direction:column;align-items:center}
+.wheel-wrap{
+  position:relative;
+  width:min(78vw,340px);
+  aspect-ratio:1/1;
+}
+.wheel-wrap canvas{
+  width:100%;height:100%;display:block;border-radius:50%;
+}
+.pointer{
+  position:absolute;top:-5px;left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:11px solid transparent;
+  border-right:11px solid transparent;
+  border-top:22px solid var(--accent);
+  z-index:10;
+  filter:drop-shadow(0 2px 3px rgba(79,107,255,.35));
+}
+.wheel-hint{font-size:12px;color:var(--text-3);margin-top:10px;text-align:center;line-height:1.5}
+.file-label{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-family:var(--font);font-size:13px;min-height:44px;
+  padding:7px 14px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--border);background:#fff;color:var(--accent);
+  transition:all .2s ease;
+}
+.file-label:hover{border-color:var(--accent)}
+.file-label input{display:none}
+.file-label svg{width:16px;height:16px}
+.spin-btn{
+  width:100%;max-width:300px;
+  font-size:15px;font-weight:600;
+  padding:10px 20px;
+}
+.history-item{
+  font-size:13px;color:var(--text);
+  padding:5px 2px;border-bottom:1px dashed var(--border);
+  display:flex;gap:6px;align-items:baseline;
+}
+.history-item:last-child{border-bottom:none}
+.history-item .time{color:var(--text-3);font-size:11px;flex:none}
+.history-item.warn .txt{color:var(--orange)}
+.badge{
+  flex:none;font-size:10px;line-height:1;
+  padding:2px 6px;border-radius:6px;
+  background:rgba(245,158,11,0.12);color:var(--orange);
+}
+
+/* ============ 更多游戏占位 ============ */
+.more-card{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  text-align:center;padding:36px 20px;
+}
+.more-card .lock-icon{
+  width:64px;height:64px;border-radius:16px;
+  background:rgba(245,158,11,0.12);color:var(--orange);
+  display:flex;align-items:center;justify-content:center;
+}
+.more-card .lock-icon svg{width:34px;height:34px}
+.more-tag{
+  background:rgba(245,158,11,0.12);color:var(--orange);
+  font-size:12px;font-weight:600;
+  padding:4px 14px;border-radius:999px;
+}
+.more-card h3{font-size:18px;font-weight:700;color:var(--text)}
+.more-card p{font-size:13px;color:var(--text-3);max-width:320px;line-height:1.6}
+
+/* ============ 弹窗（紧凑） ============ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,0.35);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;padding:16px;
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:#fff;border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:22px 18px;max-width:360px;width:100%;
+  text-align:center;
+  transform:scale(.95);transition:transform .25s ease;
+}
+.modal-overlay.show .modal-box{transform:scale(1)}
+.modal-box h2{font-size:18px;margin-bottom:8px}
+.modal-box h2.accent{color:var(--accent)}
+.modal-box h2.warn{color:var(--orange)}
+.modal-box .m-desc{font-size:14px;line-height:1.55;margin-bottom:16px;color:var(--text)}
+
+/* ============ Toast（紧凑） ============ */
+.toast{
+  position:fixed;left:50%;bottom:24px;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--text);color:#fff;
+  padding:9px 18px;border-radius:999px;
+  font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s ease;z-index:200;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(min-width:768px){
+  .wrap{padding:24px 36px 36px}
+  .hero{padding:14px 0 18px}
+  .hero h1{font-size:30px}
+  .nb-range{font-size:40px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- ============ 顶部标题区 ============ -->
+  <div class="hero">
+    <span class="capsule">CLASSROOM INTERACTIVE HALL</span>
+    <h1>课堂<span class="grad">互动大厅</span></h1>
+    <p class="sub">选一款小游戏，让课堂氛围瞬间燃起来</p>
+  </div>
+
+  <!-- ============ Tab 选项卡栏 ============ -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" data-tab="numbomb" role="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="14" r="7"/><path d="M15 9l4-4M15 5h4v4"/></svg>
+      数字炸弹
+    </button>
+    <button class="tab-btn" data-tab="wheel" role="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12L12 4M12 12L19.8 16.5M12 12L4.2 16.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+      大冒险转盘
+    </button>
+    <button class="tab-btn" data-tab="more" role="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+      更多游戏
+    </button>
+  </div>
+
+  <!-- ============ Tab 面板：数字炸弹（默认显示） ============ -->
+  <div class="tab-panel active" id="tab-numbomb">
+    <div class="card card-center">
+      <span class="capsule">NUMBER BOMB · 自定义区间</span>
+      <h2>数字炸弹</h2>
+      <p class="desc">最小值固定为 1，先设定最大值，再开始报数收窄范围，踩中即输</p>
+
+      <!-- 设置阶段：最大值 -->
+      <div class="nb-setup" id="nb-setup">
+        <div class="nb-setup-row">
+          <label class="nb-label" for="nb-max">最大值</label>
+          <input type="number" class="input-num nb-max-input" id="nb-max" value="100" min="10" max="9999">
+        </div>
+        <button class="btn btn-primary" onclick="numBombStart()">开始游戏</button>
+        <p class="desc">可输入 10 ~ 9999 之间的整数，炸弹将随机埋在 1 ~ 最大值 之间</p>
+      </div>
+
+      <!-- 游戏阶段 -->
+      <div id="nb-game" class="card-center" style="display:none;width:100%">
+        <div class="nb-range" id="nb-range">1 ~ 100</div>
+
+        <input type="number" class="input-num" id="nb-input" placeholder="输入数字..." min="1">
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="numBombGuess()">确认报数</button>
+          <button class="btn btn-secondary" onclick="numBombBackToSetup()">重新设置</button>
+        </div>
+
+        <div class="history" id="nb-history">
+          <div class="history-empty">暂无记录，开始第一轮报数吧</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Tab 面板：大冒险转盘 ============ -->
+  <div class="tab-panel" id="tab-wheel">
+    <!-- 控制区 -->
+    <div class="card">
+      <div class="btn-row" style="margin-bottom:10px">
+        <button type="button" class="btn btn-secondary" onclick="downloadTemplate()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          下载 TXT 模板
+        </button>
+        <label class="file-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h4l2 2h10a1 1 0 011 1v8a1 1 0 01-1 1H5a1 1 0 01-1-1V7z"/></svg>
+          上传任务文件
+          <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload(event)">
+        </label>
+      </div>
+      <button type="button" class="btn btn-primary spin-btn" id="btnSpin" onclick="spinWheel()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a7 7 0 0112-5m2 5a7 7 0 01-12 5m-2-5h3m8 0h3"/></svg>
+        开始大冒险
+      </button>
+    </div>
+
+    <!-- 转盘 -->
+    <div class="card wheel-card">
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas"></canvas>
+      </div>
+      <p class="wheel-hint">转盘上方指针所指即为抽中任务；每行一个任务的 TXT 文件可自定义转盘内容。</p>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="card">
+      <h3 style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:8px;color:var(--text)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M21 12a9 9 0 11-9-9"/></svg>
+        最近记录
+      </h3>
+      <div id="historyList" style="max-height:180px;overflow-y:auto">
+        <div class="history-empty" style="color:var(--text-3);text-align:center;padding:10px 0;font-size:13px">暂无记录</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Tab 面板：更多游戏（占位） ============ -->
+  <div class="tab-panel" id="tab-more">
+    <div class="card more-card">
+      <span class="more-tag">敬请期待</span>
+      <div class="lock-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+      </div>
+      <h3>更多互动玩法</h3>
+      <p>新的课堂互动游戏正在紧锣密鼓地开发中，后续会陆续上线，敬请期待。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 通用弹窗 ==================== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h2 id="modal-title" class="accent">BOOM！</h2>
+    <div class="m-desc" id="modal-desc"></div>
+    <button class="btn btn-primary" onclick="closeModal()">好的</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">该功能开发中，敬请期待</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* ============ Tab 切换 ============ */
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('tab-'+name).classList.add('active');
+  document.querySelector('.tab-btn[data-tab="'+name+'"]').classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(name==='wheel'){
+    // 切到转盘面板时重新适配画布尺寸（隐藏状态下 clientWidth 为 0）
+    setTimeout(fitCanvas, 50);
+  }
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
+});
+
+/* ============ Toast ============ */
+let toastTimer=null;
+function showToast(msg){
+  const t=$('toast');
+  t.textContent = msg || '该功能开发中，敬请期待';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ============ 通用弹窗 ============ */
+function showModal(title, desc, cls){
+  $('modal-title').textContent = title;
+  $('modal-desc').textContent = desc;
+  $('modal-title').className = cls || 'accent';
+  $('modal').classList.add('show');
+  if(navigator.vibrate) navigator.vibrate(200);
+}
+function closeModal(){ $('modal').classList.remove('show'); }
+
+/* ============================================================
+ * 数字炸弹（自定义最大值 + 真随机）
+ * ============================================================ */
+let nbMin = 1;
+let nbUpper = 100;
+let nbBomb = 0;
+
+function genBomb(max){
+  return Math.floor(Math.random() * (max - 1 + 1)) + 1;
+}
+
+function numBombStart(){
+  const raw = $('nb-max').value.trim();
+  const v = parseInt(raw, 10);
+  if(isNaN(v) || v < 10 || v > 9999){
+    showToast('请输入 10 ~ 9999 之间的整数作为最大值');
+    return;
+  }
+  nbUpper = v;
+  nbMin = 1;
+  nbBomb = genBomb(nbUpper);
+
+  $('nb-setup').style.display = 'none';
+  const g = $('nb-game');
+  g.style.display = 'flex';
+  g.classList.add('card-center');
+
+  $('nb-range').textContent = nbMin + ' ~ ' + nbUpper;
+  $('nb-range').classList.remove('boom');
+  $('nb-input').value = '';
+  $('nb-input').min = 1;
+  $('nb-input').max = nbUpper;
+  $('nb-input').placeholder = '输入 1 ~ ' + nbUpper + ' 的数字';
+  $('nb-history').innerHTML = '<div class="history-empty">暂无记录，开始第一轮报数吧</div>';
+  $('nb-input').focus();
+}
+
+function numBombBackToSetup(){
+  $('nb-game').style.display = 'none';
+  $('nb-setup').style.display = 'flex';
+  $('nb-max').focus();
+}
+
+function numBombGuess(){
+  const val = parseInt($('nb-input').value, 10);
+  if(isNaN(val) || val < nbMin || val > nbUpper){
+    showToast('请输入 ' + nbMin + ' - ' + nbUpper + ' 之间的数字');
+    return;
+  }
+  if(val === nbBomb){
+    $('nb-range').textContent = nbBomb;
+    $('nb-range').classList.add('boom');
+    showModal('BOOM！','炸弹数字是 ' + nbBomb + '，接受惩罚！');
+    numBombBackToSetup();
+  } else {
+    let msg = '';
+    if(val < nbBomb){
+      nbMin = val + 1;
+      msg = val + ' → 小了！范围：' + nbMin + ' ~ ' + nbUpper;
+    } else {
+      nbUpper = val - 1;
+      msg = val + ' → 大了！范围：' + nbMin + ' ~ ' + nbUpper;
+    }
+    $('nb-range').textContent = nbMin + ' ~ ' + nbUpper;
+    const empty = $('nb-history .history-empty');
+    if(empty) empty.remove();
+    const p = document.createElement('p');
+    p.textContent = msg;
+    $('nb-history').prepend(p);
+    $('nb-input').value = '';
+    $('nb-input').focus();
+  }
+}
+
+$('nb-max').addEventListener('keydown', e => { if(e.key === 'Enter') numBombStart(); });
+$('nb-input').addEventListener('keydown', e => { if(e.key === 'Enter') numBombGuess(); });
+
+/* ============================================================
+ * 大冒险转盘
+ * ============================================================ */
+let tasks = [
+  "用3个词编一个合理的故事",
+  "像主播一样介绍课本的任意一个知识点（科目不限）",
+  "给身边同学讲一个冷笑话，时长 15 秒以上",
+  "模仿一位老师上课的神态语气（不许丑化恶搞）",
+  "反手在黑板上写自己的名字",
+  "模仿一个动物动作",
+  "用唱歌的语调念一段课文",
+  "假装被难题难住，夸张表演抓头发、踱步，最后灵光一闪的全过程",
+  "摆出 3 个不一样的思考造型，每个造型定格 3 秒",
+  "模仿小猫/小狗摇尾巴卖萌 10 秒，并发出对应的叫声",
+  "用夹子音念一句土味情话",
+  "快速做 10 个深蹲，边做喊 “我最棒”",
+  "双手比心，对着所有人挨个送爱心",
+  "模仿机器人走路说话绕一圈",
+  "对着水杯深情告白 15 秒",
+  "用撒娇语气背诵一段古诗",
+  "把外套反穿坚持一轮游戏时间",
+  "用很霸气的霸道总裁语气跟在场一人对话",
+  "模仿短视频网红的经典片段表演出来",
+  "扮演导游，给在场所有人介绍 “现场景点” 一分钟",
+  "模仿电视剧狗血吵架片段，自己一人分饰两角",
+  "原地蹦跳 8 下，每跳一下喊一个人的名字",
+  "用悲伤的语气念搞笑段子",
+  "模仿鸭子走路，嘎嘎叫绕场地走半圈",
+  "霸道总裁语气对一位朋友下达三条奇怪指令",
+  "用开心、生气、委屈三种语气说 “哎呀”",
+  "模仿企鹅摇摇摆摆走路，发出嗷呜叫声",
+  "假装直播带货，推销手里一件不存在的商品 1 分钟",
+  "模仿明星走红毯，摆各种 pose 走过房间",
+  "唱两句自己最喜欢的歌曲片段",
+  "模仿一个影视剧角色的经典台词",
+  "诗朗诵一句网络热梗"
+];
+
+const canvas = $('wheelCanvas');
+const ctx = canvas.getContext('2d');
+let currentAngle = 0;
+let isSpinning = false;
+
+const segmentColors = ['#FFFFFF', '#EEF2FF', '#E0F2FE', '#FFF7ED'];
+const warningBg = 'rgba(245,158,11,0.22)';
+
+function fitCanvas(){
+  // 若转盘面板当前隐藏，clientWidth 为 0，此时不绘制，等切到该面板时再调
+  const wrap = document.querySelector('.wheel-wrap');
+  if(!wrap || wrap.clientWidth === 0) return;
+  const size = wrap.clientWidth || 320;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(size * dpr);
+  canvas.height = Math.round(size * dpr);
+  drawWheel();
+}
+
+function drawWheel(){
+  if(canvas.width === 0) return;
+  const radius = canvas.width / 2;
+  const n = tasks.length;
+  if (n === 0) return;
+  const arc = 2 * Math.PI / n;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(radius, radius);
+  ctx.rotate(currentAngle);
+
+  const fontSize = Math.max(11, radius * 0.042);
+
+  tasks.forEach((task, i) => {
+    const isWarning = task.indexOf('【未完成惩罚】') !== -1;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, i * arc, (i + 1) * arc);
+    ctx.fillStyle = isWarning ? warningBg : segmentColors[i % segmentColors.length];
+    ctx.fill();
+    ctx.strokeStyle = isWarning ? '#F59E0B' : 'rgba(79,107,255,0.18)';
+    ctx.lineWidth = Math.max(1, radius * 0.006);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(i * arc + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = isWarning ? '#B45309' : '#0F172A';
+    ctx.font = '600 ' + fontSize + 'px "Segoe UI", "Microsoft YaHei", sans-serif';
+
+    let displayText = isWarning ? '罚｜' + task.replace('【未完成惩罚】', '') : task;
+    if (displayText.length > 8) displayText = displayText.substring(0, 8) + '...';
+
+    ctx.fillText(displayText, radius - radius * 0.06, 0);
+    ctx.restore();
+  });
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
+  ctx.fillStyle = '#4F6BFF';
+  ctx.fill();
+  ctx.restore();
+}
+
+function spinWheel(){
+  if (isSpinning || tasks.length === 0) return;
+  isSpinning = true;
+  $('btnSpin').disabled = true;
+
+  const spinDuration = 4000 + Math.random() * 2000;
+  const totalRotation = 5 * 2 * Math.PI + Math.random() * 2 * Math.PI;
+  const startAngle = currentAngle;
+  const startTime = performance.now();
+
+  function animate(time){
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / spinDuration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    currentAngle = startAngle + totalRotation * ease;
+    drawWheel();
+    if (progress < 1){
+      requestAnimationFrame(animate);
+    } else {
+      finishSpin();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function finishSpin(){
+  isSpinning = false;
+  $('btnSpin').disabled = false;
+
+  const n = tasks.length;
+  const normalizedAngle = currentAngle % (2 * Math.PI);
+  const pointerAngle = (2 * Math.PI - normalizedAngle + Math.PI * 1.5) % (2 * Math.PI);
+  const index = Math.floor(pointerAngle / (2 * Math.PI / n)) % n;
+
+  const winner = tasks[index];
+  showResult(winner);
+  addHistory(winner);
+}
+
+function handleFileUpload(event){
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const content = e.target.result;
+    const newTasks = content.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    if (newTasks.length === 0){
+      showToast('文件内容为空或格式不正确');
+      return;
+    }
+
+    tasks = newTasks;
+    drawWheel();
+    showToast('成功导入 ' + tasks.length + ' 个任务');
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+function downloadTemplate(){
+  const content = '大冒险任务模板（每行一个任务）\n\n用3个新词编故事\n像主播一样介绍知识点\n和同桌摆出图形/单词\n【未完成惩罚】带领全班读重点句\n【未完成惩罚】用屁股写自己的名字\n【未完成惩罚】模仿一个动物动作\n【未完成惩罚】课后擦黑板\n【未完成惩罚】夸赞左右同学';
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '课堂大冒险模板.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showResult(text){
+  const isWarning = text.indexOf('【未完成惩罚】') !== -1;
+  const titleEl = $('modal-title');
+  const textEl = $('modal-desc');
+
+  if (isWarning){
+    titleEl.textContent = '挑战失败';
+    titleEl.className = 'warn';
+    textEl.textContent = text.replace('【未完成惩罚】', '');
+  } else {
+    titleEl.textContent = '命运已定';
+    titleEl.className = 'accent';
+    textEl.textContent = text;
+  }
+  $('modal').classList.add('show');
+}
+
+const historyData = [];
+function addHistory(text){
+  const time = new Date().toLocaleTimeString();
+  const isWarning = text.indexOf('【未完成惩罚】') !== -1;
+  const display = isWarning ? text.replace('【未完成惩罚】', '') : text;
+
+  historyData.unshift({ time: time, text: display, warn: isWarning });
+  while (historyData.length > 10) historyData.pop();
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = $('historyList');
+  list.innerHTML = '';
+  if (historyData.length === 0){
+    list.innerHTML = '<div class="history-empty" style="color:var(--text-3);text-align:center;padding:10px 0;font-size:13px">暂无记录</div>';
+    return;
+  }
+  historyData.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'history-item' + (item.warn ? ' warn' : '');
+    row.innerHTML =
+      '<span class="time">[' + item.time + ']</span>' +
+      (item.warn ? '<span class="badge">惩罚</span>' : '') +
+      '<span class="txt"></span>';
+    row.querySelector('.txt').textContent = item.text;
+    list.appendChild(row);
+  });
+}
+
+/* 启动：默认显示数字炸弹 Tab，转盘画布在切到该 Tab 时再 fit */
+window.addEventListener('resize', fitCanvas);
+</script>
+</body>
+</html>

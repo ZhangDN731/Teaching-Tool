@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>点名系统 · 课堂互动工具集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234F6BFF'/%3E%3Cpath d='M8 12l3 3 5-6' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+:root{
+  --bg-gradient: linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
+  --surface:#FFFFFF; --surface-2:#F8FAFF;
+  --radius-lg:20px; --radius:14px; --radius-sm:10px;
+  --shadow-card:0 4px 24px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 32px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
+  --accent:#4F6BFF; --accent-hover:#3D56E0; --accent-soft:rgba(79,107,255,.08);
+  --cyan:#38BDF8; --green:#22C55E; --orange:#F59E0B; --red:#EF4444;
+  --text:#0F172A; --text-2:#334155; --text-3:#64748B;
+  --border:rgba(79,107,255,.12);
+  --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
+  --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg-gradient);color:var(--text);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 12% 18%,rgba(79,107,255,.08),transparent 32%),radial-gradient(circle at 88% 82%,rgba(56,189,248,.08),transparent 32%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1160px;width:100%;margin:0 auto;padding:24px 20px 36px;flex:1}
+
+/* 顶部区 */
+.hero{text-align:center;margin-bottom:24px}
+.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px;font-size:11px;letter-spacing:1.5px;color:var(--text-3);box-shadow:var(--shadow-card);margin-bottom:12px}
+.capsule::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.hero h1{font-size:27px;font-weight:800;color:var(--text);margin-bottom:8px}
+.grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:14px;color:var(--text-3)}
+
+/* 卡片网格 */
+.grid{display:grid;grid-template-columns:1fr;gap:15px}
+@media(min-width:820px){.grid{grid-template-columns:repeat(3,1fr)}}
+.entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:20px 18px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:10px;transition:.25s ease;min-height:190px}
+.entry:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}
+.entry-icon{width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.entry-icon svg{width:22px;height:22px}
+.entry:nth-child(2) .entry-icon{color:var(--cyan)}
+.entry:nth-child(3) .entry-icon{color:var(--orange)}
+.entry h2{font-size:16px;font-weight:700}
+.entry p{font-size:13.5px;color:var(--text-3);flex:1;line-height:1.55}
+.entry-go{font-size:13px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
+.entry-go svg{width:15px;height:15px;transition:.2s ease}
+.entry:hover .entry-go svg{transform:translateX(4px)}
+
+.foot{position:relative;z-index:1;text-align:center;font-size:12.5px;color:var(--text-3);padding:12px 20px}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="capsule">CLASSROOM INTERACTION · TOOLKIT</span>
+    <h1>课堂互动 <span class="grad-text">工具集</span></h1>
+    <p>选择下方任一功能进入使用，支持手机与电脑访问，无需联网。</p>
+  </section>
+
+  <section class="grid">
+    <a class="entry" href="roll_call.html">
+      <div class="entry-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h2>点名系统</h2>
+      <p>上传学生名单，随机抽取 1 人、1~10 人或自定义人数，课堂点名一键完成。</p>
+      <span class="entry-go">进入点名 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="entry" href="question_system.html">
+      <div class="entry-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2>知识点提问系统</h2>
+      <p>上传知识点清单，抽取 1 条或 5 条知识点，亦可随机抽取 3 个课堂惩罚供选择。</p>
+      <span class="entry-go">进入提问 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="entry" href="blind_box_draw.html">
+      <div class="entry-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
+      </div>
+      <h2>盲盒抽取系统</h2>
+      <p>同时上传学生名单与知识点，随机抽取一名学生与一个知识点，未完成即触发惩罚。</p>
+      <span class="entry-go">进入盲盒 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </section>
+</main>
+
+<footer class="foot">课堂互动工具集 · 本地离线可用</footer>
+
+</body>
+</html>

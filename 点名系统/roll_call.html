@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>点名系统</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234F6BFF'/%3E%3Cpath d='M8 12l3 3 5-6' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+:root{
+  --bg-gradient: linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
+  --surface:#FFFFFF; --surface-2:#F8FAFF;
+  --radius-lg:20px; --radius:14px; --radius-sm:10px;
+  --shadow-card:0 4px 24px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 32px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
+  --accent:#4F6BFF; --accent-hover:#3D56E0; --accent-soft:rgba(79,107,255,.08);
+  --cyan:#38BDF8; --green:#22C55E; --orange:#F59E0B; --red:#EF4444;
+  --text:#0F172A; --text-2:#334155; --text-3:#64748B;
+  --border:rgba(79,107,255,.12);
+  --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
+  --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg-gradient);color:var(--text);line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 12% 18%,rgba(79,107,255,.08),transparent 32%),radial-gradient(circle at 88% 82%,rgba(56,189,248,.08),transparent 32%);pointer-events:none;z-index:0}
+
+.topbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.topbar-inner{max-width:1040px;margin:0 auto;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
+.brand .brand-icon{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.brand .brand-icon svg{width:18px;height:18px}
+.topnav{display:flex;gap:8px}
+.topnav a{font-size:13px;color:var(--text-2);text-decoration:none;padding:7px 14px;border:1px solid var(--border);border-radius:999px;min-height:44px;display:inline-flex;align-items:center;transition:.2s ease;background:#fff;font-weight:600}
+.topnav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+
+.wrap{position:relative;z-index:1;max-width:1040px;width:100%;margin:0 auto;padding:24px 20px 32px;flex:1;display:flex;flex-direction:column;gap:14px}
+
+.page-head{text-align:center;margin-bottom:2px}
+.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:4px 12px;font-size:11px;letter-spacing:1.5px;color:var(--text-3);box-shadow:var(--shadow-card);margin-bottom:8px}
+.capsule::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.page-head h1{font-size:27px;font-weight:800;margin-bottom:3px}
+.page-head p{font-size:13px;color:var(--text-3)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px}
+.card h2{font-size:14.5px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px;color:var(--text)}
+.card h2::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--grad-text)}
+.card h2 svg{width:16px;height:16px;color:var(--accent)}
+.hint{font-size:12.5px;color:var(--text-3);margin-top:6px;line-height:1.5}
+
+.file-input{display:block;width:100%;font-size:15px;padding:8px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text-2);cursor:pointer;font-family:var(--font)}
+.file-input::-webkit-file-upload-button{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:7px 12px;margin-right:10px;font-size:13px;cursor:pointer;font-family:var(--font);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:999px;margin-top:6px}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.btn{font-family:var(--font);font-size:13px;font-weight:600;min-height:44px;padding:8px 18px;border-radius:11px;cursor:pointer;border:1px solid transparent;transition:.2s ease;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,#4F6BFF,#38BDF8);color:#fff;box-shadow:0 4px 14px rgba(79,107,255,.25)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-secondary{background:#fff;color:var(--accent);border-color:var(--border)}
+.btn-secondary:hover{background:var(--accent-soft)}
+.num-input{font-family:var(--font);font-size:15px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);width:100px;min-height:44px;color:var(--text)}
+.num-input:focus{outline:none;border:1.5px solid var(--accent)}
+.custom-box{display:flex;flex-direction:column;gap:4px}
+.custom-box label{font-size:12px;color:var(--text-3)}
+
+.result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.result .placeholder{font-size:14px;color:var(--text-3)}
+.result .label{font-size:12px;color:var(--text-3);margin-bottom:8px;letter-spacing:2px;text-transform:uppercase}
+.result-names{font-size:24px;font-weight:800;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.4;word-break:break-word}
+.result-names.single{font-size:36px}
+.status{font-size:13px;min-height:18px;margin-top:4px}
+.status.ok{color:var(--green)}
+.status.err{color:var(--red)}
+
+@media(max-width:600px){
+  .page-head h1{font-size:23px}
+  .result-names{font-size:20px}
+  .result-names.single{font-size:28px}
+  .actions .btn{flex:1 1 auto}
+  .custom-box{width:100%}
+  .num-input{width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+      点名系统
+    </div>
+    <nav class="topnav">
+      <a href="./index.html">返回首页</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <span class="capsule">ROLL CALL · RANDOM PICK</span>
+    <h1>课堂 <span style="background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent">点名</span>系统</h1>
+    <p>上传学生名单，一键随机抽取</p>
+  </div>
+
+  <section class="card">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>导入学生名单</h2>
+    <input type="file" id="fileInput" class="file-input" accept=".txt" />
+    <p class="hint">选择一个包含学生名单的 .txt 文件（每行一个姓名）。</p>
+    <div><span class="badge" id="countBadge">尚未导入</span></div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="card">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>抽取方式</h2>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="drawNames(1)">抽 1 人</button>
+      <button class="btn btn-primary" onclick="drawRandom()">随机抽取（1~10）</button>
+      <div class="custom-box">
+        <label for="customCount">自定义人数</label>
+        <input type="number" id="customCount" class="num-input" value="5" min="1" max="10" />
+      </div>
+      <button class="btn btn-secondary" onclick="drawCustom()">自定义抽取</button>
+    </div>
+  </section>
+
+  <section class="result">
+    <div class="label">抽取结果</div>
+    <div id="result-container"><span class="placeholder">等待抽取……</span></div>
+  </section>
+
+</main>
+
+<script>
+let studentList = [];
+const statusEl = document.getElementById('status');
+const badgeEl = document.getElementById('countBadge');
+const resultEl = document.getElementById('result-container');
+
+function setStatus(msg, type){
+  statusEl.textContent = msg || '';
+  statusEl.className = 'status' + (type ? ' ' + type : '');
+}
+
+document.getElementById('fileInput').addEventListener('change', function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const content = e.target.result;
+    studentList = content.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+    badgeEl.textContent = '已导入 ' + studentList.length + ' 名学生';
+    setStatus('成功导入 ' + studentList.length + ' 名学生', 'ok');
+  };
+  reader.readAsText(file);
+});
+
+function renderResult(selected){
+  if (selected.length === 1) {
+    resultEl.innerHTML = '<div class="result-names single">' + escapeHtml(selected[0]) + '</div>';
+  } else {
+    resultEl.innerHTML = '<div class="result-names">' + selected.map(escapeHtml).join('、') + '</div>';
+  }
+}
+
+function drawNames(count) {
+  if (studentList.length === 0) { setStatus('请先导入学生名单！', 'err'); return; }
+  if (count > studentList.length) { setStatus('当前名单人数不足，请重新选择数量。', 'err'); return; }
+  const selected = [...studentList].sort(() => 0.5 - Math.random()).slice(0, count);
+  renderResult(selected);
+}
+
+function drawRandom() {
+  if (studentList.length === 0) { setStatus('请先导入学生名单！', 'err'); return; }
+  const maxCount = Math.min(studentList.length, 10);
+  const count = Math.floor(Math.random() * maxCount) + 1;
+  drawNames(count);
+}
+
+function drawCustom() {
+  if (studentList.length === 0) { setStatus('请先导入学生名单！', 'err'); return; }
+  let count = parseInt(document.getElementById('customCount').value, 10);
+  if (isNaN(count) || count <= 0) { setStatus('请输入有效的正整数！', 'err'); return; }
+  count = Math.min(count, 10);
+  if (count > studentList.length) { setStatus('当前名单人数不足，请重新输入数量。', 'err'); return; }
+  drawNames(count);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+
+</body>
+</html>
