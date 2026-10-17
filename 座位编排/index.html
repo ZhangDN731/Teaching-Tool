@@ -167,56 +167,105 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
 .map-head .btn{padding:8px 16px;font-size:12.5px;min-height:38px;border-radius:9px}
 .map-head .btn svg{width:13px;height:13px}
 
-.classroom{width:100%;overflow-x:hidden;padding:6px 2px}
+.classroom{width:100%;overflow-x:hidden;padding:12px;border-radius:14px;background:#F8FAFC}
 .side-wrap{display:flex;gap:10px;align-items:stretch;justify-content:center}
-.podium-side{background:linear-gradient(180deg,#475569,#1E293B);color:#fff;text-align:center;
-  border-radius:10px;padding:8px 6px;letter-spacing:2px;font-size:12px;font-weight:600;
+.podium-side{background:linear-gradient(180deg,#334155,#1E293B);color:#fff;text-align:center;
+  border-radius:12px;padding:8px 6px;letter-spacing:2px;font-size:13px;font-weight:700;
   writing-mode:vertical-rl;flex:none;display:flex;align-items:center;justify-content:center;
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
-.seat-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
-.seat-row{display:flex;gap:6px;align-items:stretch}
-.row-label{width:46px;flex:none;display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--text-3);font-weight:600}
-.seat{flex:1;min-width:0;min-height:58px;border-radius:10px;border:1.5px solid var(--border);background:#fff;
+  box-shadow:0 2px 10px rgba(30,41,59,.25)}
+.seat-col{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.seat-row{display:flex;gap:8px;align-items:stretch}
+.row-label{width:40px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#94A3B8;font-weight:500}
+/* 学生卡片：姓名为主体，组号小标签左上，总分·排名一行小字底部 */
+.seat{flex:1;min-width:0;min-height:66px;border-radius:10px;border:2px solid var(--border);background:#fff;
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  padding:3px;cursor:pointer;position:relative;transition:.15s;user-select:none}
-.seat:hover{border-color:var(--accent);box-shadow:var(--shadow-hover)}
-.seat .nm{font-weight:600;color:var(--text);font-size:13px;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.seat .sc{font-size:10px;color:var(--text-3);margin-top:1px}
-.seat.tier-high{background:rgba(79,107,255,.09);border-color:rgba(79,107,255,.45)}
-.seat.tier-mid{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.4)}
-.seat.tier-low{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.4)}
-.seat.empty{border-style:dashed;background:transparent;color:var(--text-3);font-size:11px}
+  padding:8px 6px;cursor:pointer;position:relative;transition:.15s;user-select:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.seat:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(79,107,255,.16)}
+.seat .nm{font-weight:700;color:var(--text);font-size:16px;line-height:1.2;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat .meta{font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.2;white-space:nowrap;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.seat.tier-high{background:rgba(79,107,255,.10);border-color:rgba(79,107,255,.45)}
+.seat.tier-mid{background:rgba(56,189,248,.09);border-color:rgba(56,189,248,.4)}
+.seat.tier-low{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.4)}
+/* 空座位：弱视觉权重 */
+.seat.empty{border:1px dashed #CBD5E1;background:#F8FAFC;color:#94A3B8;font-size:12px;
+  box-shadow:none;min-height:66px;cursor:pointer}
+.seat.empty:hover{border-color:#CBD5E1;box-shadow:none}
 .seat.aisle{background:repeating-linear-gradient(45deg,#EEF2FF,#EEF2FF 5px,#F8FAFF 5px,#F8FAFF 10px);
-  border-color:transparent;color:var(--text-3);font-size:11px;cursor:default}
+  border-color:transparent;color:var(--text-3);font-size:11px;cursor:default;box-shadow:none}
 .seat.aisle:hover{box-shadow:none;border-color:transparent}
 .seat.dragging{opacity:.35}
 .seat.drag-over{border-color:var(--green);background:rgba(34,197,94,.12);transform:scale(1.04)}
 .seat.selected-source{border-color:var(--green);background:rgba(34,197,94,.16);box-shadow:0 0 0 3px rgba(34,197,94,.25)}
-.seat.male::after,.seat.female::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%}
-.seat.male::after{background:var(--accent)}
-.seat.female::after{background:#EC4899}
-.seat .gbadge{position:absolute;top:3px;left:4px;font-size:9.5px;font-weight:700;color:#fff;
-  background:var(--accent);border-radius:5px;padding:0 5px;line-height:15px;min-width:20px;text-align:center}
+/* 性别圆点弱化隐藏，避免卡片元素过多 */
+.seat.male::after,.seat.female::after{display:none}
+/* 组号小标签：左上角小圆角，半透明白底 */
+.seat .gbadge{position:absolute;top:4px;left:5px;font-size:10px;font-weight:700;color:var(--text-2);
+  background:rgba(255,255,255,.82);border-radius:5px;padding:0 5px;line-height:15px;min-width:22px;
+  text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+
+/* 带头人金色标记（边框+右上角星标） */
+.seat.leader{border:2.5px solid #F59E0B !important;
+  box-shadow:0 0 0 2px rgba(245,158,11,.18),0 3px 12px rgba(245,158,11,.25) !important;z-index:1}
+.seat .star-badge{position:absolute;top:3px;right:4px;width:14px;height:14px;pointer-events:none;z-index:2;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+
+/* ---------- 小组成绩验证区 ---------- */
+.verify-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
+  padding:16px;margin-top:14px}
+.verify-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.verify-head .ic{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
+.verify-head .ic svg{width:19px;height:19px}
+.verify-head h2{font-size:15px;font-weight:700;color:var(--text)}
+.verify-head p{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.verify-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.verify-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.verify-grid{grid-template-columns:repeat(3,1fr)}}
+.vcard{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+  padding:11px 12px;transition:.2s}
+.vcard:hover{box-shadow:var(--shadow-hover);transform:translateY(-1px)}
+.vcard .vhead{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.vcard .vdot{width:12px;height:12px;border-radius:50%;flex:none;
+  border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.08)}
+.vcard .vtitle{font-size:13px;font-weight:700;color:var(--text)}
+.vcard .vmeta{font-size:11px;color:var(--text-3);margin-left:auto;font-weight:600}
+.vcard .vavg{font-size:11.5px;color:var(--text-2);margin-bottom:7px;line-height:1.6}
+.vcard .vavg b{color:var(--accent);font-weight:800;font-size:13px}
+.vcard .vsubj{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.vcard .vtag{font-size:10.5px;background:#fff;border:1px solid var(--border);border-radius:6px;
+  padding:3px 6px;color:var(--text-2);line-height:1.4}
+.vcard .vtag b{color:#B45309;font-weight:700;display:block;font-size:10.5px}
+.vcard .vtop3{margin-top:7px;padding-top:6px;border-top:1px dashed var(--border);
+  font-size:11px;color:var(--text-2);line-height:1.7}
+.vcard .vtop3 .t{font-weight:700;color:var(--text);font-size:10.5px;display:block;margin-bottom:2px;
+  letter-spacing:.3px}
+.vcard .vtop3 ol{margin:0;padding-left:16px}
+.vcard .vtop3 li{margin-bottom:1px}
+.vcard.class-card{grid-column:1/-1}
+@media print{.verify-card{display:none !important}}
 
 /* 讲台（融入座位行） */
-.podium-cell{border-radius:10px;background:linear-gradient(135deg,#64748B,#1E293B);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
-  letter-spacing:4px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);flex-grow:2;min-height:58px}
+.podium-cell{border-radius:12px;background:linear-gradient(135deg,#334155,#1E293B);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;
+  letter-spacing:4px;box-shadow:0 2px 10px rgba(30,41,59,.3);flex-grow:2;min-height:66px}
 
-/* 小组配色（淡色底 + 2.5px 实色边框，12色循环，边界更明显） */
-.g0{background:#EEF2FF !important;border:2.5px solid #4F6BFF !important}
-.g1{background:#ECFEFF !important;border:2.5px solid #06B6D4 !important}
-.g2{background:#F0FDF4 !important;border:2.5px solid #22C55E !important}
-.g3{background:#FFF7ED !important;border:2.5px solid #F59E0B !important}
-.g4{background:#FDF2F8 !important;border:2.5px solid #EC4899 !important}
-.g5{background:#F5F3FF !important;border:2.5px solid #8B5CF6 !important}
-.g6{background:#FFF1F2 !important;border:2.5px solid #F43F5E !important}
-.g7{background:#F0F9FF !important;border:2.5px solid #0EA5E9 !important}
-.g8{background:#F7FEE7 !important;border:2.5px solid #84CC16 !important}
-.g9{background:#FEFCE8 !important;border:2.5px solid #EAB308 !important}
-.g10{background:#FDF4FF !important;border:2.5px solid #D946EF !important}
-.g11{background:#EFF6FF !important;border:2.5px solid #3B82F6 !important}
+/* 小组配色：多色区分，12组循环（蓝/青/绿/橙/粉/紫/红/青蓝/黄绿/深橙/玫红/靛蓝） */
+.g0{background:rgba(79,107,255,.12)!important;border:2px solid #4F6BFF!important}
+.g1{background:rgba(14,165,233,.12)!important;border:2px solid #0EA5E9!important}
+.g2{background:rgba(34,197,94,.12)!important;border:2px solid #22C55E!important}
+.g3{background:rgba(245,158,11,.12)!important;border:2px solid #F59E0B!important}
+.g4{background:rgba(236,72,153,.12)!important;border:2px solid #EC4899!important}
+.g5{background:rgba(139,92,246,.12)!important;border:2px solid #8B5CF6!important}
+.g6{background:rgba(239,68,68,.12)!important;border:2px solid #EF4444!important}
+.g7{background:rgba(6,182,212,.12)!important;border:2px solid #06B6D4!important}
+.g8{background:rgba(132,204,22,.12)!important;border:2px solid #84CC16!important}
+.g9{background:rgba(249,115,22,.13)!important;border:2px solid #F97316!important}
+.g10{background:rgba(219,39,119,.13)!important;border:2px solid #DB2777!important}
+.g11{background:rgba(99,102,241,.13)!important;border:2px solid #6366F1!important}
 
 /* ---------- 悬停成绩详情 tooltip ---------- */
 .seat-tip{position:fixed;z-index:9999;min-width:180px;max-width:240px;background:#fff;
@@ -236,9 +285,9 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
   display:flex;justify-content:space-between;font-weight:700}
 .seat-tip .tt-total .v{color:var(--accent)}
 
-.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11.5px;color:var(--text-3);justify-content:center}
+.legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:12px;font-size:12px;color:var(--text-3);justify-content:center}
 .legend-item{display:flex;align-items:center;gap:5px}
-.chip{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border)}
+.chip{width:11px;height:11px;border-radius:3px;border:2px solid var(--border)}
 
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--text);
   color:#fff;padding:10px 20px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;
@@ -261,25 +310,28 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
   .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
   .seat{border:1px solid #999 !important;box-shadow:none !important}
   .podium-cell{background:#475569 !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .g0{background:#EEF2FF !important;border-color:#4F6BFF !important}
-  .g1{background:#ECFEFF !important;border-color:#06B6D4 !important}
-  .g2{background:#F0FDF4 !important;border-color:#22C55E !important}
-  .g3{background:#FFF7ED !important;border-color:#F59E0B !important}
-  .g4{background:#FDF2F8 !important;border-color:#EC4899 !important}
-  .g5{background:#F5F3FF !important;border-color:#8B5CF6 !important}
-  .g6{background:#FFF1F2 !important;border-color:#F43F5E !important}
-  .g7{background:#F0F9FF !important;border-color:#0EA5E9 !important}
-  .g8{background:#F7FEE7 !important;border-color:#84CC16 !important}
-  .g9{background:#FEFCE8 !important;border-color:#EAB308 !important}
-  .g10{background:#FDF4FF !important;border-color:#D946EF !important}
-  .g11{background:#EFF6FF !important;border-color:#3B82F6 !important}
+  .g0{background:rgba(79,107,255,.18)!important;border-color:#4F6BFF!important}
+  .g1{background:rgba(14,165,233,.18)!important;border-color:#0EA5E9!important}
+  .g2{background:rgba(34,197,94,.18)!important;border-color:#22C55E!important}
+  .g3{background:rgba(245,158,11,.18)!important;border-color:#F59E0B!important}
+  .g4{background:rgba(236,72,153,.18)!important;border-color:#EC4899!important}
+  .g5{background:rgba(139,92,246,.18)!important;border-color:#8B5CF6!important}
+  .g6{background:rgba(239,68,68,.18)!important;border-color:#EF4444!important}
+  .g7{background:rgba(6,182,212,.18)!important;border-color:#06B6D4!important}
+  .g8{background:rgba(132,204,22,.18)!important;border-color:#84CC16!important}
+  .g9{background:rgba(249,115,22,.2)!important;border-color:#F97316!important}
+  .g10{background:rgba(219,39,119,.2)!important;border-color:#DB2777!important}
+  .g11{background:rgba(99,102,241,.2)!important;border-color:#6366F1!important}
 }
 @media(max-width:767px){
   .wrap{padding:14px 10px 24px}
   .page-head h1{font-size:22px}
-  .seat{min-height:50px}
-  .seat .nm{font-size:11.5px}
-  .row-label{width:32px;font-size:10px}
+  .classroom{padding:8px}
+  .seat{min-height:56px;padding:6px 4px}
+  .seat .nm{font-size:13.5px}
+  .seat .meta{font-size:10px}
+  .seat.empty{min-height:56px}
+  .row-label{width:30px;font-size:10.5px}
   input[type=number],input[type=text],select,textarea{font-size:15px;min-height:44px}
   .btn{min-height:44px}
   .map-head{flex-direction:column;align-items:stretch}
@@ -474,6 +526,15 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
     <div class="classroom" id="classroom" style="display:none"></div>
   </section>
 
+  <!-- ============ 小组成绩验证区 ============ -->
+  <section class="card verify-card" id="verifySection" style="display:none">
+    <div class="verify-head">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div><h2 id="verifyTitle">小组成绩验证</h2><p id="verifySubtitle">各组人数 · 总分均分 · 各科最高分学生 · 组内前3名</p></div>
+    </div>
+    <div class="verify-grid" id="verifyGrid"></div>
+  </section>
+
   <div class="footer">智能座位编排系统 · 纯前端单文件 · 数据不出本机</div>
 </div>
 
@@ -666,20 +727,27 @@ function importAOA(aoa){
   toast('成功导入 '+students.length+' 名学生');
 }
 
-/* ⑧ 默认行列：列≥行，尽量接近正方形，扣掉讲台后可用座位≥人数，留少量空位 */
+/* ⑧ 默认行列：在 4~10 列之间枚举，每列数取刚好够坐的最少行数。
+ * 核心目标：让最后一排（后排）尽量坐满——空位越少后排越满。
+ * 数学上：前排讲台占 pw 格，其余每排 C 格；总空位 = R*C - pw - n，
+ * 后排人数 = C - 总空位（当空位<C 时）。故"总空位最少"等价于"后排最满"。
+ * 次目标：行列不要过于悬殊。 */
 function autoLayout(n){
   const pw = (C)=> C>=8?2:1;
   let best=null;
-  for(let C=Math.ceil(Math.sqrt(n)); C<=Math.ceil(Math.sqrt(n))+5; C++){
-    for(let R=Math.ceil(n/C); R<=C; R++){
-      const avail=R*C-pw(C);
-      if(avail>=n){
-        const score=Math.abs(C-R)*10+(avail-n); // 先求方正，再求少空位
-        if(!best||score<best.score) best={rows:R,cols:C,score};
-      }
-    }
+  for(let C=4; C<=10; C++){
+    const p=pw(C);
+    const R=Math.ceil((n+p)/C);           // 刚好够坐的最少行数
+    if(R<2||R>10) continue;
+    const avail=R*C-p;
+    if(avail<n) continue;
+    const empty=avail-n;                   // 总空位 ≈ 后排缺的人数
+    const backFill=C-empty;               // 后排实际人数
+    // 主：空位越少越好；次：行列均衡
+    const score=empty*10 + Math.abs(C-R)*2;
+    if(!best||score<best.score) best={rows:R,cols:C,score,empty,backFill};
   }
-  if(!best) best={rows:Math.ceil(Math.sqrt(n)),cols:Math.ceil(Math.sqrt(n))};
+  if(!best) best={rows:Math.max(2,Math.ceil(n/7)),cols:7};
   best.rows=Math.max(2,Math.min(16,best.rows));
   best.cols=Math.max(4,Math.min(16,best.cols));
   return {rows:best.rows, cols:best.cols};
@@ -731,6 +799,112 @@ function computeSubjectRanks(){
     });
     subjectRanks[subj]=rankMap;
   });
+}
+
+/* 组内总分排名：按总分降序，同分按姓名拼音排序（稳定）。
+ * 总分=0 视为"无成绩"，不参与组内排名（_groupRank 保持 null），
+ * 同时标记 _groupTop30(前30%布尔)。 */
+function computeGroupRanks(){
+  students.forEach(s=>{s._groupRank=null;s._groupTop30=false;});
+  groupList.forEach(grp=>{
+    if(!grp||!grp.length)return;
+    const scored=grp.filter(s=> s.total>0);
+    const sorted=[...scored].sort((a,b)=> b.total-a.total || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
+    const k=Math.max(1,Math.ceil(sorted.length*0.30));
+    sorted.forEach((s,i)=>{
+      s._groupRank=i+1;
+      s._groupTop30=i<k;
+    });
+  });
+}
+
+/* 小组配色（与座位 g0~g11 一致，多色区分，12组循环） */
+const GROUP_COLORS=['#4F6BFF','#0EA5E9','#22C55E','#F59E0B','#EC4899','#8B5CF6','#EF4444',
+  '#06B6D4','#84CC16','#F97316','#DB2777','#6366F1'];
+function groupColorHex(gi){return GROUP_COLORS[((gi%12)+12)%12];}
+
+/* ============================================================
+ * 小组成绩验证区渲染
+ * ============================================================ */
+function renderVerification(){
+  const sec=$('verifySection');
+  if(!seatMap.length || !students.length){ sec.style.display='none'; return; }
+  const grid=$('verifyGrid'); grid.innerHTML='';
+  const hasGroups = groupList.length>0 && groupList.some(g=>g.length>0);
+
+  if(!hasGroups){
+    // 纯随机无分组 → 全班统计
+    $('verifyTitle').textContent='全班成绩统计';
+    $('verifySubtitle').textContent='全班人数 · 总分均分 · 各科最高分学生 · 总分前5名';
+    grid.appendChild(buildClassCard());
+    sec.style.display='block';
+    return;
+  }
+
+  $('verifyTitle').textContent='小组成绩验证';
+  $('verifySubtitle').textContent='各组人数 · 总分均分 · 各科最高分学生 · 组内前3名';
+  groupList.forEach((grp,i)=>{
+    if(grp&&grp.length) grid.appendChild(buildGroupCard(grp,i));
+  });
+  sec.style.display='block';
+}
+
+function buildGroupCard(grp,gi){
+  const card=document.createElement('div'); card.className='vcard';
+  const n=grp.length;
+  const avg=n?(grp.reduce((a,s)=>a+s.total,0)/n):0;
+  // 各科：均分 + 最高分学生
+  let subjHtml='';
+  scoreCols.forEach(subj=>{
+    const sa=n?(grp.reduce((a,s)=>a+(s.scores[subj]||0),0)/n):0;
+    let topS=null,topV=-Infinity;
+    grp.forEach(s=>{const v=s.scores[subj]||0; if(v>topV){topV=v;topS=s;}});
+    const topName=topS?topS.name:'-';
+    subjHtml+='<span class="vtag">'+esc(subj)+' 均'+sa.toFixed(1)
+      +'<b>'+esc(topName)+' '+topV+'分</b></span>';
+  });
+  // 组内前3
+  const sorted=[...grp].sort((a,b)=>b.total-a.total || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
+  const top3=sorted.slice(0,3);
+  let top3Html='<ol>';
+  top3.forEach(s=>{ top3Html+='<li>'+esc(s.name)+'　'+s.total+'分</li>'; });
+  top3Html+='</ol>';
+
+  card.innerHTML=
+    '<div class="vhead"><span class="vdot" style="background:'+groupColorHex(gi)+'"></span>'+
+    '<span class="vtitle">第'+(gi+1)+'组</span>'+
+    '<span class="vmeta">'+n+'人</span></div>'+
+    '<div class="vavg">总分均分 <b>'+avg.toFixed(1)+'</b></div>'+
+    '<div class="vsubj">'+subjHtml+'</div>'+
+    '<div class="vtop3"><span class="t">组内总分前3</span>'+top3Html+'</div>';
+  return card;
+}
+
+function buildClassCard(){
+  const card=document.createElement('div'); card.className='vcard class-card';
+  const n=students.length;
+  const avg=n?(students.reduce((a,s)=>a+s.total,0)/n):0;
+  let subjHtml='';
+  scoreCols.forEach(subj=>{
+    const sa=n?(students.reduce((a,s)=>a+(s.scores[subj]||0),0)/n):0;
+    let topS=null,topV=-Infinity;
+    students.forEach(s=>{const v=s.scores[subj]||0; if(v>topV){topV=v;topS=s;}});
+    subjHtml+='<span class="vtag">'+esc(subj)+' 均'+sa.toFixed(1)
+      +'<b>'+esc(topS?topS.name:'-')+' '+topV+'分</b></span>';
+  });
+  const sorted=[...students].sort((a,b)=>b.total-a.total || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
+  const top5=sorted.slice(0,5);
+  let top5Html='<ol style="columns:2;-webkit-columns:2">';
+  top5.forEach(s=>{ top5Html+='<li>'+esc(s.name)+'　'+s.total+'分</li>'; });
+  top5Html+='</ol>';
+  card.innerHTML=
+    '<div class="vhead"><span class="vdot" style="background:#4F6BFF"></span>'+
+    '<span class="vtitle">全班统计</span>'+
+    '<span class="vmeta">'+n+'人</span></div>'+
+    '<div class="vavg">总分均分 <b>'+avg.toFixed(1)+'</b></div>'+
+    '<div class="vsubj">'+subjHtml+'</div>'+
+    '<div class="vtop3"><span class="t">全班总分前5</span>'+top5Html+'</div>';
+  return card;
 }
 
 /* ============================================================
@@ -950,6 +1124,7 @@ function generateSeats(silent){
   let best=null,bestViol=Infinity;
   if(genStrategy==='group'){
     computeGroups();
+    computeGroupRanks();
     for(let attempt=0;attempt<6;attempt++){
       const grid=buildGrid();
       placeFixed(grid);
@@ -961,7 +1136,13 @@ function generateSeats(silent){
       if(viol===0)break;
     }
   }else{
-    groupList=[]; students.forEach(s=>s._group=null);
+    // 完全随机：仍按 groupSize 计算分组用于"小组成绩验证"区展示，但座位不按分组着色、不标带头人
+    if(groupSize>=2 && students.length>=groupSize){
+      computeGroups();
+    }else{
+      groupList=[]; students.forEach(s=>s._group=null);
+    }
+    computeGroupRanks();
     for(let attempt=0;attempt<8;attempt++){
       const grid=buildGrid();
       placeFixed(grid);
@@ -974,7 +1155,7 @@ function generateSeats(silent){
     }
   }
   seatMap=best;
-  renderGrid(); refreshStats();
+  renderGrid(); refreshStats(); renderVerification();
   $('exportBtn').disabled=false; $('printBtn').disabled=false;
   $('regenBtn').disabled=false; $('clearBtn').disabled=false;
   /* 错开第一排：若第二排及以后坐不下，已自动回退占用第一排，给出提示 */
@@ -1256,18 +1437,38 @@ function renderGrid(){
         el.className='seat aisle'; el.textContent='过道';
       }else if(cell&&cell.t==='s'){
         let cls='seat ';
-        if(groupMode&&cell.s._group!=null) cls+='g'+(cell.s._group%12)+' ';
+        const isGroupMode = groupMode && cell.s._group!=null;
+        if(isGroupMode) cls+='g'+(cell.s._group%12)+' ';
         else cls+=tierClass(cell.s)+' ';
-        cls+=(cell.s.gender==='M'?' male':cell.s.gender==='F'?' female':'');
+        // 组内排名标记：仅小组排座模式显示金色带头人边框+星标
+        const hasRank = cell.s._groupRank!=null;
+        const isLeader = groupMode && hasRank && cell.s._groupRank===1;
+        if(isLeader) cls+=' leader ';
         el.className=cls; el.draggable=true;
-        if(groupMode&&cell.s._group!=null){
+        // 组号小标签：左上角
+        if(isGroupMode){
           const bd=document.createElement('div'); bd.className='gbadge'; bd.textContent=(cell.s._group+1)+'组';
           el.appendChild(bd);
         }
+        // 金色带头人：右上角星标
+        if(isLeader){
+          const star=document.createElementNS('http://www.w3.org/2000/svg','svg');
+          star.setAttribute('viewBox','0 0 24 24');
+          star.setAttribute('class','star-badge');
+          star.innerHTML='<path fill="#F59E0B" stroke="#fff" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.97l-5.9 3.1 1.13-6.57-4.78-4.67 6.6-.96z"/>';
+          el.appendChild(star);
+        }
+        // 姓名（主体）
         const nm=document.createElement('div'); nm.className='nm'; nm.textContent=cell.s.name;
-        const sc=document.createElement('div'); sc.className='sc';
-        sc.textContent=Object.keys(cell.s.scores).length?('总分 '+cell.s.total):'';
-        el.appendChild(nm); el.appendChild(sc);
+        el.appendChild(nm);
+        // 底部一行小字：有成绩显示"X分 · 组内第Y"，无成绩显示"—"
+        const meta=document.createElement('div'); meta.className='meta';
+        if(cell.s.total>0){
+          meta.textContent = hasRank ? (cell.s.total+'分 · 组内第'+cell.s._groupRank) : (cell.s.total+'分');
+        }else{
+          meta.textContent='—';
+        }
+        el.appendChild(meta);
         el.addEventListener('dragstart',dragStart);
         el.addEventListener('dragover',dragOver);
         el.addEventListener('drop',onDrop);
@@ -1378,7 +1579,7 @@ function showTip(e,s,anchor){
     html+='<div class="tt-row"><span class="k">'+esc(subj)+'</span>'
         +'<span class="v">'+v+(rank!=null?('　班级第'+rank+'名/'+students.length+'人'):'')+'</span></div>';
   });
-  html+='<div class="tt-total"><span>总分</span><span class="v">'+s.total+'</span></div>';
+  html+='<div class="tt-total"><span>总分</span><span class="v">'+(s.total>0?s.total:'—')+'</span></div>';
   tipEl.innerHTML=html;
   document.body.appendChild(tipEl);
   positionTip(anchor);
@@ -1409,8 +1610,9 @@ $('regenBtn').addEventListener('click',()=>{
   generateSeats(false);
 });
 $('clearBtn').addEventListener('click',()=>{
-  seatMap=[]; groupList=[]; students.forEach(s=>s._group=null);
+  seatMap=[]; groupList=[]; students.forEach(s=>{s._group=null;s._groupRank=null;s._groupTop30=false;});
   renderGrid(); refreshStats();
+  $('verifySection').style.display='none'; $('verifyGrid').innerHTML='';
   $('exportBtn').disabled=true; $('printBtn').disabled=true;
   $('regenBtn').disabled=true; $('clearBtn').disabled=true;
   toast('已清空座位表');
@@ -1429,12 +1631,13 @@ $('exportBtn').addEventListener('click',()=>{
       if(!cell)row.push('空');
       else if(cell.t==='aisle')row.push('过道');
       else if(cell.t==='podium')row.push('讲台');
-      else row.push(groupMode&&cell.s._group!=null?cell.s.name+'（'+(cell.s._group+1)+'组）':cell.s.name);
+      else row.push(cell.s._group!=null?cell.s.name+'（'+(cell.s._group+1)+'组）':cell.s.name);
     }
     data.push(row);
   }
   data.push([]);
-  if(groupMode&&groupList.length){
+  const hasGroups = groupList.length>0 && groupList.some(g=>g.length>0);
+  if(hasGroups){
     data.push(['小组构成']);
     groupList.forEach((grp,i)=>{
       const avg=grp.length?(grp.reduce((a,s)=>a+s.total,0)/grp.length).toFixed(1):'-';
@@ -1443,12 +1646,25 @@ $('exportBtn').addEventListener('click',()=>{
     data.push([]);
   }
   data.push(['学生明细']);
-  data.push(groupMode?['小组','姓名','性别','总分',...scoreCols]:['姓名','性别','总分',...scoreCols]);
-  students.forEach(s=>{
-    const row=[s.name,s.gender==='M'?'男':s.gender==='F'?'女':'',s.total,...scoreCols.map(k=>s.scores[k]??'')];
-    if(groupMode)row.unshift(s._group!=null?('第'+(s._group+1)+'组'):'-');
-    data.push(row);
-  });
+  if(hasGroups){
+    data.push(['小组','组内排名','姓名','性别','总分',...scoreCols]);
+    students.forEach(s=>{
+      const row=[
+        s._group!=null?('第'+(s._group+1)+'组'):'-',
+        s._groupRank?('第'+s._groupRank+'名'):'-',
+        s.name,
+        s.gender==='M'?'男':s.gender==='F'?'女':'',
+        s.total,
+        ...scoreCols.map(k=>s.scores[k]??'')
+      ];
+      data.push(row);
+    });
+  }else{
+    data.push(['姓名','性别','总分',...scoreCols]);
+    students.forEach(s=>{
+      data.push([s.name,s.gender==='M'?'男':s.gender==='F'?'女':'',s.total,...scoreCols.map(k=>s.scores[k]??'')]);
+    });
+  }
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:10},{wch:10},{wch:8},{wch:8},...Array.from({length:Math.max(0,layout.cols-1)},()=>({wch:10}))];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'座位表');
