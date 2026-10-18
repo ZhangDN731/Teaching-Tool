@@ -9,11 +9,11 @@
 :root{
   --bg:linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
   --surface:#FFFFFF;--surface-2:#F8FAFF;
-  --radius-lg:18px;--radius:12px;--radius-sm:9px;
-  --shadow:0 4px 20px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --radius-lg:16px;--radius:11px;--radius-sm:8px;
+  --shadow:0 3px 16px rgba(79,107,255,.07),0 1px 3px rgba(0,0,0,.03);
   --shadow-hover:0 8px 28px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
   --accent:#4F6BFF;--accent-hover:#3D56E0;--accent-soft:rgba(79,107,255,.08);
-  --cyan:#38BDF8;--green:#22C55E;--orange:#F59E0B;
+  --cyan:#38BDF8;--green:#22C55E;--orange:#F59E0B;--red:#EF4444;
   --text:#0F172A;--text-2:#334155;--text-3:#64748B;
   --border:rgba(79,107,255,.12);
   --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
@@ -31,80 +31,120 @@ body::before{
   background-image:radial-gradient(circle at 15% 20%,rgba(79,107,255,.06) 0,transparent 40%),
                    radial-gradient(circle at 85% 70%,rgba(56,189,248,.06) 0,transparent 40%);
 }
-.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:24px 24px 32px}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:20px 20px 28px}
 
 /* 顶部 */
-.hero{text-align:center;margin-bottom:20px}
+.hero{text-align:center;margin-bottom:16px}
 .capsule{
   display:inline-flex;align-items:center;gap:7px;
-  background:#fff;border-radius:999px;padding:5px 14px;
-  box-shadow:var(--shadow);font-size:11px;letter-spacing:1.2px;
-  color:var(--accent);font-weight:600;text-transform:uppercase;margin-bottom:12px;
+  background:#fff;border-radius:999px;padding:4px 13px;
+  box-shadow:var(--shadow);font-size:10.5px;letter-spacing:1.2px;
+  color:var(--accent);font-weight:600;text-transform:uppercase;margin-bottom:10px;
 }
 .capsule .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-h1{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.25}
+h1{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.25}
 h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
-.subtitle{margin-top:8px;color:var(--text-3);font-size:13.5px}
+.subtitle{margin-top:6px;color:var(--text-3);font-size:13px}
 
-/* 统计条 */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
-.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow);text-align:center}
-.stat-card .num{font-size:24px;font-weight:800;color:var(--accent);line-height:1.1}
-.stat-card .label{font-size:12px;color:var(--text-3);margin-top:2px}
-
-/* 分区标题 */
-.section-title{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:16px;font-weight:700;color:var(--text)}
-.section-title .bar{width:3.5px;height:17px;border-radius:3px;background:var(--accent)}
+/* 过滤标签 */
+.filters{display:flex;justify-content:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{
+  border:1px solid var(--border);background:#fff;color:var(--text-3);
+  padding:5px 14px;border-radius:999px;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:all .15s;
+}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* 工具卡片网格 */
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .card{
-  background:var(--surface);border-radius:var(--radius-lg);padding:16px 16px 18px;
-  box-shadow:var(--shadow);transition:transform .25s ease,box-shadow .25s ease;
+  background:var(--surface);border-radius:var(--radius-lg);
+  padding:14px;box-shadow:var(--shadow);
+  transition:transform .2s ease,box-shadow .2s ease;
   display:flex;flex-direction:column;position:relative;overflow:hidden;
+  cursor:pointer;text-decoration:none;color:inherit;
 }
 .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+.card .top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
 .card .icon-box{
-  width:40px;height:40px;border-radius:11px;background:var(--accent-soft);
-  display:flex;align-items:center;justify-content:center;margin-bottom:9px;color:var(--accent);
+  width:38px;height:38px;border-radius:10px;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);
 }
-.card .icon-box svg{width:22px;height:22px}
-.card h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
-.card p{font-size:12px;color:var(--text-3);line-height:1.55;flex:1;margin-bottom:10px}
+.card .icon-box svg{width:20px;height:20px}
+.card .title-area{flex:1;min-width:0}
+.card h3{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px;line-height:1.3}
+.card h3 .lock{width:12px;height:12px;color:var(--orange);flex-shrink:0}
+.card .type{font-size:10px;color:var(--text-3);margin-top:2px}
+.card p{font-size:11.5px;color:var(--text-3);line-height:1.5;margin-bottom:10px;flex:1;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card .enter{
-  align-self:flex-start;display:inline-flex;align-items:center;gap:5px;
-  background:var(--accent);color:#fff;border:none;border-radius:9px;
-  padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;
-  text-decoration:none;transition:background .2s;
+  align-self:flex-start;display:inline-flex;align-items:center;gap:4px;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;
+  text-decoration:none;transition:background .15s;
 }
 .card .enter:hover{background:var(--accent-hover)}
-.card .enter svg{width:14px;height:14px}
+.card .enter svg{width:12px;height:12px}
 .card .tag{
-  position:absolute;top:14px;right:14px;font-size:10.5px;font-weight:600;
-  background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:999px;letter-spacing:.3px;
+  position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;
+  padding:2px 7px;border-radius:999px;letter-spacing:.3px;
 }
+.card .tag.local{background:var(--accent-soft);color:var(--accent)}
 .card .tag.ext{background:rgba(56,189,248,.1);color:#0284C7}
+.card .tag.lock-tag{background:rgba(245,158,11,.1);color:#B45309}
+
+/* 验证码弹窗 */
+.modal-mask{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:rgba(15,23,42,.45);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.modal-mask.show{display:flex}
+.modal{
+  background:#fff;border-radius:18px;padding:24px 24px 20px;
+  width:340px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.18);
+  text-align:center;animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+.modal .lock-icon{
+  width:44px;height:44px;border-radius:50%;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--accent);
+}
+.modal .lock-icon svg{width:22px;height:22px}
+.modal h4{font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px}
+.modal p{font-size:12px;color:var(--text-3);margin-bottom:14px;line-height:1.5}
+.modal input{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:13.5px;font-family:var(--font);outline:none;transition:border-color .2s;
+  text-align:center;letter-spacing:2px;
+}
+.modal input:focus{border-color:var(--accent)}
+.modal .err{color:var(--red);font-size:11.5px;margin-top:7px;min-height:15px;display:none}
+.modal .err.show{display:block}
+.modal .btns{display:flex;gap:8px;margin-top:14px}
+.modal .btns button{
+  flex:1;padding:9px;border:none;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:opacity .2s;
+}
+.modal .btns .cancel{background:#F1F5F9;color:var(--text-2)}
+.modal .btns .confirm{background:var(--accent);color:#fff}
+.modal .btns button:hover{opacity:.85}
 
 /* 页脚 */
-footer{margin-top:32px;text-align:center;color:var(--text-3);font-size:12px;line-height:1.7}
+footer{margin-top:20px;text-align:center;color:var(--text-3);font-size:11.5px;line-height:1.7}
 footer .power{font-weight:600;color:var(--text-2)}
 
 /* 响应式 */
-@media (max-width:1100px){
-  .grid{grid-template-columns:repeat(3,1fr)}
-}
-@media (max-width:700px){
+@media (max-width:900px){
   .grid{grid-template-columns:repeat(2,1fr)}
 }
-@media (max-width:500px){
-  .wrap{padding:20px 14px 28px}
-  .grid{grid-template-columns:1fr;gap:12px}
-  .stats{gap:8px}
-  .stat-card{padding:10px 8px}
-  .stat-card .num{font-size:20px}
-  .stat-card .label{font-size:10.5px}
-  h1{font-size:24px}
-  .card{padding:16px}
+@media (max-width:560px){
+  .wrap{padding:16px 12px 24px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  h1{font-size:22px}
+  .card{padding:12px}
+  .card p{-webkit-line-clamp:3}
 }
 </style>
 </head>
@@ -114,82 +154,143 @@ footer .power{font-weight:600;color:var(--text-2)}
   <header class="hero">
     <div class="capsule"><span class="dot"></span>TEACHING TOOL SUITE · 教学工具合辑</div>
     <h1>一站式<span class="grad">课堂教学</span>工具集</h1>
-    <p class="subtitle">点名 · 互动 · 成绩分析 · 座位编排，全流程覆盖</p>
+    <p class="subtitle">点名 · 互动 · 排座 · 排课 · 成绩分析，全流程覆盖</p>
   </header>
 
-  <div class="stats">
-    <div class="stat-card"><div class="num">5</div><div class="label">工具模块</div></div>
-    <div class="stat-card"><div class="num">8+</div><div class="label">核心功能</div></div>
-    <div class="stat-card"><div class="num">100%</div><div class="label">纯前端可用</div></div>
+  <!-- 过滤标签 -->
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="local">本地工具</button>
+    <button class="filter-btn" data-filter="ext">在线工具</button>
   </div>
 
-  <div class="section-title"><span class="bar"></span>全部工具</div>
-
-  <div class="grid">
+  <!-- 工具网格 -->
+  <div class="grid" id="toolGrid">
 
     <!-- 点名系统 -->
-    <div class="card">
-      <span class="tag">单页</span>
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <a class="card" data-type="local" href="点名系统/index.html">
+      <span class="tag local">本地</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>点名系统</h3>
+          <div class="type">随机抽取 · 惩罚机制</div>
+        </div>
       </div>
-      <h3>点名系统</h3>
-      <p>整合抽取学生+知识点，完成/未完成奖惩机制，左侧抽取记录面板，结果居中展示。</p>
-      <a class="enter" href="点名系统/index.html">进入点名
+      <p>整合抽取学生+知识点，惩罚机制，最新抽取记录，结果居中展示。</p>
+      <span class="enter">进入点名
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-
-    <!-- 课堂互动 -->
-    <div class="card">
-      <span class="tag">互动</span>
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      </div>
-      <h3>课堂互动大厅</h3>
-      <p>Tab 切换数字炸弹、大冒险转盘、课堂飞行棋，支持上传自定义内容、下载模板、历史记录。</p>
-      <a class="enter" href="课堂互动/小游戏大厅.html">进入大厅
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-
-    <!-- 成绩分析（外链） -->
-    <div class="card">
-      <span class="tag ext">在线版</span>
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
-      </div>
-      <h3>成绩分析助手</h3>
-      <p>龙泉校区班级成绩变化趋势展示工具，已发布在 GitHub Pages，可在线直接访问使用。</p>
-      <a class="enter" href="https://zhangdn731.github.io/lqxqcjfx/" target="_blank" rel="noopener">打开在线工具
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
-    </div>
+      </span>
+    </a>
 
     <!-- 座位编排 -->
-    <div class="card">
-      <span class="tag">全功能</span>
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <a class="card" data-type="local" href="座位编排/index.html">
+      <span class="tag local">本地</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>座位编排</h3>
+          <div class="type">小组排座 · 成绩均衡</div>
+        </div>
       </div>
-      <h3>座位编排系统</h3>
-      <p>导入学生成绩，支持成绩均衡/随机/小组排座，多条件约束、教室布局配置、拖拽与点选换座、导出座位表。</p>
-      <a class="enter" href="座位编排/index.html">开始排座
+      <p>成绩均衡小组排座，每组每科带头人覆盖，同桌互补，多条件约束，拖拽换座。</p>
+      <span class="enter">开始排座
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
+      </span>
+    </a>
+
+    <!-- 排课表系统 -->
+    <a class="card" data-type="local" href="排课表/index.html">
+      <span class="tag local">本地</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>排课表系统</h3>
+          <div class="type">自动排课 · 课时记录</div>
+        </div>
+      </div>
+      <p>班级/教师/科目管理，自动排课无冲突，单双周支持，课表查看，导入导出。</p>
+      <span class="enter">进入排课
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- 课堂互动大厅 -->
+    <a class="card" data-type="local" href="课堂互动/小游戏大厅.html">
+      <span class="tag local">本地</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>课堂互动</h3>
+          <div class="type">数字炸弹 · 大转盘 · 飞行棋</div>
+        </div>
+      </div>
+      <p>数字炸弹 / 大转盘 / 课堂飞行棋，10科知识题库，真心话大冒险，全屏游玩。</p>
+      <span class="enter">进入大厅
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- 成绩分析（外链） -->
+    <a class="card" data-type="ext" href="https://zhangdn731.github.io/lqxqcjfx/" target="_blank" rel="noopener">
+      <span class="tag ext">在线</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>成绩分析</h3>
+          <div class="type">趋势曲线 · 分数线</div>
+        </div>
+      </div>
+      <p>班级成绩变化趋势，单科/总分曲线，公办民办分数线标注，已发布在线版。</p>
+      <span class="enter">打开工具
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </span>
+    </a>
 
     <!-- 课堂回放 -->
-    <div class="card">
-      <span class="tag ext">在线版</span>
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+    <a class="card" data-type="ext" href="https://zhangdn731.github.io/Class-Replay/" target="_blank" rel="noopener">
+      <span class="tag ext">在线</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>课堂回放</h3>
+          <div class="type">视频回放 · 留存</div>
+        </div>
       </div>
-      <h3>课堂回放</h3>
       <p>课堂实况视频回放与留存，已发布在线版，可直接访问使用。</p>
-      <a class="enter" href="https://zhangdn731.github.io/Class-Replay/" target="_blank" rel="noopener">打开回放
+      <span class="enter">打开回放
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
+      </span>
+    </a>
+
+    <!-- 信息技术题库（验证码） -->
+    <div class="card" data-type="ext" onclick="openQuizModal()" style="cursor:pointer">
+      <span class="tag lock-tag">需验证</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>信息技术题库 <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></h3>
+          <div class="type">出题导出 · 自测刷题</div>
+        </div>
+      </div>
+      <p>教师出题导出 · 学生自测刷题，需验证码访问。</p>
+      <span class="enter">进入题库
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
     </div>
 
   </div>
@@ -200,5 +301,65 @@ footer .power{font-weight:600;color:var(--text-2)}
   </footer>
 
 </div>
+
+<!-- 验证码弹窗 -->
+<div class="modal-mask" id="quizModal">
+  <div class="modal">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h4>访问验证</h4>
+    <p>信息技术题库需要验证码才能访问，请输入访问密码。</p>
+    <input type="password" id="quizCode" placeholder="请输入验证码" onkeydown="if(event.key==='Enter')verifyQuiz()">
+    <div class="err" id="quizErr">验证码错误，请重试</div>
+    <div class="btns">
+      <button class="cancel" onclick="closeQuizModal()">取消</button>
+      <button class="confirm" onclick="verifyQuiz()">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 过滤功能
+document.querySelectorAll('.filter-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active')});
+    this.classList.add('active');
+    var f=this.dataset.filter;
+    document.querySelectorAll('#toolGrid .card').forEach(function(card){
+      if(f==='all'||card.dataset.type===f){
+        card.style.display='flex';
+      }else{
+        card.style.display='none';
+      }
+    });
+  });
+});
+
+// 验证码弹窗
+function openQuizModal(){
+  document.getElementById('quizModal').classList.add('show');
+  document.getElementById('quizCode').value='';
+  document.getElementById('quizErr').classList.remove('show');
+  setTimeout(function(){document.getElementById('quizCode').focus()},100);
+}
+function closeQuizModal(){
+  document.getElementById('quizModal').classList.remove('show');
+}
+function verifyQuiz(){
+  var code=document.getElementById('quizCode').value.trim();
+  if(code==='danzhao123'){
+    closeQuizModal();
+    window.open('https://frp-rib.com:28440/','_blank');
+  }else{
+    document.getElementById('quizErr').classList.add('show');
+    document.getElementById('quizCode').value='';
+    document.getElementById('quizCode').focus();
+  }
+}
+document.getElementById('quizModal').addEventListener('click',function(e){
+  if(e.target===this) closeQuizModal();
+});
+</script>
 </body>
 </html>

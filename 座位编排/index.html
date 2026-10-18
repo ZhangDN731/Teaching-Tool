@@ -246,6 +246,26 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
 .vcard .vtop3 ol{margin:0;padding-left:16px}
 .vcard .vtop3 li{margin-bottom:1px}
 .vcard.class-card{grid-column:1/-1}
+/* 带头人覆盖检查 */
+.vlead{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:7px;
+  padding:6px 8px;background:#fff;border:1px solid var(--border);border-radius:8px}
+.vlead .vl-t{font-size:10.5px;font-weight:700;color:var(--text-3);margin-right:2px;letter-spacing:.3px}
+.vlead .vl-item{font-size:11px;font-weight:700;border-radius:5px;padding:2px 6px;line-height:1.3}
+.vlead .vl-ok{background:rgba(34,197,94,.12);color:#16A34A}
+.vlead .vl-bad{background:rgba(239,68,68,.14);color:var(--red)}
+.vcard.has-miss{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.03)}
+/* 优化建议区 */
+.suggest-card{grid-column:1/-1;background:linear-gradient(135deg,#FFF7ED,#FEF2F2);
+  border:1px solid rgba(245,158,11,.35);border-radius:12px;padding:12px 14px;margin-top:4px}
+.suggest-card .sg-head{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
+  color:#B45309;margin-bottom:8px}
+.suggest-card .sg-head .dot{width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.suggest-card ul{margin:0;padding-left:18px}
+.suggest-card li{font-size:12px;color:var(--text-2);line-height:1.7;margin-bottom:3px}
+.suggest-card li:last-child{margin-bottom:0}
+.suggest-card.all-ok{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3)}
+.suggest-card.all-ok .sg-head{color:#16A34A}
+.suggest-card.all-ok .sg-head .dot{background:var(--green)}
 @media print{.verify-card{display:none !important}}
 
 /* 讲台（融入座位行） */
@@ -455,6 +475,10 @@ textarea{font-family:Consolas,"Courier New",monospace;min-height:96px;resize:ver
           <span id="groupInfo">导入学生后自动计算分组数量</span>
         </div>
       </div>
+      <label class="opt" style="margin-top:8px">
+        <input type="checkbox" id="complementChk" checked>
+        <span><b>同桌互补</b><small>组内相邻座位优势科目尽量不同（优势科目＝该科全班前40%）；约束条件优先</small></span>
+      </label>
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-primary btn-lg btn-block" id="genBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -842,17 +866,39 @@ function renderVerification(){
   }
 
   $('verifyTitle').textContent='小组成绩验证';
-  $('verifySubtitle').textContent='各组人数 · 总分均分 · 各科最高分学生 · 组内前3名';
+  $('verifySubtitle').textContent='各组人数 · 总分均分 · 各科最高分 · 带头人覆盖检查 · 组内前3名';
+  const leaders=scoreCols?subjectLeaderSets():{};
+  let anyMiss=false;
   groupList.forEach((grp,i)=>{
-    if(grp&&grp.length) grid.appendChild(buildGroupCard(grp,i));
+    if(grp&&grp.length){
+      const card=buildGroupCard(grp,i,leaders);
+      grid.appendChild(card);
+      // 检查是否有缺失
+      scoreCols.forEach(subj=>{
+        if(!grp.some(s=>leaders[subj].has(s.id))) anyMiss=true;
+      });
+    }
   });
+  // 优化建议区
+  const sugCard=buildSuggestionCard(leaders);
+  if(sugCard) grid.appendChild(sugCard);
   sec.style.display='block';
 }
 
-function buildGroupCard(grp,gi){
+function buildGroupCard(grp,gi,leaders){
   const card=document.createElement('div'); card.className='vcard';
   const n=grp.length;
   const avg=n?(grp.reduce((a,s)=>a+s.total,0)/n):0;
+  // 带头人覆盖检查
+  let leadHtml='<div class="vlead"><span class="vl-t">带头人</span>';
+  let hasMiss=false;
+  scoreCols.forEach(subj=>{
+    const has=grp.some(s=>leaders[subj]&&leaders[subj].has(s.id));
+    if(!has) hasMiss=true;
+    leadHtml+='<span class="vl-item '+(has?'vl-ok':'vl-bad')+'">'+esc(subj)+(has?'✓':'✗')+'</span>';
+  });
+  leadHtml+='</div>';
+  if(hasMiss) card.classList.add('has-miss');
   // 各科：均分 + 最高分学生
   let subjHtml='';
   scoreCols.forEach(subj=>{
@@ -875,8 +921,52 @@ function buildGroupCard(grp,gi){
     '<span class="vtitle">第'+(gi+1)+'组</span>'+
     '<span class="vmeta">'+n+'人</span></div>'+
     '<div class="vavg">总分均分 <b>'+avg.toFixed(1)+'</b></div>'+
+    leadHtml+
     '<div class="vsubj">'+subjHtml+'</div>'+
     '<div class="vtop3"><span class="t">组内总分前3</span>'+top3Html+'</div>';
+  return card;
+}
+
+/* 优化建议：列出每处缺失带头人的可交换对象 */
+function buildSuggestionCard(leaders){
+  if(!scoreCols.length||!groupList.length) return null;
+  const items=[];
+  groupList.forEach((grp,gi)=>{
+    scoreCols.forEach(subj=>{
+      if(grp.some(s=>leaders[subj].has(s.id))) return;
+      // 缺失：找最佳交换
+      let best=null;
+      for(let di=0; di<groupList.length; di++){
+        if(di===gi) continue;
+        const donors=groupList[di].filter(s=>leaders[subj].has(s.id));
+        if(donors.length<2) continue;
+        const recvs=grp.filter(s=>!leaders[subj].has(s.id));
+        donors.forEach(dl=>{
+          recvs.forEach(rn=>{
+            const diff=Math.abs(dl.total-rn.total);
+            if(!best||diff<best.diff) best={di,dl,rn,diff};
+          });
+        });
+      }
+      if(best){
+        items.push('第'+(gi+1)+'组缺少<b>'+esc(subj)+'</b>带头人，建议与第'+(best.di+1)+'组的<b>'+esc(best.dl.name)+
+          '</b>（'+esc(subj)+'带头人，总分'+best.dl.total+'）交换（本组'+esc(best.rn.name)+'，总分'+best.rn.total+'）');
+      }else{
+        items.push('第'+(gi+1)+'组缺少<b>'+esc(subj)+'</b>带头人，该科带头人总数不足，暂无合适交换对象');
+      }
+    });
+  });
+  const card=document.createElement('div');
+  card.className='suggest-card'+(items.length?'':' all-ok');
+  let html='<div class="sg-head"><span class="dot"></span>优化建议</div>';
+  if(items.length){
+    html+='<ul>';
+    items.forEach(t=>{html+='<li>'+t+'</li>';});
+    html+='</ul>';
+  }else{
+    html+='<div style="font-size:12px;color:#16A34A;line-height:1.7">✓ 每组每科均有带头人，分组已最优，无需调整。</div>';
+  }
+  card.innerHTML=html;
   return card;
 }
 
@@ -1061,58 +1151,104 @@ function neighbors(r,c){
   return out;
 }
 
-/* —— ④ 小组划分：蛇形分组 + 每科前30%带头人检查与微调 —— */
+/* —— ④ 小组划分：蛇形分组 + 每科前30%带头人多轮交换优化 —— */
 function computeGroups(){
   groupList=[];
-  students.forEach(s=>s._group=null);
+  students.forEach(s=>{s._group=null;s._isLeader=false;});
   const n=Math.max(1,Math.ceil(students.length/groupSize));
   for(let i=0;i<n;i++)groupList.push([]);
-  const sorted=[...students].sort((a,b)=>b.total-a.total);
+  const sorted=[...students].sort((a,b)=>b.total-a.total || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
   let g=0,dir=1;
   sorted.forEach(s=>{
     groupList[g].push(s); s._group=g;
     if(dir===1){ if(g<n-1) g++; else dir=-1; }
     else { if(g>0) g--; else dir=1; }
   });
-  balanceLeaders();
+  optimizeLeaderCoverage();
+  // 标记：任何一科带头人 → 金色星标
+  const leaders=subjectLeaderSets();
+  students.forEach(s=>{
+    s._isLeader = scoreCols.some(subj=>leaders[subj].has(s.id));
+  });
   return groupList;
 }
-/* 每科前30%作为"带头人"集合 */
+/* 每科前30%作为"带头人"集合（无成绩学生 total=0 不参与） */
 function subjectLeaderSets(){
   const sets={};
+  const scored=students.filter(s=>s.total>0);
   scoreCols.forEach(subj=>{
-    const sorted=[...students].sort((a,b)=>b.scores[subj]-a.scores[subj]);
-    const k=Math.max(1,Math.ceil(students.length*0.30));
+    const sorted=[...scored].sort((a,b)=>b.scores[subj]-a.scores[subj] || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
+    const k=Math.max(1,Math.ceil(scored.length*0.30));
     sets[subj]=new Set(sorted.slice(0,k).map(s=>s.id));
   });
   return sets;
 }
-/* 微调：若某组某科没有带头人，从有富余带头人的组交换一名 */
-function balanceLeaders(){
+/* 计算当前分组的"违规数"＝缺少带头人的（组×科）数量 */
+function countLeaderViolations(gl,leaders){
+  let v=0;
+  gl.forEach(grp=>{
+    scoreCols.forEach(subj=>{
+      if(!grp.some(s=>leaders[subj].has(s.id))) v++;
+    });
+  });
+  return v;
+}
+/* 多轮交换优化：每轮枚举所有可行交换，选违规数最小（并列时选总分最相近）的交换执行，
+ * 最多 50 轮，保留违规最少的快照。 */
+function optimizeLeaderCoverage(){
   if(!scoreCols.length) return;
   const leaders=subjectLeaderSets();
-  scoreCols.forEach(subj=>{
-    const lead=leaders[subj];
-    for(let iter=0;iter<30;iter++){
-      const defIdx=groupList.findIndex(grp=>!grp.some(s=>lead.has(s.id)));
-      if(defIdx<0) break;
-      let donorIdx=-1, donorMem=null, recvMem=null;
-      for(let i=0;i<groupList.length;i++){
-        if(i===defIdx) continue;
-        const lc=groupList[i].filter(s=>lead.has(s.id)).length;
-        if(lc>=2){
-          donorMem=groupList[i].filter(s=>lead.has(s.id)).sort((a,b)=>a.total-b.total)[0];
-          recvMem=groupList[defIdx].filter(s=>!lead.has(s.id)).sort((a,b)=>b.total-a.total)[0];
-          if(donorMem&&recvMem){donorIdx=i;break;}
+  let bestV=countLeaderViolations(groupList,leaders);
+  let bestSnapshot=groupList.map(grp=>grp.map(s=>s.id));
+  for(let iter=0; iter<50; iter++){
+    let bestSwap=null; // {di,gi,dl,rn,v,diff}
+    for(let gi=0; gi<groupList.length; gi++){
+      for(const subj of scoreCols){
+        if(groupList[gi].some(s=>leaders[subj].has(s.id))) continue; // 该组该科已有带头人
+        // 从有富余（≥2名该科带头人）的组选一名带头人，与本组非带头人交换
+        for(let di=0; di<groupList.length; di++){
+          if(di===gi) continue;
+          const donorLeaders=groupList[di].filter(s=>leaders[subj].has(s.id));
+          if(donorLeaders.length<2) continue;
+          const recvNon=groupList[gi].filter(s=>!leaders[subj].has(s.id));
+          if(!recvNon.length) continue;
+          for(const dl of donorLeaders){
+            for(const rn of recvNon){
+              // 模拟交换
+              const di2=groupList[di].indexOf(dl);
+              const gi2=groupList[gi].indexOf(rn);
+              groupList[di][di2]=rn; groupList[gi][gi2]=dl;
+              const v=countLeaderViolations(groupList,leaders);
+              groupList[di][di2]=dl; groupList[gi][gi2]=rn;
+              const diff=Math.abs(dl.total-rn.total);
+              if(!bestSwap || v<bestSwap.v || (v===bestSwap.v && diff<bestSwap.diff)){
+                bestSwap={di,gi,dl,rn,v,diff};
+              }
+            }
+          }
         }
       }
-      if(donorIdx<0) break;
-      const di=groupList[donorIdx].indexOf(donorMem);
-      const ri=groupList[defIdx].indexOf(recvMem);
-      groupList[donorIdx][di]=recvMem; recvMem._group=donorIdx;
-      groupList[defIdx][ri]=donorMem; donorMem._group=defIdx;
     }
-  });
+    if(!bestSwap) break;
+    // 执行最优交换
+    const {di,gi,dl,rn}=bestSwap;
+    const di2=groupList[di].indexOf(dl);
+    const gi2=groupList[gi].indexOf(rn);
+    groupList[di][di2]=rn; rn._group=di;
+    groupList[gi][gi2]=dl; dl._group=gi;
+    if(bestSwap.v<bestV){
+      bestV=bestSwap.v;
+      bestSnapshot=groupList.map(grp=>grp.map(s=>s.id));
+    }
+    if(bestV===0) break;
+  }
+  // 恢复最优快照
+  if(bestV>0){
+    const idMap={}; students.forEach(s=>idMap[s.id]=s);
+    groupList=bestSnapshot.map(arr=>arr.map(id=>idMap[id]));
+    groupList.forEach((grp,gi)=>grp.forEach(s=>s._group=gi));
+  }
+  window._leaderMiss=bestV;
 }
 
 function generateSeats(silent){
@@ -1131,6 +1267,7 @@ function generateSeats(silent){
       placeGroupsBlock(grid,attempt);
       fixPairs(grid);
       if(constraints.some(c=>c.type==='gender')) fixGender(grid);
+      if($('complementChk').checked) optimizeComplement(grid);
       const viol=countViolations(grid);
       if(viol<bestViol){bestViol=viol;best=grid;}
       if(viol===0)break;
@@ -1166,8 +1303,12 @@ function generateSeats(silent){
   }
   if(!silent){
     if(genStrategy==='group'){
-      const cov=leaderCoverage();
-      toast('小组排座完成：共 '+groupList.length+' 组'+(cov?('（'+cov+'）'):''));
+      const miss=window._leaderMiss||0;
+      if(miss>0){
+        toast('当前人数/成绩分布无法保证每组每科都有带头人，已尽可能优化（'+miss+'处缺失）',true);
+      }else{
+        toast('小组排座完成：共 '+groupList.length+' 组，每组每科均有带头人');
+      }
     }else{
       toast(bestViol===0?'完全随机排座完成，全部约束已满足':'完全随机排座完成（'+bestViol+' 处约束未完全满足，可拖拽微调）');
     }
@@ -1185,6 +1326,105 @@ function leaderCoverage(){
   });
   if(miss===0) return '每组每科均有带头人';
   return miss+'/'+total+' 组·科缺少带头人（已最优近似）';
+}
+
+/* ============================================================
+ * 同桌互补：组内相邻座位优势科目尽量不同
+ * 优势科目＝该科全班前40%（无成绩学生不参与）
+ * ============================================================ */
+function advantageSets(){
+  const adv={};
+  students.forEach(s=>adv[s.id]=new Set());
+  if(!scoreCols.length) return adv;
+  const scored=students.filter(s=>s.total>0);
+  scoreCols.forEach(subj=>{
+    const sorted=[...scored].sort((a,b)=>b.scores[subj]-a.scores[subj] || String(a.name).localeCompare(String(b.name),'zh-Hans-CN'));
+    const k=Math.max(1,Math.ceil(scored.length*0.40));
+    for(let i=0;i<k;i++) adv[sorted[i].id].add(subj);
+  });
+  return adv;
+}
+/* 相邻对：同一组内、物理相邻（左右同桌或前后桌） */
+function groupAdjPairs(grid){
+  const pairs=[];
+  for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+    const a=grid[r][c];
+    if(!a||a.t!=='s')continue;
+    if(c+1<layout.cols){
+      const b=grid[r][c+1];
+      if(b&&b.t==='s'&&a.s._group===b.s._group) pairs.push([[r,c],[r,c+1]]);
+    }
+    if(r+1<layout.rows){
+      const b=grid[r+1][c];
+      if(b&&b.t==='s'&&a.s._group===b.s._group) pairs.push([[r,c],[r+1,c]]);
+    }
+  }
+  return pairs;
+}
+function pairOverlap(s1,s2,adv){
+  const a=adv[s1.id],b=adv[s2.id];
+  let n=0; a.forEach(x=>{if(b.has(x))n++;});
+  return n;
+}
+function complementCost(grid,adv){
+  let c=0;
+  groupAdjPairs(grid).forEach(([[r1,c1],[r2,c2]])=>{
+    c+=pairOverlap(grid[r1][c1].s,grid[r2][c2].s,adv);
+  });
+  return c;
+}
+/* 局部搜索：尝试同组内任意两人交换，若互补代价下降且不破坏约束则保留。
+ * 每次成功交换后重启扫描（避免坐标过期导致重复/丢失学生）。 */
+function optimizeComplement(grid){
+  const adv=advantageSets();
+  const fixedIds=new Set(constraints.filter(c=>c.type==='fix').map(c=>c.id));
+  for(let iter=0; iter<80; iter++){
+    let improved=false;
+    const seats=[];
+    for(let r=0;r<layout.rows;r++)for(let c=0;c<layout.cols;c++){
+      const cell=grid[r][c];
+      if(cell&&cell.t==='s'&&!fixedIds.has(cell.s.id)) seats.push([r,c,cell.s]);
+    }
+    outer:
+    for(let i=0;i<seats.length;i++){
+      for(let j=i+1;j<seats.length;j++){
+        const [r1,c1,s1]=seats[i],[r2,c2,s2]=seats[j];
+        if(s1._group!==s2._group) continue;
+        // 坐标失效检测：当前位置上的学生必须与记录一致
+        const cell1=grid[r1][c1], cell2=grid[r2][c2];
+        if(!cell1||!cell2||cell1.t!=='s'||cell2.t!=='s') continue;
+        if(cell1.s.id!==s1.id||cell2.s.id!==s2.id) continue;
+        const oldCost=complementCost(grid,adv);
+        // 交换
+        grid[r1][c1]={t:'s',s:s2}; grid[r2][c2]={t:'s',s:s1};
+        // 约束检查：不邻座
+        if(violatesPair(s2,r1,c1,grid)||violatesPair(s1,r2,c2,grid)){
+          grid[r1][c1]={t:'s',s:s1}; grid[r2][c2]={t:'s',s:s2}; continue;
+        }
+        // 前排约束
+        if(!passesFrontConstraint(s2,r1)||!passesFrontConstraint(s1,r2)){
+          grid[r1][c1]={t:'s',s:s1}; grid[r2][c2]={t:'s',s:s2}; continue;
+        }
+        // 男女间隔：若开启，交换后不能出现同性相邻
+        if(constraints.some(c=>c.type==='gender')){
+          let bad=false;
+          for(const [nr,nc] of neighbors(r1,c1)){
+            const n=grid[nr][nc];
+            if(n&&n.t==='s'&&n.s.gender && n.s.gender===s2.gender){bad=true;break;}
+          }
+          if(!bad) for(const [nr,nc] of neighbors(r2,c2)){
+            const n=grid[nr][nc];
+            if(n&&n.t==='s'&&n.s.gender && n.s.gender===s1.gender){bad=true;break;}
+          }
+          if(bad){ grid[r1][c1]={t:'s',s:s1}; grid[r2][c2]={t:'s',s:s2}; continue; }
+        }
+        const newCost=complementCost(grid,adv);
+        if(newCost<oldCost){ improved=true; break outer; }
+        else { grid[r1][c1]={t:'s',s:s1}; grid[r2][c2]={t:'s',s:s2}; }
+      }
+    }
+    if(!improved) break;
+  }
 }
 
 function buildGrid(){
@@ -1442,7 +1682,7 @@ function renderGrid(){
         else cls+=tierClass(cell.s)+' ';
         // 组内排名标记：仅小组排座模式显示金色带头人边框+星标
         const hasRank = cell.s._groupRank!=null;
-        const isLeader = groupMode && hasRank && cell.s._groupRank===1;
+        const isLeader = groupMode && cell.s._isLeader;
         if(isLeader) cls+=' leader ';
         el.className=cls; el.draggable=true;
         // 组号小标签：左上角
@@ -1610,7 +1850,7 @@ $('regenBtn').addEventListener('click',()=>{
   generateSeats(false);
 });
 $('clearBtn').addEventListener('click',()=>{
-  seatMap=[]; groupList=[]; students.forEach(s=>{s._group=null;s._groupRank=null;s._groupTop30=false;});
+  seatMap=[]; groupList=[]; students.forEach(s=>{s._group=null;s._groupRank=null;s._groupTop30=false;s._isLeader=false;});
   renderGrid(); refreshStats();
   $('verifySection').style.display='none'; $('verifyGrid').innerHTML='';
   $('exportBtn').disabled=true; $('printBtn').disabled=true;

@@ -22,6 +22,8 @@
   --green:#22C55E;
   --orange:#F59E0B;
   --red:#EF4444;
+  --gold:#FBBF24;
+  --purple:#8B5CF6;
   --text:#0F172A;
   --text-2:#334155;
   --text-3:#64748B;
@@ -149,7 +151,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   cursor:pointer;transition:all .15s ease;min-width:0;
 }
 
-/* ============ 数字炸弹：大字号范围（视觉焦点） ============ */
+/* ============ 数字炸弹：大字号范围 ============ */
 .nb-range{
   font-size:clamp(48px,9vw,64px);
   font-weight:800;line-height:1.1;
@@ -172,12 +174,10 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 }
 .range-pop{animation:rangePop .35s ease}
 
-/* 提示语（太大/太小） */
 .nb-msg{font-size:14px;font-weight:600;min-height:22px;color:var(--text-3)}
 .nb-msg.up{color:var(--red)}
 .nb-msg.down{color:var(--green)}
 
-/* 输入回显 */
 .nb-readout{
   font-size:30px;font-weight:700;color:var(--text);
   background:var(--surface-2);
@@ -191,7 +191,6 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   color:var(--text-3);font-size:14px;letter-spacing:0;font-weight:500;
 }
 
-/* ============ 数字键区 hover/active/功能键 ============ */
 .numpad button:hover{
   background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
 }
@@ -234,7 +233,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 }
 .input-num:focus{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent-soft)}
 
-/* ============ 历史记录（数字炸弹用） ============ */
+/* ============ 历史记录 ============ */
 .history{
   width:100%;
   max-height:240px;overflow-y:auto;
@@ -268,32 +267,33 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .wl-col-right{order:2;width:100%;max-width:280px;margin:0 auto}
 .wl-col-left{order:3;width:100%}
 
-/* 转盘本体 */
+/* 转盘本体 —— 更大更精致 */
 .wheel-wrap{
   position:relative;
-  width:min(78vw,340px);
+  width:min(80vw,380px);
   aspect-ratio:1/1;
   cursor:pointer;
   border-radius:50%;
-  transition:transform .25s ease, box-shadow .25s ease;
+  transition:transform .3s ease, box-shadow .3s ease;
+  filter:drop-shadow(0 12px 32px rgba(79,107,255,0.22));
 }
 .wheel-wrap:hover{
-  transform:scale(1.03);
-  box-shadow:0 10px 36px rgba(79,107,255,0.28);
+  transform:scale(1.02);
 }
 .wheel-wrap.spinning{cursor:default}
-.wheel-wrap.spinning:hover{transform:none;box-shadow:none}
+.wheel-wrap.spinning:hover{transform:none}
 .wheel-wrap canvas{width:100%;height:100%;display:block;border-radius:50%}
+
+/* 精致指针：菱形+圆点 */
 .pointer{
-  position:absolute;top:-6px;left:50%;
+  position:absolute;top:-14px;left:50%;
   transform:translateX(-50%);
-  width:0;height:0;
-  border-left:11px solid transparent;
-  border-right:11px solid transparent;
-  border-top:24px solid var(--accent);
+  width:34px;height:34px;
   z-index:10;
-  filter:drop-shadow(0 2px 3px rgba(79,107,255,.35));
+  filter:drop-shadow(0 3px 6px rgba(15,23,42,.35));
 }
+.pointer svg{width:100%;height:100%;display:block}
+
 .wheel-hint{font-size:13px;color:var(--text-3);margin-top:4px;text-align:center;line-height:1.5}
 .wheel-hint strong{color:var(--accent)}
 
@@ -351,93 +351,39 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   flex:none;font-size:10px;line-height:1;
   padding:2px 6px;border-radius:6px;font-weight:600;
 }
-.wh-badge.quiz{background:rgba(79,107,255,0.12);color:#4F6BFF}
 .wh-badge.truth{background:rgba(56,189,248,0.14);color:#0284C7}
 .wh-badge.dare{background:rgba(245,158,11,0.14);color:#B45309}
-.wh-badge.random{background:rgba(34,197,94,0.14);color:#15803D}
 .wh-item .txt{color:var(--text-2);line-height:1.45;word-break:break-all}
 
-/* 结果卡片 */
+/* 结果卡片 —— 卡片式美化 */
 .result-card{
   width:100%;max-width:460px;
-  background:var(--surface-2);
+  background:linear-gradient(135deg,#ffffff,#f8faff);
   border:1px solid var(--border);
   border-radius:var(--radius);
-  padding:16px;
+  padding:18px;
   text-align:left;
+  box-shadow:var(--shadow-card);
   animation:fadeIn .3s ease;
 }
 .result-card .rc-head{
-  display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;
 }
 .rc-badge{
-  font-size:11px;font-weight:700;line-height:1;
-  padding:4px 10px;border-radius:999px;
+  font-size:12px;font-weight:700;line-height:1;
+  padding:6px 12px;border-radius:999px;
 }
-.rc-badge.quiz{background:rgba(79,107,255,0.12);color:#4F6BFF}
-.rc-badge.truth{background:rgba(56,189,248,0.14);color:#0284C7}
-.rc-badge.dare{background:rgba(245,158,11,0.14);color:#B45309}
-.rc-badge.random{background:rgba(34,197,94,0.14);color:#15803D}
+.rc-badge.truth{background:rgba(56,189,248,0.16);color:#0284C7}
+.rc-badge.dare{background:rgba(245,158,11,0.16);color:#B45309}
 .rc-type-tag{
   font-size:10.5px;font-weight:600;color:var(--text-3);
   background:#fff;border:1px solid var(--border);
   padding:3px 8px;border-radius:6px;
 }
-.rc-q{font-size:15px;font-weight:600;color:var(--text);line-height:1.55;margin-bottom:12px}
-.rc-plain{font-size:15px;color:var(--text-2);line-height:1.6}
-.rc-plain .who{
-  display:inline-block;font-size:17px;font-weight:800;color:#15803D;
-  background:rgba(34,197,94,0.1);padding:2px 10px;border-radius:8px;margin:0 2px;
-}
-.rc-opts{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}
-.rc-opt{
-  display:flex;align-items:flex-start;gap:10px;
-  background:#fff;border:1.5px solid var(--border);
-  border-radius:10px;padding:10px 12px;
-  font-size:13.5px;color:var(--text-2);line-height:1.5;
-  transition:all .2s ease;
-}
-.rc-opt .opt-label{
-  flex:none;width:24px;height:24px;border-radius:50%;
-  background:var(--accent-soft);color:var(--accent);
-  font-size:12px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  margin-top:1px;
-}
-.rc-opt.correct{
-  border-color:var(--green);
-  background:rgba(34,197,94,0.08);
-}
-.rc-opt.correct .opt-label{
-  background:var(--green);color:#fff;
-}
-.rc-opt.correct .opt-text{color:#15803D;font-weight:600}
-.rc-answer{
-  display:none;
-  margin-top:4px;padding:10px 12px;
-  background:rgba(34,197,94,0.1);
-  border-left:3px solid var(--green);
-  border-radius:8px;font-size:13px;color:#15803D;font-weight:600;
-}
-.rc-answer.show{display:block}
-
-/* ============ 更多游戏占位（已替换为飞行棋，保留样式备用） ============ */
-.more-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:36px 20px}
-.more-card .lock-icon{
-  width:64px;height:64px;border-radius:16px;
-  background:rgba(245,158,11,0.12);color:var(--orange);
-  display:flex;align-items:center;justify-content:center;
-}
-.more-card .lock-icon svg{width:34px;height:34px}
-.more-tag{
-  background:rgba(245,158,11,0.12);color:var(--orange);
-  font-size:12px;font-weight:600;padding:4px 14px;border-radius:999px;
-}
-.more-card h3{font-size:18px;font-weight:700;color:var(--text)}
-.more-card p{font-size:13px;color:var(--text-3);max-width:320px;line-height:1.6}
+.rc-plain{font-size:16px;color:var(--text);line-height:1.6;font-weight:500}
 
 /* ================================================================
- * 课堂飞行棋
+ * 课堂飞行棋 —— 设置区
  * ================================================================ */
 .cs-setup-block{margin-bottom:16px}
 .cs-setup-label{font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:8px;text-align:center}
@@ -470,17 +416,55 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   font-size:15px;color:var(--text);font-family:inherit;min-height:36px;
 }
 
-/* 棋盘 */
-.chess-board-wrap{
-  position:relative;width:100%;max-width:560px;margin:0 auto;
+/* ================================================================
+ * 飞行棋全屏模式
+ * ================================================================ */
+#csFullscreen{
+  position:fixed;top:0;left:0;
+  width:100vw;height:100vh;
+  width:100dvw;height:100dvh;
+  z-index:99999;
+  background:linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+#csFullscreen.show{display:flex}
+.cs-fs-inner{
+  flex:1;display:flex;flex-direction:column;
+  padding:10px 14px 12px;
+  max-width:1400px;margin:0 auto;width:100%;
+  min-height:0;
+}
+.cs-fs-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:8px;flex-wrap:wrap;
+}
+.cs-fs-title{
+  font-size:16px;font-weight:800;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.cs-fs-title .grad{
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cs-fs-btns{display:flex;gap:8px}
+.cs-fs-btns .btn{min-height:38px;padding:6px 14px;font-size:12.5px}
+
+/* 棋盘容器：自适应视口 */
+.cs-fs-board-wrap{
+  position:relative;
+  margin:0 auto;
+  width:min(96vw, calc((100dvh - 200px) * 1.7));
+  max-width:1100px;
 }
 .chess-board{
   display:grid;
-  grid-template-columns:repeat(12,1fr);
-  grid-template-rows:repeat(8,1fr);
+  grid-template-columns:repeat(17,1fr);
+  grid-template-rows:repeat(10,1fr);
   gap:3px;
   width:100%;
-  aspect-ratio:12/8;
+  aspect-ratio:17/10;
   position:relative;
 }
 .cs-cell{
@@ -489,7 +473,8 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   font-size:9px;font-weight:700;color:#fff;
   text-shadow:0 1px 2px rgba(0,0,0,0.25);
   border:2px solid rgba(255,255,255,0.7);
-  min-height:28px;
+  min-height:22px;
+  overflow:hidden;
 }
 .cs-cell .cs-cell-icon{width:11px;height:11px;opacity:.95}
 .cs-cell .cs-cell-num{
@@ -511,18 +496,19 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .cs-cell.quiz{background:linear-gradient(135deg,#4F6BFF,#6B85FF)}
 .cs-cell.dare{background:linear-gradient(135deg,#F59E0B,#FB923C)}
 .cs-cell.truth{background:linear-gradient(135deg,#38BDF8,#7DD3FC)}
-.cs-cell.random{background:linear-gradient(135deg,#8B5CF6,#A78BFA)}
+.cs-cell.paper{background:linear-gradient(135deg,#8B5CF6,#A78BFA)}
 .cs-cell.jail{background:linear-gradient(135deg,#EF4444,#F87171)}
+.cs-cell.lucky{background:linear-gradient(135deg,#FBBF24,#FDE68A);color:#78350F;text-shadow:none}
 .cs-cell.normal{background:linear-gradient(135deg,#94A3B8,#CBD5E1);color:#fff;text-shadow:none}
 
 /* 棋子 */
-.cs-pieces{position:absolute;inset:0;pointer-events:none}
+.cs-pieces{position:absolute;inset:0;pointer-events:none;z-index:5}
 .cs-piece{
-  position:absolute;width:18px;height:18px;border-radius:50%;
+  position:absolute;width:20px;height:20px;border-radius:50%;
   border:2px solid #fff;
   box-shadow:0 2px 5px rgba(0,0,0,0.3);
   transition:left .35s ease, top .35s ease;
-  z-index:5;
+  z-index:6;
 }
 .cs-piece.p-active{
   box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--accent), 0 2px 8px rgba(0,0,0,0.3);
@@ -530,26 +516,26 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 }
 @keyframes csPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 
-/* 棋盘中央 */
+/* 棋盘中央：骰子+回合信息 */
 .chess-center{
   position:absolute;
   top:50%;left:50%;transform:translate(-50%,-50%);
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  z-index:6;width:62%;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  z-index:7;
 }
 .cs-turn-info{
-  font-size:12px;font-weight:600;color:var(--text-2);
+  font-size:13px;font-weight:700;color:var(--text-2);
   display:flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,0.88);padding:3px 12px;border-radius:999px;
+  background:rgba(255,255,255,0.92);padding:5px 14px;border-radius:999px;
   box-shadow:var(--shadow-card);white-space:nowrap;
 }
-.cs-turn-dot{width:11px;height:11px;border-radius:50%;background:var(--accent)}
+.cs-turn-dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
 .cs-dice{
-  width:48px;height:48px;border-radius:12px;
+  width:56px;height:56px;border-radius:14px;
   background:#fff;border:2px solid var(--border);
   box-shadow:var(--shadow-card);
   display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:800;color:var(--accent);
+  font-size:28px;font-weight:800;color:var(--accent);
   cursor:pointer;user-select:none;
   transition:transform .15s ease;
 }
@@ -559,12 +545,11 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   25%{transform:rotate(-15deg) scale(1.08)}
   75%{transform:rotate(15deg) scale(1.08)}
 }
-.cs-roll-btn{min-height:44px}
 
-/* 玩家信息条 */
+/* 玩家信息条（全屏底部） */
 .chess-players{
   display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
-  margin-top:14px;
+  margin-top:10px;
 }
 @media(min-width:600px){.chess-players{grid-template-columns:repeat(4,1fr)}}
 .cs-player-chip{
@@ -590,9 +575,14 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   flex:none;font-size:10px;font-weight:700;color:var(--red);
   background:rgba(239,68,68,0.12);padding:2px 6px;border-radius:6px;
 }
+.cs-player-chip .cp-buff{
+  flex:none;font-size:10px;font-weight:700;color:#B45309;
+  background:rgba(245,158,11,0.14);padding:2px 6px;border-radius:6px;
+}
 
 /* 事件弹窗 */
-.cs-modal-box{max-width:420px}
+#chessModal{z-index:100010}
+.cs-modal-box{max-width:460px;max-height:86vh;overflow-y:auto}
 .cs-event-badge{
   display:inline-block;font-size:11px;font-weight:700;
   padding:4px 12px;border-radius:999px;margin-bottom:10px;
@@ -600,8 +590,9 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .cs-event-badge.quiz{background:rgba(79,107,255,0.12);color:#4F6BFF}
 .cs-event-badge.truth{background:rgba(56,189,248,0.14);color:#0284C7}
 .cs-event-badge.dare{background:rgba(245,158,11,0.14);color:#B45309}
-.cs-event-badge.random{background:rgba(139,92,246,0.14);color:#7C3AED}
+.cs-event-badge.paper{background:rgba(139,92,246,0.14);color:#7C3AED}
 .cs-event-badge.jail{background:rgba(239,68,68,0.14);color:#DC2626}
+.cs-event-badge.lucky{background:rgba(251,191,36,0.18);color:#B45309}
 .cs-event-badge.win{background:rgba(34,197,94,0.14);color:#15803D}
 .cs-modal-box h2{font-size:18px;margin-bottom:10px}
 .cs-event-body{margin-bottom:16px;text-align:left}
@@ -626,25 +617,67 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .cs-event-body .cs-opt.correct{border-color:var(--green);background:rgba(34,197,94,0.08)}
 .cs-event-body .cs-opt.correct .opt-label{background:var(--green);color:#fff}
 .cs-event-body .cs-opt.wrong{border-color:var(--red);background:rgba(239,68,68,0.06)}
-.cs-event-body .cs-jail-icon{
+.cs-explain{
+  margin-top:10px;padding:10px 12px;
+  background:rgba(79,107,255,0.06);
+  border-left:3px solid var(--accent);
+  border-radius:8px;font-size:13px;color:var(--text-2);line-height:1.5;
+  display:none;
+}
+.cs-explain.show{display:block}
+.cs-explain b{color:var(--accent)}
+
+/* 学科选择按钮网格 */
+.subject-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+}
+@media(min-width:480px){.subject-grid{grid-template-columns:repeat(3,1fr)}}
+.subject-btn{
+  min-height:48px;border-radius:10px;
+  border:1.5px solid var(--border);background:#fff;
+  font-size:14px;font-weight:600;color:var(--text);
+  cursor:pointer;transition:all .15s ease;
+}
+.subject-btn:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+/* buff 三选一 */
+.buff-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.buff-btn{
+  text-align:left;padding:12px 14px;border-radius:10px;
+  border:1.5px solid var(--border);background:#fff;
+  cursor:pointer;transition:all .15s ease;
+  min-height:56px;
+}
+.buff-btn:hover{border-color:var(--gold);background:rgba(251,191,36,0.08)}
+.buff-btn .buff-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.buff-btn .buff-desc{font-size:12px;color:var(--text-3)}
+
+/* 试卷进度 */
+.paper-progress{
+  font-size:12px;color:var(--text-3);margin-bottom:10px;
+  display:flex;justify-content:space-between;
+}
+.paper-progress b{color:var(--purple)}
+
+.cs-jail-icon{
   width:56px;height:56px;margin:0 auto 10px;
   background:rgba(239,68,68,0.1);color:var(--red);
   border-radius:16px;display:flex;align-items:center;justify-content:center;
 }
-.cs-event-body .cs-jail-icon svg{width:32px;height:32px}
-.cs-event-body .cs-win-icon{
+.cs-jail-icon svg{width:32px;height:32px}
+.cs-win-icon{
   width:64px;height:64px;margin:0 auto 10px;
   background:rgba(34,197,94,0.1);color:var(--green);
   border-radius:50%;display:flex;align-items:center;justify-content:center;
 }
-.cs-event-body .cs-win-icon svg{width:36px;height:36px}
-.cs-event-body .cs-win-name{
+.cs-win-icon svg{width:36px;height:36px}
+.cs-win-name{
   font-size:22px;font-weight:800;color:var(--accent);
   margin:6px 0;
 }
 
 /* 彩带 */
-.cs-confetti{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.cs-confetti{position:fixed;inset:0;pointer-events:none;z-index:100020;overflow:hidden}
 .cs-confetti-piece{
   position:absolute;top:-20px;width:10px;height:14px;
   animation:csFall linear forwards;
@@ -682,7 +715,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   padding:9px 18px;border-radius:999px;
   font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s ease;z-index:200;
+  transition:all .25s ease;z-index:200000;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -690,22 +723,18 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   .wrap{padding:24px 36px 36px}
   .hero{padding:14px 0 18px}
   .hero h1{font-size:30px}
-  /* 数字炸弹三列 */
   .nb-layout{flex-direction:row;align-items:flex-start;gap:24px}
   .nb-col-left{order:1;flex:0 0 210px;max-width:220px}
   .nb-col-mid{order:2;flex:1;min-width:0}
   .nb-col-right{order:3;flex:0 0 220px;max-width:240px;margin:0}
   .nb-col-left .history{max-height:340px}
   .nb-range{font-size:clamp(44px,5.5vw,62px)}
-  /* 大冒险三列 */
   .wheel-layout{flex-direction:row;align-items:flex-start;gap:24px}
   .wl-col-left{order:1;flex:0 0 210px;max-width:210px}
   .wl-col-mid{order:2;flex:1;min-width:0}
   .wl-col-right{order:3;flex:0 0 220px;max-width:220px;margin:0}
   .wl-history{max-height:360px}
-  .wheel-wrap{width:min(40vw,400px)}
-  /* 飞行棋桌面端 */
-  .chess-board-wrap{max-width:620px}
+  .wheel-wrap{width:min(36vw,420px)}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -748,7 +777,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
       </div>
 
       <div class="nb-layout">
-        <!-- 左列：报数记录（历史猜测） -->
+        <!-- 左列：报数记录 -->
         <div class="nb-col-left">
           <div class="history" id="nb-history">
             <h3>
@@ -761,18 +790,13 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 
         <!-- 中列：主显示区 -->
         <div class="nb-col-mid">
-          <!-- 设置行 -->
           <div class="nb-setup-row">
             <label class="nb-label" for="nb-max">最大值</label>
             <input type="number" class="input-num nb-max-input" id="nb-max" value="100" min="10" max="9999">
             <button class="btn btn-primary btn-tight" onclick="numBombStart()">开始新游戏</button>
           </div>
-
-          <!-- 大字号范围（视觉焦点） -->
           <div class="nb-range" id="nb-range">1 ~ 100</div>
           <div class="nb-msg" id="nb-msg">在范围内选一个数字</div>
-
-          <!-- 输入回显 -->
           <div class="nb-readout" id="nb-readout"><span class="placeholder">点击数字键或用键盘输入</span></div>
         </div>
 
@@ -797,13 +821,13 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
     </div>
   </div>
 
-  <!-- ============ Tab 面板：大冒险转盘（左中右三列） ============ -->
+  <!-- ============ Tab 面板：大冒险转盘 ============ -->
   <div class="tab-panel" id="tab-wheel">
     <div class="card">
       <div style="text-align:center;margin-bottom:6px">
-        <span class="capsule">CLASSROOM WHEEL · 四种综合玩法</span>
+        <span class="capsule">CLASSROOM WHEEL · 真心话 + 大冒险</span>
         <h2 style="margin-top:8px">课堂大冒险转盘</h2>
-        <p class="desc">知识问答 / 真心话 / 大冒险 / 随机挑战，点击转盘抽取任务</p>
+        <p class="desc">真心话 / 大冒险，点击转盘抽取任务</p>
       </div>
 
       <div class="wheel-layout">
@@ -821,7 +845,12 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
         <!-- 中列：转盘 + 结果 -->
         <div class="wl-col-mid">
           <div class="wheel-wrap" id="wheelWrap" title="点击转盘开始抽取">
-            <div class="pointer"></div>
+            <div class="pointer">
+              <svg viewBox="0 0 34 34" fill="none">
+                <path d="M17 2 L28 16 Q17 22 6 16 Z" fill="#4F6BFF"/>
+                <circle cx="17" cy="15" r="4" fill="#fff"/>
+              </svg>
+            </div>
             <canvas id="wheelCanvas"></canvas>
           </div>
           <p class="wheel-hint" id="wheel-hint"><strong>点击转盘</strong>开始抽取</p>
@@ -862,7 +891,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
       <div style="text-align:center;margin-bottom:10px">
         <span class="capsule">CLASSROOM FLIGHT CHESS · 多人桌游</span>
         <h2 style="margin-top:8px">课堂飞行棋</h2>
-        <p class="desc">四人从棋盘四个角出发，顺时针走一圈；知识问答 / 大冒险 / 真心话 / 随机挑战 / 进监狱，先走完一圈回到自己起点获胜</p>
+        <p class="desc">2-4人从四角出发顺时针走一圈；知识问答 / 真心话 / 大冒险 / 试卷挑战 / 进监狱 / 幸运格，先走完一圈回到自己起点获胜</p>
       </div>
 
       <!-- 玩家设置区 -->
@@ -886,34 +915,39 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
           </button>
         </div>
       </div>
-
-      <!-- 游戏区 -->
-      <div id="chessGame" style="display:none">
-        <div class="chess-board-wrap">
-          <div class="chess-board" id="chessBoard"></div>
-          <!-- 棋盘中央：骰子 + 当前玩家 -->
-          <div class="chess-center">
-            <div class="cs-turn-info" id="csTurnInfo">
-              <span class="cs-turn-dot" id="csTurnDot"></span>
-              <span id="csTurnName">玩家1</span> 的回合
-            </div>
-            <div class="cs-dice" id="csDice" title="掷骰子">
-              <span class="cs-dice-face" id="csDiceFace">?</span>
-            </div>
-            <button class="btn btn-primary cs-roll-btn" id="csRollBtn" onclick="chessRollDice()">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
-              掷骰子
-            </button>
-            <button class="btn btn-secondary btn-tight" onclick="chessReset()">重新开始</button>
-          </div>
-        </div>
-
-        <!-- 玩家信息条 -->
-        <div class="chess-players" id="chessPlayers"></div>
-      </div>
     </div>
   </div>
+</div>
 
+<!-- ==================== 飞行棋全屏层 ==================== -->
+<div id="csFullscreen">
+  <div class="cs-fs-inner">
+    <div class="cs-fs-topbar">
+      <div class="cs-fs-title">课堂<span class="grad">飞行棋</span></div>
+      <div class="cs-fs-btns">
+        <button class="btn btn-secondary btn-tight" onclick="chessRestart()">重新开始</button>
+        <button class="btn btn-secondary btn-tight" style="color:var(--red);border-color:var(--red)" onclick="chessEndGame()">结束游戏</button>
+      </div>
+    </div>
+    <div class="cs-fs-board-wrap">
+      <div class="chess-board" id="chessBoard"></div>
+      <div class="chess-center">
+        <div class="cs-turn-info" id="csTurnInfo">
+          <span class="cs-turn-dot" id="csTurnDot"></span>
+          <span id="csTurnName">玩家1</span> 的回合
+        </div>
+        <div class="cs-dice" id="csDice" title="掷骰子">
+          <span id="csDiceFace">?</span>
+        </div>
+        <button class="btn btn-primary btn-tight" id="csRollBtn" onclick="chessRollDice()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+          掷骰子
+        </button>
+      </div>
+    </div>
+    <div class="chess-players" id="chessPlayers"></div>
+  </div>
+</div>
 
 <!-- ==================== 通用弹窗 ==================== -->
 <div class="modal-overlay" id="modal">
@@ -978,7 +1012,7 @@ function showModal(title, desc, cls){
 function closeModal(){ $('modal').classList.remove('show'); }
 
 /* ============================================================
- * 数字炸弹
+ * 数字炸弹（完全保留）
  * ============================================================ */
 let nbMin = 1;
 let nbUpper = 100;
@@ -1121,111 +1155,254 @@ document.addEventListener('keydown', e=>{
 $('nb-max').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); numBombStart(); } });
 
 /* ============================================================
- * 大冒险转盘：4 种类型综合玩法
+ * 共享题库：真心话 / 大冒险（飞行棋与转盘共用）
  * ============================================================ */
-
-/* ---- 内置题库（从 大冒险.xlsm 提取） ---- */
 const BANK = {
-  quiz: [
-    {type:'单选',q:'计算机中存储容量的基本单位是？',ans:'B',A:'位（bit）',B:'字节（Byte）',C:'千字节（KB）',D:'兆字节（MB）'},
-    {type:'判断',q:'1KB等于1024B。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于输入设备的是？',ans:'ABD',A:'键盘',B:'鼠标',C:'显示器',D:'扫描仪'},
-    {type:'单选',q:'二进制数1011转换为十进制数是？',ans:'C',A:'9',B:'10',C:'11',D:'12'},
-    {type:'判断',q:'计算机中的所有信息都以二进制形式表示。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于计算机硬件的是？',ans:'ABD',A:'CPU',B:'内存',C:'Windows',D:'硬盘'},
-    {type:'单选',q:'Python中用于输出内容的是？',ans:'B',A:'input()',B:'print()',C:'int()',D:'len()'},
-    {type:'判断',q:'Python中变量名可以以数字开头。',ans:'B',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于合法Python变量名的是？',ans:'AC',A:'_name',B:'2num',C:'student1',D:'class'},
-    {type:'单选',q:'下列不属于算法基本特征的是？',ans:'C',A:'有穷性',B:'确定性',C:'可移植性',D:'可行性'},
-    {type:'判断',q:'算法可以用自然语言、流程图和伪代码描述。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于算法基本结构的是？',ans:'ABC',A:'顺序结构',B:'选择结构',C:'循环结构',D:'嵌套结构'},
-    {type:'单选',q:'在流程图中，菱形通常表示？',ans:'C',A:'开始/结束',B:'处理',C:'判断',D:'输入/输出'},
-    {type:'判断',q:'计算机病毒是一种程序。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于信息安全防范措施的是？',ans:'ABD',A:'安装杀毒软件',B:'定期更新系统补丁',C:'随意点击陌生链接',D:'设置强密码'},
-    {type:'单选',q:'IP地址的主要作用是？',ans:'A',A:'标识网络中的设备',B:'存储文件',C:'显示图像',D:'提高网速'},
-    {type:'判断',q:'HTML是一种编程语言。',ans:'B',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于网络协议的是？',ans:'ABCD',A:'TCP',B:'IP',C:'HTTP',D:'FTP'},
-    {type:'单选',q:'局域网的英文缩写是？',ans:'B',A:'WAN',B:'LAN',C:'MAN',D:'VPN'},
-    {type:'判断',q:'使用云计算需要用户自己购买大量服务器。',ans:'B',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于大数据特征的是？',ans:'ABC',A:'数据量大',B:'类型多样',C:'处理速度快',D:'价值密度高'},
-    {type:'单选',q:'人工智能中，让计算机从数据中学习规律的方法属于？',ans:'A',A:'机器学习',B:'数据库管理',C:'网络通信',D:'图像压缩'},
-    {type:'判断',q:'物联网的核心是物物相连、信息互通。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于数据库管理系统的是？',ans:'ABC',A:'MySQL',B:'Oracle',C:'SQL Server',D:'Word'},
-    {type:'单选',q:'在关系型数据库中，数据主要以什么形式组织？',ans:'C',A:'树',B:'图',C:'二维表',D:'链表'},
-    {type:'判断',q:'Python中，= 表示判断两个值是否相等。',ans:'B',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于Python数据类型的是？',ans:'ABCD',A:'int',B:'float',C:'str',D:'list'},
-    {type:'单选',q:'Python表达式 3 + 5 * 2 的值是？',ans:'B',A:'16',B:'13',C:'11',D:'10'},
-    {type:'判断',q:'Python中，input()函数返回的数据类型是字符串。',ans:'A',A:'正确',B:'错误',C:'',D:''},
-    {type:'多选',q:'下列属于信息系统的是？',ans:'ABC',A:'学校教务管理系统',B:'网上银行系统',C:'图书馆借阅系统',D:'纸质记事本'}
-  ],
   truth: [
-    '你最近一次说谎是什么时候？说了什么？',
-    '你的初恋发生在几岁？对方是什么样的人？',
-    '你手机相册最后一张照片是什么？敢给大家看吗？',
-    '在场的人里，你对谁的第一印象最好？',
-    '你做过最尴尬的一件事是什么？',
-    '你有没有偷看过前任或喜欢的人的手机？',
-    '你最不想让父母知道的一件事是什么？',
-    '如果可以和在场一个人交换人生，你选谁？为什么？',
-    '你暗恋过多少人？最长一次多久？',
-    '你最近一次哭是因为什么？',
-    '你做过最疯狂的一件事是什么？',
-    '你最想删除自己人生中的哪段记忆？',
-    '你有没有对朋友撒过很大的谎？后来怎么收场？',
-    '你的理想型三个关键词是什么？',
-    '你目前最遗憾的一件事是什么？',
-    '你手机里最舍不得删的一条聊天记录是什么？',
-    '你有没有同时喜欢过两个人？',
-    '你最讨厌别人对你做什么？',
-    '如果明天世界末日，你今晚会联系谁？',
-    '你觉得自己最大的缺点是什么？'
+    '你最崇拜的老师是谁？为什么？',
+    '如果能拥有一种超能力，你选什么？',
+    '你最近一次笑到肚子疼是因为什么？',
+    '你觉得自己最大的优点是什么？',
+    '如果明天放假，你最想做什么？',
+    '你最喜欢的一门学科是什么？为什么？',
+    '你长大后想从事什么职业？',
+    '你最近看的一部好电影或好书是什么？',
+    '你觉得班里哪位同学最有才华？',
+    '如果可以和任何人吃一顿饭，你选谁？',
+    '你最想去的旅游目的地是哪里？',
+    '你小时候的梦想是什么？现在变了吗？',
+    '你最喜欢的一首歌是什么？',
+    '你觉得课堂上最有趣的瞬间是什么？',
+    '如果可以改变学校的一件事，你改什么？',
+    '你最擅长的一件小事是什么？',
+    '你最近学到的最有用的知识是什么？',
+    '你觉得自己三年后会在做什么？',
+    '你最喜欢的节日是哪个？怎么过？',
+    '如果给你一天当老师，你会带同学们做什么？'
   ],
   dare: [
-    '背诵一首古诗',
-    '唱一句最近流行的歌',
+    '用三种语气说"老师好"',
+    '模仿一种动物叫10秒',
+    '给大家唱一句你最喜欢的歌',
     '做5个深蹲',
-    '模仿一位老师的经典动作或口头禅',
-    '用"如果...就..."造一个句子',
     '说出3个成语',
-    '模仿一种动物叫声',
+    '模仿一位老师的口头禅',
     '用肢体语言表演一个成语让大家猜',
-    '说出今天学的一个知识点',
     '给大家讲一个冷笑话',
     '做10个高抬腿',
-    '用三种语气说"我错了"',
-    '现场表演一个表情包',
+    '现场做一个表情包',
+    '说出3位科学家的名字',
+    '大声朗读一首古诗',
+    '用"如果...就..."造一个句子',
     '说出5个带有"春"字的词语',
     '模仿机器人说话30秒',
-    '给右边的同学捶捶肩',
-    '大声朗读一段课文',
+    '对右边的同学说一句赞美的话',
     '做一个鬼脸保持5秒',
-    '说出3位科学家的名字',
-    '用方言说一句话'
-  ],
-  names: [
-    '沈烬川','赵无妄','阿史那隼','萧元昭','陆青梧','柳孤鸿','叶知寒','韩敬之',
-    '萧照夜','花满楼','温红绡','秦放鹤','白无咎','孟三更','萧承稷','谢兰台',
-    '顾停舟','聂小钟','高让','楚长歌','苏挽月','石敢当','崔九娘','燕不归',
-    '裴观澜','谢惊澜','李怀璋','江停云','姜折玉','沈照微','谢明华','云未眠',
-    '阮清商','顾青崖','卫长渊','钟离渡','裴听雪','薛望京','赫连霄','宋别枝',
-    '宇文澈','林衔月','程渡雪','许惊鸿','长孙镜'
+    '说出今天学的一个知识点',
+    '用方言说一句自我介绍',
+    '原地转3圈后走直线'
   ]
 };
 
-/* ---- 扇区类型配置 ---- */
-const TYPE_META = {
-  quiz:   {color:'#4F6BFF', light:'rgba(79,107,255,0.20)', label:'知识问答', badge:'quiz',   labelShort:'知识'},
-  truth:  {color:'#38BDF8', light:'rgba(56,189,248,0.22)', label:'真心话',   badge:'truth',  labelShort:'真心'},
-  dare:   {color:'#F59E0B', light:'rgba(245,158,11,0.22)', label:'大冒险',   badge:'dare',   labelShort:'冒险'},
-  random: {color:'#22C55E', light:'rgba(34,197,94,0.20)',  label:'随机挑战', badge:'random', labelShort:'挑战'}
+/* ============================================================
+ * 10 科题库（河北单招基础难度）
+ * 每题：{q, options:[A,B,C,D], answer:0-3, explain}
+ * ============================================================ */
+const QUIZ_BANK = {
+"语文": [
+  {q:"下列词语中加点字读音完全正确的一项是？", options:["踌躇(zhù)","踌躇(chú)","踌躇(shóu)","踌躇(cóu)"], answer:1, explain:"躇读chú，踌躇意为犹豫不决。"},
+  {q:"《论语》的编者是？", options:["孔子","孔子弟子及再传弟子","孟子","老子"], answer:1, explain:"《论语》由孔子弟子及再传弟子整理汇编而成。"},
+  {q:"成语\"画蛇添足\"比喻？", options:["多此一举","锦上添花","画龙点睛","事半功倍"], answer:0, explain:"画蛇添足比喻做了多余的事，反而不合适。"},
+  {q:"\"床前明月光\"的作者是？", options:["杜甫","李白","白居易","王维"], answer:1, explain:"出自李白《静夜思》。"},
+  {q:"下列词语书写完全正确的是？", options:["按部就班","按步就班","按部就搬","案部就班"], answer:0, explain:"正确写法为\"按部就班\"。"},
+  {q:"\"忽如一夜春风来\"的下一句是？", options:["千树万树梨花开","春风又绿江南岸","二月春风似剪刀","春风送暖入屠苏"], answer:0, explain:"出自岑参《白雪歌送武判官归京》。"},
+  {q:"我国第一部诗歌总集是？", options:["《楚辞》","《诗经》","《论语》","《尚书》"], answer:1, explain:"《诗经》是我国第一部诗歌总集。"},
+  {q:"\"落红不是无情物\"下一句是？", options:["化作春泥更护花","润物细无声","春风吹又生","霜叶红于二月花"], answer:0, explain:"出自龚自珍《己亥杂诗》。"},
+  {q:"\"唐宋八大家\"中不包括？", options:["韩愈","柳宗元","苏轼","李白"], answer:3, explain:"唐宋八大家为韩愈、柳宗元、三苏、欧阳修、王安石、曾巩，无李白。"},
+  {q:"\"海内存知己\"下一句是？", options:["天涯若比邻","天涯共此时","儿女共沾巾","同是天涯沦落人"], answer:0, explain:"出自王勃《送杜少府之任蜀州》。"},
+  {q:"成语\"守株待兔\"寓意？", options:["心存侥幸，不劳而获","坚持不懈","亡羊补牢","掩耳盗铃"], answer:0, explain:"比喻死守狭隘经验，心存侥幸。"},
+  {q:"《西游记》的作者是？", options:["罗贯中","施耐庵","吴承恩","曹雪芹"], answer:2, explain:"《西游记》为明代吴承恩所著。"},
+  {q:"\"但愿人长久\"下一句是？", options:["千里共婵娟","把酒问青天","明月几时有","天涯共此时"], answer:0, explain:"出自苏轼《水调歌头》。"},
+  {q:"下列句子运用比喻修辞的是？", options:["叶子出水很高，像亭亭的舞女的裙","他好像去过那里","这道题好像做错了","他今天好像很高兴"], answer:0, explain:"A项把荷叶比作舞女的裙，是比喻；其余为猜测语气。"},
+  {q:"\"谁知盘中餐\"下一句是？", options:["粒粒皆辛苦","汗滴禾下土","春种一粒粟","四海无闲田"], answer:0, explain:"出自李绅《悯农》。"},
+  {q:"下列句子没有语病的一项是？", options:["通过这次活动，使我明白了道理","这次活动使我明白了道理","我大约用了整整一小时","他不仅会唱歌，而且会跳舞很好"], answer:1, explain:"A项缺主语，C项\"大约\"与\"整整\"矛盾，D项语序不当。"}
+],
+"数学": [
+  {q:"计算：3 + 5 × 2 = ？", options:["16","13","10","11"], answer:1, explain:"先乘除后加减：3+10=13。"},
+  {q:"2的3次方等于？", options:["6","8","9","12"], answer:1, explain:"2³=2×2×2=8。"},
+  {q:"方程 2x + 4 = 10 的解是？", options:["x=2","x=3","x=4","x=5"], answer:1, explain:"2x=6，x=3。"},
+  {q:"三角形内角和为？", options:["90°","180°","270°","360°"], answer:1, explain:"三角形内角和恒为180°。"},
+  {q:"半径为r的圆面积公式是？", options:["2πr","πr²","πd","2πr²"], answer:1, explain:"圆面积 S=πr²。"},
+  {q:"从1到10中随机抽一个数，抽到偶数的概率？", options:["1/2","1/3","1/4","2/5"], answer:0, explain:"偶数有2,4,6,8,10共5个，概率5/10=1/2。"},
+  {q:"函数 y=2x+1 中，当x=3时 y=？", options:["5","6","7","8"], answer:2, explain:"y=2×3+1=7。"},
+  {q:"100的平方根是？", options:["10","20","50","100"], answer:0, explain:"10²=100。"},
+  {q:"长方形长5宽3，面积是？", options:["8","15","16","20"], answer:1, explain:"面积=长×宽=5×3=15。"},
+  {q:"绝对值 |-5| = ？", options:["-5","5","0","25"], answer:1, explain:"负数的绝对值是它的相反数。"},
+  {q:"下列哪个是质数？", options:["9","15","17","21"], answer:2, explain:"17只能被1和自身整除。"},
+  {q:"200的30%等于？", options:["30","50","60","70"], answer:2, explain:"200×0.3=60。"},
+  {q:"等差数列2,4,6,8…第10项是？", options:["18","20","22","24"], answer:1, explain:"第n项=2n，第10项=20。"},
+  {q:"直角三角形两直角边为3和4，斜边是？", options:["5","6","7","25"], answer:0, explain:"勾股定理：斜边=√(9+16)=5。"},
+  {q:"数据2,4,6,8,10的平均数是？", options:["4","5","6","7"], answer:2, explain:"总和30÷5=6。"},
+  {q:"(a+b)² 展开等于？", options:["a²+b²","a²+2ab+b²","a²-2ab+b²","a²+ab+b²"], answer:1, explain:"完全平方公式。"}
+],
+"英语": [
+  {q:"\"apple\"的中文意思是？", options:["香蕉","苹果","橘子","葡萄"], answer:1, explain:"apple意为苹果。"},
+  {q:"Good morning! 的回答通常是？", options:["Good morning!","Goodbye!","Thank you!","Sorry!"], answer:0, explain:"早上见面互道Good morning。"},
+  {q:"I ___ a student. 填入？", options:["is","am","are","be"], answer:1, explain:"I 后接 am。"},
+  {q:"Thank you very much. 的回答是？", options:["You're welcome.","Yes.","No.","OK."], answer:0, explain:"不客气用You're welcome。"},
+  {q:"book的复数形式是？", options:["bookes","books","bookies","book's"], answer:1, explain:"一般情况直接加s。"},
+  {q:"下列哪个是动物？", options:["tiger","apple","chair","water"], answer:0, explain:"tiger老虎是动物。"},
+  {q:"How are you? 的回答是？", options:["I'm fine, thank you.","Goodbye.","Yes, I am.","See you."], answer:0, explain:"日常问候语。"},
+  {q:"water的中文意思是？", options:["火","水","土","木"], answer:1, explain:"water意为水。"},
+  {q:"He ___ to school every day.", options:["go","goes","going","gone"], answer:1, explain:"第三人称单数加es。"},
+  {q:"Nice to meet you. 的回答是？", options:["Nice to meet you, too.","Thank you.","Goodbye.","Sorry."], answer:0, explain:"初次见面问候的标准回答。"},
+  {q:"数字\"12\"用英语是？", options:["eleven","twelve","thirteen","ten"], answer:1, explain:"twelve意为12。"},
+  {q:"cat的中文意思是？", options:["狗","猫","鸟","鱼"], answer:1, explain:"cat意为猫。"},
+  {q:"This is ___ book.", options:["I","my","me","mine"], answer:1, explain:"形容词性物主代词my修饰名词。"},
+  {q:"red的中文意思是？", options:["蓝色","红色","绿色","黄色"], answer:1, explain:"red意为红色。"},
+  {q:"Where are you from? 的回答是？", options:["I'm from China.","I'm a teacher.","Yes, I do.","I like it."], answer:0, explain:"询问来自哪里，回答地点。"},
+  {q:"see的过去式是？", options:["see","saw","seen","seeing"], answer:1, explain:"see的过去式为不规则变化saw。"}
+],
+"历史": [
+  {q:"中国历史上第一个统一的中央集权王朝是？", options:["夏朝","秦朝","汉朝","周朝"], answer:1, explain:"公元前221年秦始皇统一六国建立秦朝。"},
+  {q:"秦始皇统一六国是在？", options:["公元前221年","公元221年","公元前202年","公元618年"], answer:0, explain:"公元前221年秦统一。"},
+  {q:"\"贞观之治\"指的是哪位皇帝？", options:["唐高祖","唐太宗","唐玄宗","武则天"], answer:1, explain:"唐太宗李世民年号贞观。"},
+  {q:"改进造纸术的是？", options:["张衡","蔡伦","毕昇","华佗"], answer:1, explain:"东汉蔡伦改进造纸术。"},
+  {q:"鸦片战争爆发于哪一年？", options:["1840年","1894年","1911年","1919年"], answer:0, explain:"1840年鸦片战争爆发。"},
+  {q:"唐朝的开国皇帝是？", options:["李世民","李渊","李隆基","李治"], answer:1, explain:"唐高祖李渊建立唐朝。"},
+  {q:"\"丝绸之路\"开辟于哪个朝代？", options:["秦朝","西汉","东汉","唐朝"], answer:1, explain:"西汉张骞出使西域开辟丝绸之路。"},
+  {q:"辛亥革命爆发于哪一年？", options:["1898年","1911年","1919年","1921年"], answer:1, explain:"1911年辛亥革命。"},
+  {q:"活字印刷术的发明者是？", options:["蔡伦","毕昇","沈括","郭守敬"], answer:1, explain:"北宋毕昇发明活字印刷。"},
+  {q:"我国历史上唯一的女皇帝是？", options:["吕后","武则天","慈禧","孝庄"], answer:1, explain:"武则天建立武周。"},
+  {q:"\"桃园三结义\"不包括？", options:["刘备","关羽","张飞","曹操"], answer:3, explain:"刘关张桃园结义，曹操不在其中。"},
+  {q:"元朝的建立者是？", options:["成吉思汗","忽必烈","朱元璋","努尔哈赤"], answer:1, explain:"忽必烈建立元朝。"},
+  {q:"五四运动爆发于哪一年？", options:["1911年","1919年","1921年","1949年"], answer:1, explain:"1919年五四运动。"},
+  {q:"明朝的开国皇帝是？", options:["朱元璋","朱棣","朱厚照","朱由检"], answer:0, explain:"明太祖朱元璋建立明朝。"},
+  {q:"指南针开始用于航海是在？", options:["唐朝","北宋","南宋","元朝"], answer:1, explain:"北宋指南针用于航海。"},
+  {q:"中华人民共和国成立于哪一年？", options:["1945年","1949年","1950年","1978年"], answer:1, explain:"1949年10月1日建国。"}
+],
+"地理": [
+  {q:"我国的首都是？", options:["上海","北京","广州","南京"], answer:1, explain:"北京是中华人民共和国首都。"},
+  {q:"我国最长的河流是？", options:["黄河","长江","珠江","黑龙江"], answer:1, explain:"长江全长约6300千米。"},
+  {q:"世界最高峰是？", options:["珠穆朗玛峰","乔戈里峰","泰山","华山"], answer:0, explain:"珠穆朗玛峰海拔8848.86米。"},
+  {q:"河北省的省会是？", options:["保定","石家庄","唐山","邯郸"], answer:1, explain:"河北省会为石家庄。"},
+  {q:"我国面积最大的省级行政区是？", options:["新疆","西藏","内蒙古","青海"], answer:0, explain:"新疆约166万平方千米。"},
+  {q:"地球自转一周约为？", options:["12小时","24小时","一个月","一年"], answer:1, explain:"自转周期约24小时。"},
+  {q:"被称为\"母亲河\"的是？", options:["长江","黄河","淮河","珠江"], answer:1, explain:"黄河孕育了中华文明。"},
+  {q:"下列哪个是我国直辖市？", options:["重庆","广州","杭州","成都"], answer:0, explain:"我国有京沪津渝四个直辖市。"},
+  {q:"世界面积最大的大洋是？", options:["大西洋","太平洋","印度洋","北冰洋"], answer:1, explain:"太平洋面积最大。"},
+  {q:"我国位于哪个半球？", options:["东半球、北半球","西半球、南半球","东半球、南半球","西半球、北半球"], answer:0, explain:"我国位于东半球、北半球。"},
+  {q:"泰山位于哪个省？", options:["山东","山西","河南","河北"], answer:0, explain:"泰山在山东泰安。"},
+  {q:"我国东部地区主要气候类型是？", options:["季风气候","沙漠气候","雨林气候","地中海气候"], answer:0, explain:"东部为典型季风气候。"},
+  {q:"长江和黄河都发源于？", options:["西藏","青海","四川","甘肃"], answer:1, explain:"两河均发源于青海。"},
+  {q:"世界面积最大的国家是？", options:["中国","俄罗斯","加拿大","美国"], answer:1, explain:"俄罗斯约1700万平方千米。"},
+  {q:"我国最大的岛屿是？", options:["海南岛","台湾岛","崇明岛","舟山岛"], answer:1, explain:"台湾岛约3.6万平方千米。"},
+  {q:"石家庄位于哪个地形区？", options:["华北平原","东北平原","黄土高原","长江中下游平原"], answer:0, explain:"石家庄地处华北平原。"}
+],
+"政治": [
+  {q:"我国的根本制度是？", options:["人民代表大会制度","社会主义制度","民族区域自治","多党合作"], answer:1, explain:"宪法规定我国根本制度是社会主义制度。"},
+  {q:"我国的国家性质是？", options:["人民民主专政","资产阶级专政","多党联合执政","联邦制"], answer:0, explain:"我国是人民民主专政的社会主义国家。"},
+  {q:"哲学的基本问题是？", options:["思维与存在的关系问题","物质与运动","实践与认识","辩证与形而上学"], answer:0, explain:"哲学基本问题是思维和存在的关系问题。"},
+  {q:"我国的根本政治制度是？", options:["人民代表大会制度","政治协商制度","民族区域自治","基层群众自治"], answer:0, explain:"人大制度是根本政治制度。"},
+  {q:"商品的两个基本属性是？", options:["使用价值和价值","交换和流通","生产和消费","价值和价格"], answer:0, explain:"商品是使用价值和价值的统一体。"},
+  {q:"货币的基本职能是？", options:["价值尺度和流通手段","贮藏手段","支付手段","世界货币"], answer:0, explain:"价值尺度和流通手段是基本职能。"},
+  {q:"唯物辩证法的实质和核心是？", options:["对立统一规律","质量互变","否定之否定","联系发展"], answer:0, explain:"对立统一规律是唯物辩证法的实质核心。"},
+  {q:"我国基本经济制度是？", options:["公有制为主体、多种所有制共同发展","私有制为主体","单一公有制","外资为主体"], answer:0, explain:"这是我国基本经济制度。"},
+  {q:"检验真理的唯一标准是？", options:["实践","权威","经典","多数意见"], answer:0, explain:"实践是检验真理的唯一标准。"},
+  {q:"中华人民共和国的一切权力属于？", options:["公民","人民","国家主席","国务院"], answer:1, explain:"国家一切权力属于人民。"},
+  {q:"物质的唯一特性是？", options:["运动","客观实在性","可知性","永恒性"], answer:1, explain:"客观实在性是物质的唯一特性。"},
+  {q:"我国处理民族关系的基本原则不包括？", options:["民族平等","民族团结","各民族共同繁荣","民族独立"], answer:3, explain:"三原则为平等、团结、共同繁荣。"},
+  {q:"市场经济中\"看不见的手\"指？", options:["政府调控","市场机制","计划调节","法律监管"], answer:1, explain:"市场机制像看不见的手调节经济。"},
+  {q:"量变和质变的关系是？", options:["量变是质变的必要准备","质变是量变的必然结果","两者互不相干","量变等于质变"], answer:0, explain:"量变是必要准备，质变是必然结果；最佳选A。"},
+  {q:"我国最高国家权力机关是？", options:["国务院","全国人民代表大会","最高人民法院","国家主席"], answer:1, explain:"全国人大是最高国家权力机关。"},
+  {q:"价值规律的表现形式是？", options:["价格围绕价值上下波动","价格等于价值","价格始终高于价值","价格始终低于价值"], answer:0, explain:"价格受供求影响围绕价值波动。"}
+],
+"物理": [
+  {q:"力的国际单位是？", options:["千克","牛顿","帕斯卡","焦耳"], answer:1, explain:"力的单位牛顿(N)。"},
+  {q:"下列属于省力杠杆的是？", options:["镊子","天平","开瓶器","钓鱼竿"], answer:2, explain:"开瓶器动力臂大于阻力臂。"},
+  {q:"光在真空中的传播速度约为？", options:["3×10⁸ m/s","3×10⁶ m/s","3×10⁴ m/s","340 m/s"], answer:0, explain:"光速约3×10⁸ m/s。"},
+  {q:"物体所受重力方向总是？", options:["垂直向上","竖直向下","水平","垂直向下"], answer:1, explain:"重力竖直向下。"},
+  {q:"我国家庭电路电压是？", options:["110V","220V","380V","36V"], answer:1, explain:"市电220V。"},
+  {q:"下列属于惯性现象的是？", options:["跳远助跑","苹果落地","电灯发光","镜子成像"], answer:0, explain:"助跑利用惯性跳得更远。"},
+  {q:"电流的单位是？", options:["伏特","安培","欧姆","瓦特"], answer:1, explain:"电流单位安培(A)。"},
+  {q:"声音不能在下列哪种环境传播？", options:["空气","水","钢铁","真空"], answer:3, explain:"真空不能传声。"},
+  {q:"下列属于光的反射的是？", options:["水中倒影","小孔成像","海市蜃楼","日食"], answer:0, explain:"倒影是光的反射。"},
+  {q:"1千瓦时等于？", options:["3.6×10⁶ J","3.6×10³ J","1000 J","3600 J"], answer:0, explain:"1度=1kW·h=3.6×10⁶J。"},
+  {q:"滑动摩擦力大小与哪个因素无关？", options:["压力","接触面粗糙程度","接触面积","材料"], answer:2, explain:"滑动摩擦与接触面积无关。"},
+  {q:"下列属于导体的是？", options:["橡胶","玻璃","铜","塑料"], answer:2, explain:"铜是金属导体。"},
+  {q:"物体5秒内通过20米，速度是？", options:["4 m/s","5 m/s","10 m/s","20 m/s"], answer:0, explain:"v=s/t=20/5=4m/s。"},
+  {q:"凸透镜对光线有什么作用？", options:["会聚","发散","不改变","反射"], answer:0, explain:"凸透镜会聚光线。"},
+  {q:"力的三要素不包括？", options:["大小","方向","作用点","施力物体"], answer:3, explain:"三要素为大小、方向、作用点。"},
+  {q:"电能转化为机械能的是？", options:["电灯发光","电动机转动","电炉发热","太阳能电池"], answer:1, explain:"电动机将电能转为机械能。"}
+],
+"化学": [
+  {q:"水的化学式是？", options:["CO₂","H₂O","O₂","NaCl"], answer:1, explain:"水由H、O组成。"},
+  {q:"空气中含量最多的气体是？", options:["氧气","氮气","二氧化碳","稀有气体"], answer:1, explain:"氮气约占78%。"},
+  {q:"钠的元素符号正确写法是？", options:["na","Na","nA","NA"], answer:1, explain:"元素符号首字母大写次字母小写。"},
+  {q:"氧气的化学式是？", options:["O","O₂","O₃","HO"], answer:1, explain:"氧气为双原子分子O₂。"},
+  {q:"下列属于化学变化的是？", options:["冰融化","铁生锈","玻璃破碎","水蒸发"], answer:1, explain:"铁生锈产生新物质铁锈。"},
+  {q:"地壳中含量最多的元素是？", options:["硅","氧","铝","铁"], answer:1, explain:"氧占地壳约46.6%。"},
+  {q:"食盐的主要成分是？", options:["NaOH","NaCl","Na₂CO₃","NaHCO₃"], answer:1, explain:"食盐主要成分为NaCl。"},
+  {q:"二氧化碳能使澄清石灰水变？", options:["红色","浑浊","蓝色","无变化"], answer:1, explain:"生成碳酸钙沉淀。"},
+  {q:"下列属于酸的是？", options:["NaOH","HCl","NaCl","CaO"], answer:1, explain:"盐酸HCl是酸。"},
+  {q:"燃烧不需要的条件是？", options:["可燃物","氧气","温度达着火点","光照"], answer:3, explain:"燃烧三条件：可燃物、氧气、着火点。"},
+  {q:"铁在氧气中燃烧生成？", options:["FeO","Fe₂O₃","Fe₃O₄","Fe(OH)₃"], answer:2, explain:"铁丝燃烧生成四氧化三铁。"},
+  {q:"元素周期表的发现者是？", options:["门捷列夫","道尔顿","阿伏伽德罗","居里夫人"], answer:0, explain:"门捷列夫提出元素周期表。"},
+  {q:"下列气体能燃烧的是？", options:["氧气","二氧化碳","氢气","氮气"], answer:2, explain:"氢气可燃。"},
+  {q:"氢氧化钠俗称？", options:["纯碱","烧碱","小苏打","石灰石"], answer:1, explain:"NaOH俗称烧碱、火碱。"},
+  {q:"溶液pH=7时呈？", options:["酸性","中性","碱性","无法判断"], answer:1, explain:"pH=7为中性。"},
+  {q:"下列属于纯净物的是？", options:["空气","海水","氧气","水泥砂浆"], answer:2, explain:"氧气只含一种物质。"}
+],
+"生物": [
+  {q:"生物体结构和功能的基本单位是？", options:["细胞","组织","器官","系统"], answer:0, explain:"细胞是生物体基本单位。"},
+  {q:"植物光合作用的主要场所是？", options:["线粒体","叶绿体","细胞核","液泡"], answer:1, explain:"叶绿体是光合作用场所。"},
+  {q:"人体最大的消化腺是？", options:["唾液腺","肝脏","胃腺","胰腺"], answer:1, explain:"肝脏是最大消化腺。"},
+  {q:"遗传物质DNA主要存在于？", options:["细胞膜","细胞核","细胞质","细胞壁"], answer:1, explain:"DNA主要在细胞核中。"},
+  {q:"人体呼吸系统的主要器官是？", options:["气管","肺","鼻腔","支气管"], answer:1, explain:"肺是气体交换场所。"},
+  {q:"下列属于生态系统生产者的是？", options:["草","兔","蘑菇","细菌"], answer:0, explain:"绿色植物是生产者。"},
+  {q:"生物体主要遗传物质是？", options:["蛋白质","DNA","糖类","脂肪"], answer:1, explain:"DNA是主要遗传物质。"},
+  {q:"根吸收水分的主要部位是？", options:["根冠","成熟区","分生区","伸长区"], answer:1, explain:"成熟区有大量根毛。"},
+  {q:"动脉血的特点是？", options:["含氧丰富","含氧少","颜色暗红","含二氧化碳多"], answer:0, explain:"动脉血含氧丰富颜色鲜红。"},
+  {q:"下列属于传染病的是？", options:["近视","流感","高血压","糖尿病"], answer:1, explain:"流感由病毒引起可传播。"},
+  {q:"细胞呼吸作用的主要场所是？", options:["叶绿体","线粒体","细胞核","液泡"], answer:1, explain:"线粒体是动力车间。"},
+  {q:"光合作用制造的有机物主要是？", options:["淀粉","蛋白质","脂肪","维生素"], answer:0, explain:"光合作用主要制造淀粉。"},
+  {q:"神经系统结构功能基本单位是？", options:["神经元","神经纤维","神经末梢","神经中枢"], answer:0, explain:"神经元即神经细胞。"},
+  {q:"下列属于相对性状的是？", options:["人的双眼皮和单眼皮","人的黑发和卷发","兔的白毛和狗的黑毛","豌豆高茎和圆粒"], answer:0, explain:"同种生物同一性状不同表现为相对性状。"},
+  {q:"地球上最大的生态系统是？", options:["海洋生态系统","生物圈","森林生态系统","草原生态系统"], answer:1, explain:"生物圈是最大生态系统。"},
+  {q:"种子萌发不需要的外界条件是？", options:["适宜温度","一定水分","充足空气","强烈阳光"], answer:3, explain:"种子萌发不需阳光。"}
+],
+"信息技术": [
+  {q:"计算机存储容量的基本单位是？", options:["位(bit)","字节(Byte)","千字节(KB)","兆字节(MB)"], answer:1, explain:"基本单位是字节Byte。"},
+  {q:"1KB等于多少字节？", options:["1000","1024","512","2048"], answer:1, explain:"1KB=1024B。"},
+  {q:"下列属于输入设备的是？", options:["显示器","键盘","打印机","音箱"], answer:1, explain:"键盘是输入设备。"},
+  {q:"Windows中复制文件的快捷键是？", options:["Ctrl+X","Ctrl+C","Ctrl+V","Ctrl+Z"], answer:1, explain:"Ctrl+C复制。"},
+  {q:"二进制数10转换为十进制是？", options:["1","2","10","01"], answer:1, explain:"二进制10=十进制2。"},
+  {q:"下列属于操作系统的是？", options:["Word","Windows","Excel","Photoshop"], answer:1, explain:"Windows是操作系统。"},
+  {q:"计算机病毒是指？", options:["一种细菌","一段程序","一台设备","一种芯片"], answer:1, explain:"病毒是人为编制的破坏程序。"},
+  {q:"局域网的英文缩写是？", options:["WAN","LAN","MAN","USB"], answer:1, explain:"LAN=Local Area Network。"},
+  {q:"正确的电子邮箱格式是？", options:["name@server.com","name.server.com","name#server.com","name server.com"], answer:0, explain:"邮箱格式为用户名@域名。"},
+  {q:"Word中保存文件的快捷键是？", options:["Ctrl+S","Ctrl+O","Ctrl+N","Ctrl+P"], answer:0, explain:"Ctrl+S保存。"},
+  {q:"WWW指的是？", options:["万维网","局域网","邮件","浏览器"], answer:0, explain:"WWW是万维网。"},
+  {q:"下列属于输出设备的是？", options:["鼠标","键盘","打印机","扫描仪"], answer:2, explain:"打印机输出纸张。"},
+  {q:"计算机硬件系统的核心是？", options:["内存","CPU","硬盘","显示器"], answer:1, explain:"CPU是中央处理器核心。"},
+  {q:"正确的IP地址格式是？", options:["192.168.1.1","192,168,1,1","192-168-1-1","192/168/1/1"], answer:0, explain:"IP用点分十进制。"},
+  {q:"Excel中求和函数是？", options:["SUM","AVERAGE","MAX","MIN"], answer:0, explain:"SUM求和。"},
+  {q:"符合信息安全规范的行为是？", options:["设置复杂密码并定期更换","随意点击陌生链接","密码写在便签上贴屏幕","公共WiFi登录网银"], answer:0, explain:"应定期更换强密码。"}
+]
 };
 
-/* 24 扇区：知识8 + 真心6 + 冒险6 + 挑战4 */
+/* ============================================================
+ * 大冒险转盘：8扇区（4真心+4冒险交替）
+ * ============================================================ */
+const TYPE_META = {
+  truth: {color:'#38BDF8', light:'rgba(56,189,248,0.20)', dark:'#0284C7', label:'真心话', badge:'truth', labelShort:'真心'},
+  dare:  {color:'#F59E0B', light:'rgba(245,158,11,0.22)', dark:'#B45309', label:'大冒险', badge:'dare',  labelShort:'冒险'}
+};
+
+/* 8 扇区：真心4 + 冒险4 交替 */
 const WHEEL_SECTORS = [
-  {type:'quiz'},{type:'quiz'},{type:'quiz'},{type:'quiz'},{type:'quiz'},{type:'quiz'},{type:'quiz'},{type:'quiz'},
-  {type:'truth'},{type:'truth'},{type:'truth'},{type:'truth'},{type:'truth'},{type:'truth'},
-  {type:'dare'},{type:'dare'},{type:'dare'},{type:'dare'},{type:'dare'},{type:'dare'},
-  {type:'random'},{type:'random'},{type:'random'},{type:'random'}
+  {type:'truth'},{type:'dare'},{type:'truth'},{type:'dare'},
+  {type:'truth'},{type:'dare'},{type:'truth'},{type:'dare'}
 ];
 
 const canvas = $('wheelCanvas');
@@ -1236,7 +1413,7 @@ let isSpinning = false;
 function fitCanvas(){
   const wrap = $('wheelWrap');
   if(!wrap || wrap.clientWidth === 0) return;
-  const size = wrap.clientWidth || 320;
+  const size = wrap.clientWidth || 380;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(size * dpr);
   canvas.height = Math.round(size * dpr);
@@ -1254,48 +1431,68 @@ function drawWheel(){
   ctx.translate(radius, radius);
   ctx.rotate(currentAngle);
 
-  const fontSize = Math.max(12, radius * 0.05);
+  const fontSize = Math.max(14, radius * 0.06);
 
   WHEEL_SECTORS.forEach((sec, i) => {
     const meta = TYPE_META[sec.type];
+    const start = i * arc;
+    const end = (i + 1) * arc;
+
+    /* 径向渐变扇区 */
+    const grad = ctx.createRadialGradient(0,0,radius*0.15, 0,0,radius);
+    grad.addColorStop(0, meta.light);
+    grad.addColorStop(1, meta.color);
+
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.arc(0, 0, radius, i * arc, (i + 1) * arc);
-    ctx.fillStyle = meta.light;
+    ctx.arc(0, 0, radius, start, end);
+    ctx.closePath();
+    ctx.fillStyle = grad;
     ctx.fill();
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = Math.max(1.5, radius * 0.01);
+    ctx.lineWidth = Math.max(2, radius * 0.012);
     ctx.stroke();
 
+    /* 文字 */
     ctx.save();
-    ctx.rotate(i * arc + arc / 2);
+    ctx.rotate(start + arc / 2);
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = meta.color;
-    ctx.font = '700 ' + fontSize + 'px "Segoe UI", "Microsoft YaHei", sans-serif';
-    ctx.fillText(meta.labelShort, radius - radius * 0.08, 0);
+    ctx.fillStyle = '#fff';
+    ctx.font = '800 ' + fontSize + 'px "Segoe UI", "Microsoft YaHei", sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(meta.labelShort, radius - radius * 0.1, 0);
     ctx.restore();
   });
 
+  /* 外圈装饰环 */
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - Math.max(2,radius*0.012), 0, 2*Math.PI);
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = radius * 0.02;
+  ctx.stroke();
+
   /* 中心圆 */
   ctx.beginPath();
-  ctx.arc(0, 0, radius * 0.12, 0, 2 * Math.PI);
+  ctx.arc(0, 0, radius * 0.14, 0, 2 * Math.PI);
   ctx.fillStyle = '#fff';
   ctx.fill();
-  ctx.strokeStyle = 'rgba(79,107,255,0.2)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = meta_stroke();
+  ctx.lineWidth = radius * 0.02;
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(0, 0, radius * 0.05, 0, 2 * Math.PI);
+  ctx.arc(0, 0, radius * 0.06, 0, 2 * Math.PI);
   ctx.fillStyle = '#4F6BFF';
   ctx.fill();
 
   ctx.restore();
 }
+function meta_stroke(){ return 'rgba(79,107,255,0.25)'; }
 
 /* 缓动：加速 -> 巡航 -> 减速 */
 function spinEase(p){
-  const a = 0.28, b = 0.62;
+  const a = 0.25, b = 0.65;
   const vmax = 1 / (0.5 + (b - a));
   if(p < a){
     const t = p / a;
@@ -1326,10 +1523,10 @@ function spinWheel(){
 
   const n = WHEEL_SECTORS.length;
   const arc = 2 * Math.PI / n;
-  const spinDuration = 3000 + Math.random() * 5000;
-  const turns = Math.floor(5 + Math.random() * 5);
+  const spinDuration = 3200 + Math.random() * 2500;
+  const turns = Math.floor(5 + Math.random() * 4);
   const targetIndex = Math.floor(Math.random() * n);
-  const desiredLocal = (targetIndex + 0.5 + (Math.random() - 0.5) * 0.5) * arc;
+  const desiredLocal = (targetIndex + 0.5 + (Math.random() - 0.5) * 0.4) * arc;
 
   let finalNorm = 1.5 * Math.PI - desiredLocal;
   finalNorm = ((finalNorm % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -1372,42 +1569,13 @@ function finishSpin(){
 
 $('wheelWrap').addEventListener('click', ()=>spinWheel());
 
-/* ---- 根据类型抽取题目并渲染结果卡片 ---- */
 function drawResultCard(type){
   const card = $('wheelResult');
   const meta = TYPE_META[type];
   let html = '';
   let summary = '';
 
-  if(type === 'quiz'){
-    const q = BANK.quiz[Math.floor(Math.random() * BANK.quiz.length)];
-    summary = q.q.length > 18 ? q.q.substring(0,18) + '…' : q.q;
-    let optsHtml = '';
-    ['A','B','C','D'].forEach(k=>{
-      if(q[k] && q[k].trim() !== ''){
-        optsHtml += '<div class="rc-opt" data-opt="'+k+'">' +
-          '<span class="opt-label">'+k+'</span>' +
-          '<span class="opt-text"></span></div>';
-      }
-    });
-    html =
-      '<div class="rc-head">' +
-        '<span class="rc-badge quiz">'+meta.label+'</span>' +
-        '<span class="rc-type-tag">'+q.type+'</span>' +
-      '</div>' +
-      '<div class="rc-q"></div>' +
-      '<div class="rc-opts">'+optsHtml+'</div>' +
-      '<button class="btn btn-primary btn-tight" id="btnShowAns" onclick="showAnswer(\''+q.ans+'\')">查看答案</button>' +
-      '<div class="rc-answer" id="rcAnswer"></div>';
-    card.innerHTML = html;
-    card.querySelector('.rc-q').textContent = q.q;
-    // 填充选项文本
-    const optEls = card.querySelectorAll('.rc-opt');
-    optEls.forEach(el=>{
-      const k = el.dataset.opt;
-      el.querySelector('.opt-text').textContent = q[k];
-    });
-  } else if(type === 'truth'){
+  if(type === 'truth'){
     const t = BANK.truth[Math.floor(Math.random() * BANK.truth.length)];
     summary = t.length > 18 ? t.substring(0,18) + '…' : t;
     html =
@@ -1423,38 +1591,13 @@ function drawResultCard(type){
       '<div class="rc-plain"></div>';
     card.innerHTML = html;
     card.querySelector('.rc-plain').textContent = d;
-  } else if(type === 'random'){
-    const name = BANK.names[Math.floor(Math.random() * BANK.names.length)];
-    summary = '随机挑战：' + name;
-    html =
-      '<div class="rc-head"><span class="rc-badge random">'+meta.label+'</span></div>' +
-      '<div class="rc-plain">请 <span class="who"></span> 同学来完成本轮挑战！</div>';
-    card.innerHTML = html;
-    card.querySelector('.who').textContent = name;
   }
 
   card.style.display = 'block';
   return {summary: summary};
 }
 
-function showAnswer(ans){
-  /* 高亮正确选项 */
-  document.querySelectorAll('.rc-opt').forEach(el=>{
-    const k = el.dataset.opt;
-    if(ans.indexOf(k) !== -1){
-      el.classList.add('correct');
-    }
-  });
-  const ansEl = $('rcAnswer');
-  if(ansEl){
-    ansEl.textContent = '正确答案：' + ans;
-    ansEl.classList.add('show');
-  }
-  const btn = $('btnShowAns');
-  if(btn){ btn.style.display = 'none'; }
-}
-
-/* ---- 上传 TXT ---- */
+/* ---- 上传 TXT（仅真心/冒险） ---- */
 function handleFileUpload(event){
   const file = event.target.files[0];
   if (!file) return;
@@ -1465,52 +1608,29 @@ function handleFileUpload(event){
     if(lines.length === 0){ showToast('文件内容为空'); return; }
 
     let section = null;
-    let added = {quiz:0, truth:0, dare:0, random:0};
-    const newQuiz = [], newTruth = [], newDare = [], newRandom = [];
+    let added = {truth:0, dare:0};
+    const newTruth = [], newDare = [];
 
     lines.forEach(line=>{
       if(line.startsWith('[') && line.endsWith(']')){
         const tag = line.slice(1,-1);
-        if(tag.indexOf('知识')!==-1) section='quiz';
-        else if(tag.indexOf('真心')!==-1) section='truth';
+        if(tag.indexOf('真心')!==-1) section='truth';
         else if(tag.indexOf('冒险')!==-1) section='dare';
-        else if(tag.indexOf('挑战')!==-1 || tag.indexOf('随机')!==-1) section='random';
+        else section=null;
         return;
       }
       if(!section) return;
-
-      if(section === 'quiz'){
-        const parts = line.split('|').map(s=>s.trim());
-        if(parts.length >= 5){
-          newQuiz.push({
-            type: parts[0] || '单选',
-            q: parts[1] || '',
-            ans: parts[2] || '',
-            A: parts[3] || '',
-            B: parts[4] || '',
-            C: parts[5] || '',
-            D: parts[6] || ''
-          });
-          added.quiz++;
-        }
-      } else if(section === 'truth'){
-        newTruth.push(line); added.truth++;
-      } else if(section === 'dare'){
-        newDare.push(line); added.dare++;
-      } else if(section === 'random'){
-        newRandom.push(line); added.random++;
-      }
+      if(section === 'truth'){ newTruth.push(line); added.truth++; }
+      else if(section === 'dare'){ newDare.push(line); added.dare++; }
     });
 
-    if(newQuiz.length) BANK.quiz = BANK.quiz.concat(newQuiz);
     if(newTruth.length) BANK.truth = BANK.truth.concat(newTruth);
     if(newDare.length) BANK.dare = BANK.dare.concat(newDare);
-    if(newRandom.length) BANK.names = BANK.names.concat(newRandom);
 
     updateOpsCount();
-    const total = added.quiz + added.truth + added.dare + added.random;
+    const total = added.truth + added.dare;
     if(total > 0){
-      showToast('导入成功：知识+'+added.quiz+' 真心+'+added.truth+' 冒险+'+added.dare+' 挑战+'+added.random);
+      showToast('导入成功：真心+'+added.truth+' 冒险+'+added.dare);
     } else {
       showToast('未识别到有效内容，请检查格式');
     }
@@ -1519,28 +1639,19 @@ function handleFileUpload(event){
   event.target.value = '';
 }
 
-/* ---- 下载模板 ---- */
 function downloadTemplate(){
   const content =
 '===== 课堂大冒险自定义题库模板 =====\n' +
 '【使用说明】\n' +
 '1. 每个分类用 [分类名] 开头，下面的行属于该分类\n' +
-'2. 知识问答格式：题型|题目|答案|选项A|选项B|选项C|选项D\n' +
-'   题型可为：单选/判断/多选；判断题只需 A=正确 B=错误\n' +
-'3. 真心话 / 大冒险 / 随机挑战：每行一条纯文本\n' +
+'2. 真心话 / 大冒险：每行一条纯文本\n' +
 '========================================\n\n' +
-'[知识问答]\n' +
-'单选|Python中用于输出内容的是？|B|input()|print()|int()|len()\n' +
-'判断|计算机中的所有信息都以二进制形式表示。|A|正确|错误||\n' +
-'多选|下列属于输入设备的是？|ABD|键盘|鼠标|显示器|扫描仪\n\n' +
 '[真心话]\n' +
-'你最近一次说谎是什么时候？\n' +
-'你做过最尴尬的一件事是什么？\n\n' +
+'你最崇拜的老师是谁？\n' +
+'如果明天放假你最想做什么？\n\n' +
 '[大冒险]\n' +
-'给微信置顶的人发一句"我想你了"\n' +
-'用最深情的语气对镜子里的自己表白30秒\n\n' +
-'[随机挑战]\n' +
-'随机选一位同学完成挑战\n';
+'用三种语气说"老师好"\n' +
+'做5个深蹲\n';
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1552,14 +1663,11 @@ function downloadTemplate(){
   URL.revokeObjectURL(url);
 }
 
-/* ---- 题库数量显示 ---- */
 function updateOpsCount(){
   const el = $('opsCount');
   el.innerHTML =
-    '<div class="row"><span><span class="dot" style="background:#4F6BFF"></span>知识问答</span><span>'+BANK.quiz.length+' 题</span></div>' +
     '<div class="row"><span><span class="dot" style="background:#38BDF8"></span>真心话</span><span>'+BANK.truth.length+' 条</span></div>' +
-    '<div class="row"><span><span class="dot" style="background:#F59E0B"></span>大冒险</span><span>'+BANK.dare.length+' 条</span></div>' +
-    '<div class="row"><span><span class="dot" style="background:#22C55E"></span>随机挑战</span><span>'+BANK.names.length+' 人</span></div>';
+    '<div class="row"><span><span class="dot" style="background:#F59E0B"></span>大冒险</span><span>'+BANK.dare.length+' 条</span></div>';
 }
 
 /* ---- 记录面板 ---- */
@@ -1585,7 +1693,6 @@ function renderHistory(){
       '<div class="txt"></div></div>';
   });
   list.innerHTML = html;
-  // 填充文本（防 XSS）
   const items = list.querySelectorAll('.wh-item');
   items.forEach((el, i)=>{
     el.querySelector('.txt').textContent = historyData[i].text;
@@ -1593,44 +1700,50 @@ function renderHistory(){
 }
 
 /* ============================================================
- * 课堂飞行棋
+ * 课堂飞行棋 —— 50格环形
  * ============================================================ */
 const CS_COLORS = ['#4F6BFF', '#38BDF8', '#F59E0B', '#22C55E'];
-const CS_COLOR_NAMES = ['蓝紫(左上)', '青(右上)', '橙(右下)', '绿(左下)'];
-const CS_TOTAL = 36;          // 环形路径共36格
-const CS_HOME = [0, 11, 18, 29]; // 四个角起点：左上/右上/右下/左下
+const CS_TOTAL = 50;
+const CS_HOME = [0, 16, 25, 41]; // 左上/右上/右下/左下
 
-/* 格子类型分布：四个角=home（金色起点），其余事件格均匀分布 */
+/* 格子类型分布（50格）：4角home + 16quiz + 11truth + 11dare + 3paper + 2jail + 1lucky + 2normal */
 const CS_CELL_TYPE = {
-  0:'home', 11:'home', 18:'home', 29:'home',
-  2:'quiz', 6:'quiz', 13:'quiz', 20:'quiz', 24:'quiz', 31:'quiz',
-  4:'dare', 9:'dare', 15:'dare', 22:'dare', 27:'dare',
-  3:'truth', 8:'truth', 16:'truth', 25:'truth', 33:'truth',
-  5:'random', 14:'random', 23:'random', 30:'random',
-  7:'jail', 19:'jail', 34:'jail',
-  1:'normal', 10:'normal', 12:'normal', 17:'normal',
-  21:'normal', 26:'normal', 28:'normal', 32:'normal', 35:'normal'
+  0:'home', 16:'home', 25:'home', 41:'home',
+  2:'quiz', 5:'quiz', 8:'quiz', 11:'quiz', 14:'quiz', 18:'quiz',
+  21:'quiz', 27:'quiz', 30:'quiz', 33:'quiz', 36:'quiz', 39:'quiz',
+  43:'quiz', 46:'quiz', 48:'quiz', 23:'quiz',
+  3:'truth', 7:'truth', 12:'truth', 19:'truth', 28:'truth', 32:'truth',
+  37:'truth', 44:'truth', 47:'truth', 9:'truth', 22:'truth',
+  4:'dare', 10:'dare', 13:'dare', 17:'dare', 20:'dare', 29:'dare',
+  34:'dare', 38:'dare', 42:'dare', 45:'dare', 6:'dare',
+  31:'paper', 35:'paper', 24:'paper',
+  40:'jail', 49:'jail',
+  15:'lucky',
+  1:'normal', 26:'normal'
 };
-/* 每个格子对应的 grid (row,col) 1-indexed：12列x8行矩形环，顺时针 */
+
+/* 17列×10行矩形环，顺时针：返回 grid row/col (1-indexed) */
 function csCellGrid(p){
-  if(p <= 11)  return {r:1, c:p+1};        // 上边：左上→右上
-  if(p <= 17)  return {r:p-10, c:12};      // 右边：右上→下
-  if(p === 18) return {r:8, c:12};         // 右下角
-  if(p <= 28)  return {r:8, c:30-p};       // 下边：右下→左下
-  if(p === 29) return {r:8, c:1};          // 左下角
-  return {r:37-p, c:1};                    // 左边：左下→上
+  if(p <= 16)  return {r:1, c:p+1};        // 上边：左上→右上
+  if(p <= 24)  return {r:p-15, c:17};       // 右边：右上→下 (17→r2, 24→r9)
+  if(p === 25) return {r:10, c:17};        // 右下角
+  if(p <= 40)  return {r:10, c:42-p};       // 下边：右下→左下 (26→c16, 40→c2)
+  if(p === 41) return {r:10, c:1};         // 左下角
+  return {r:51-p, c:1};                    // 左边：左下→上 (42→r9, 49→r2)
 }
+
 const CS_TYPE_LABEL = {
-  quiz:'知识问答', dare:'大冒险', truth:'真心话', random:'随机挑战',
-  jail:'进监狱', normal:'普通格', home:'起点'
+  quiz:'知识问答', dare:'大冒险', truth:'真心话', paper:'试卷挑战',
+  jail:'进监狱', lucky:'幸运格', normal:'普通格', home:'起点'
 };
 
 let csPlayerCount = 2;
-let csPlayers = [];     // {name,color,pos,inJail,pieceEl,chipEl}
+let csPlayers = [];
 let csCurrent = 0;
 let csPlaying = false;
 let csMoving = false;
-let csCellCenters = []; // 每格中心相对棋盘的百分比
+let csCellCenters = [];
+let csPendingBuff = null; // {type:'nextPlus2'|'immuneJail'|'advance3'}
 
 /* ---- 设置区：人数选择 ---- */
 $('csCountRow').addEventListener('click', e=>{
@@ -1669,8 +1782,9 @@ function csRenderBoard(){
     if(type==='quiz') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.3 11c.7.5 1.3 1.3 1.3 2.2"/><circle cx="12" cy="12" r="9.5" opacity=".35"/></svg>';
     else if(type==='dare') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12l-1.5 9h-9L6 9z"/><path d="M9 9V6a3 3 0 016 0v3"/></svg>';
     else if(type==='truth') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>';
-    else if(type==='random') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg>';
+    else if(type==='paper') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>';
     else if(type==='jail') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16M4 9h16M4 15h16"/></svg>';
+    else if(type==='lucky') inner += '<svg class="cs-cell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>';
     else if(type==='home'){
       const hi = CS_HOME.indexOf(p);
       const used = hi >= 0 && hi < csPlayerCount;
@@ -1688,7 +1802,6 @@ function csRenderBoard(){
   board.innerHTML = html;
 }
 
-/* 计算每格中心百分比 */
 function csMeasureCells(){
   const board = $('chessBoard');
   const bw = board.clientWidth, bh = board.clientHeight;
@@ -1705,28 +1818,43 @@ function csMeasureCells(){
   });
 }
 
-/* ---- 开始游戏 ---- */
+/* ---- 开始游戏（进入全屏） ---- */
 function chessStartGame(){
   csPlayers = [];
   for(let i=0;i<csPlayerCount;i++){
     const inp = $('csName'+i);
     let name = inp ? inp.value.trim() : '';
     if(!name) name = '玩家'+(i+1);
-    csPlayers.push({name:name, color:CS_COLORS[i], home:CS_HOME[i], cell:CS_HOME[i], dist:0, inJail:false});
+    csPlayers.push({name:name, color:CS_COLORS[i], home:CS_HOME[i], cell:CS_HOME[i], dist:0, inJail:false, nextPlus2:false, immuneJail:false});
   }
   csCurrent = 0;
   csPlaying = true;
   csMoving = false;
+  csPendingBuff = null;
 
-  $('chessSetup').style.display = 'none';
-  $('chessGame').style.display = 'block';
+  $('csFullscreen').classList.add('show');
   csRenderBoard();
   csRenderPieces();
   csRenderChips();
   csUpdateTurnUI();
   $('csDiceFace').textContent = '?';
-  /* 等待布局完成后测量格子位置 */
   requestAnimationFrame(()=>{ csMeasureCells(); csPlacePieces(); });
+}
+
+/* 结束游戏：退出全屏回到设置 */
+function chessEndGame(){
+  csPlaying = false;
+  csMoving = false;
+  $('csFullscreen').classList.remove('show');
+  $('chessModal').classList.remove('show');
+}
+
+/* 重新开始：清状态重建棋盘 */
+function chessRestart(){
+  csPlaying = false;
+  csMoving = false;
+  $('chessModal').classList.remove('show');
+  chessStartGame();
 }
 
 function csRenderPieces(){
@@ -1752,8 +1880,8 @@ function csPlacePieces(){
     if(!c || !pl.pieceEl) return;
     const group = byCell[pl.cell] || [pl];
     const idx = group.indexOf(pl);
-    const ox = (idx % 2 === 0 ? -5 : 5);
-    const oy = (Math.floor(idx/2) % 2 === 0 ? -5 : 5);
+    const ox = (idx % 2 === 0 ? -6 : 6);
+    const oy = (Math.floor(idx/2) % 2 === 0 ? -6 : 6);
     pl.pieceEl.style.left = 'calc('+c.x+'% + '+ox+'px)';
     pl.pieceEl.style.top = 'calc('+c.y+'% + '+oy+'px)';
     pl.pieceEl.style.transform = 'translate(-50%,-50%)';
@@ -1769,8 +1897,10 @@ function csRenderChips(){
     chip.innerHTML =
       '<span class="cp-dot" style="background:'+pl.color+'"></span>' +
       '<span class="cp-name"></span>' +
-      '<span class="cp-pos">已走'+pl.dist+'/36</span>' +
-      (pl.inJail ? '<span class="cp-jail">监狱</span>' : '');
+      '<span class="cp-pos">已走'+pl.dist+'/'+CS_TOTAL+'</span>' +
+      (pl.inJail ? '<span class="cp-jail">监狱</span>' : '') +
+      (pl.nextPlus2 ? '<span class="cp-buff">+2</span>' : '') +
+      (pl.immuneJail ? '<span class="cp-buff">免监</span>' : '');
     chip.querySelector('.cp-name').textContent = pl.name;
     box.appendChild(chip);
     pl.chipEl = chip;
@@ -1792,11 +1922,21 @@ function csUpdateTurnUI(){
 /* ---- 掷骰子 ---- */
 function chessRollDice(){
   if(!csPlaying || csMoving) return;
+  const pl = csPlayers[csCurrent];
+  /* 监狱玩家：跳过本轮 */
+  if(pl.inJail){
+    csNextTurn();
+    return;
+  }
   csMoving = true;
   $('csRollBtn').disabled = true;
   $('csDice').classList.add('rolling');
 
-  const final = Math.floor(Math.random()*6)+1;
+  let base = Math.floor(Math.random()*6)+1;
+  let bonus = 0;
+  if(pl.nextPlus2){ bonus = 2; pl.nextPlus2 = false; }
+  const final = base + bonus;
+
   let ticks = 0;
   const flicker = setInterval(()=>{
     $('csDiceFace').textContent = Math.floor(Math.random()*6)+1;
@@ -1810,7 +1950,6 @@ function chessRollDice(){
   }, 70);
 }
 
-/* 沿环形路径逐格移动 dir 步（+顺时针/-逆时针），完成后回调 onArrive；走满36格即获胜 */
 function csAnimateMove(dir, steps, onArrive){
   const pl = csPlayers[csCurrent];
   let moved = 0;
@@ -1838,7 +1977,7 @@ function csUpdateChipsPos(){
   csPlayers.forEach((pl,i)=>{
     if(pl.chipEl){
       const posEl = pl.chipEl.querySelector('.cp-pos');
-      if(posEl) posEl.textContent = '已走'+pl.dist+'/36';
+      if(posEl) posEl.textContent = '已走'+pl.dist+'/'+CS_TOTAL;
     }
   });
 }
@@ -1854,23 +1993,26 @@ function csOnLanding(){
     csNextTurn();
     return;
   }
-  if(type === 'quiz'){ csShowQuiz(); return; }
+  if(type === 'quiz'){ csShowSubjectSelect(); return; }
   if(type === 'dare'){ csShowPlain('dare', BANK.dare[Math.floor(Math.random()*BANK.dare.length)]); return; }
   if(type === 'truth'){ csShowPlain('truth', BANK.truth[Math.floor(Math.random()*BANK.truth.length)]); return; }
-  if(type === 'random'){ csShowPlain('random', '随机挑战！请当前玩家指定一位同学，两人一起完成一个小任务，全班一起欢呼！'); return; }
+  if(type === 'paper'){ csStartPaper(); return; }
+  if(type === 'lucky'){ csShowLucky(); return; }
   if(type === 'jail'){ csShowJail(); return; }
   csMoving = false;
   csNextTurn();
 }
 
 /* 事件弹窗通用 */
-function csOpenEvent(badgeCls, badgeText, bodyHtml, btnText){
+function csOpenEvent(badgeCls, badgeText, titleText, bodyHtml, btnText){
   $('csEventBadge').className = 'cs-event-badge ' + badgeCls;
   $('csEventBadge').textContent = badgeText;
+  $('csEventTitle').textContent = titleText || '';
   $('csEventBody').innerHTML = bodyHtml;
   const btn = $('csEventBtn');
   btn.textContent = btnText || '完成';
   btn.style.display = '';
+  btn.onclick = chessEventDone;
   $('chessModal').classList.add('show');
 }
 function chessEventDone(){
@@ -1879,49 +2021,70 @@ function chessEventDone(){
   csNextTurn();
 }
 
-/* 知识问答 */
-let csQuizAnswered = false;
-function csShowQuiz(){
-  csQuizAnswered = false;
-  const q = BANK.quiz[Math.floor(Math.random()*BANK.quiz.length)];
+/* 知识问答：先选学科 */
+function csShowSubjectSelect(){
+  const pl = csPlayers[csCurrent];
+  const subs = Object.keys(QUIZ_BANK);
+  let btns = '';
+  subs.forEach(s=>{
+    btns += '<button type="button" class="subject-btn" data-sub="'+s+'">'+s+'</button>';
+  });
+  csOpenEvent('quiz', '知识问答 · '+pl.name, '选择一个学科',
+    '<div class="cs-plain-text" style="text-align:center;margin-bottom:12px">挑战者选择学科，抽一道选择题作答</div>' +
+    '<div class="subject-grid">'+btns+'</div>',
+    '取消');
+  $('csEventBtn').style.display = 'none';
+  $('csEventBody').querySelectorAll('.subject-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      csShowQuizQuestion(btn.dataset.sub);
+    });
+  });
+}
+
+/* 出一道选择题 */
+function csShowQuizQuestion(subject){
+  const bank = QUIZ_BANK[subject];
+  const q = bank[Math.floor(Math.random()*bank.length)];
   const pl = csPlayers[csCurrent];
   let optsHtml = '';
-  ['A','B','C','D'].forEach(k=>{
-    if(q[k] && q[k].trim() !== ''){
-      optsHtml += '<button type="button" class="cs-opt" data-opt="'+k+'">' +
-        '<span class="opt-label">'+k+'</span><span>'+q[k]+'</span></button>';
-    }
+  q.options.forEach((opt, i)=>{
+    const L = ['A','B','C','D'][i];
+    optsHtml += '<button type="button" class="cs-opt" data-idx="'+i+'">' +
+      '<span class="opt-label">'+L+'</span><span>'+opt+'</span></button>';
   });
-  csOpenEvent('quiz', '知识问答 · '+pl.name,
-    '<div class="cs-q-text"></div><div class="cs-opts">'+optsHtml+'</div>',
+  csOpenEvent('quiz', subject+' · '+pl.name, '选择题',
+    '<div class="cs-q-text"></div><div class="cs-opts">'+optsHtml+'</div><div class="cs-explain"></div>',
     '完成');
   $('csEventBody').querySelector('.cs-q-text').textContent = q.q;
   $('csEventBtn').style.display = 'none';
-
+  let answered = false;
   $('csEventBody').querySelectorAll('.cs-opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      if(csQuizAnswered) return;
-      csQuizAnswered = true;
-      const chosen = btn.dataset.opt;
-      const correct = q.ans.indexOf(chosen) !== -1;
-      /* 高亮正确项 */
+      if(answered) return;
+      answered = true;
+      const chosen = parseInt(btn.dataset.idx, 10);
+      const correct = (chosen === q.answer);
       $('csEventBody').querySelectorAll('.cs-opt').forEach(o=>{
-        const k = o.dataset.opt;
-        if(q.ans.indexOf(k) !== -1) o.classList.add('correct');
+        const i = parseInt(o.dataset.idx, 10);
+        if(i === q.answer) o.classList.add('correct');
         else if(o === btn && !correct) o.classList.add('wrong');
         o.style.pointerEvents = 'none';
       });
-      setTimeout(()=>{
+      const ex = $('csEventBody').querySelector('.cs-explain');
+      ex.innerHTML = (correct ? '<b>回答正确！</b>' : '<b>回答错误。</b>') + ' 正确答案：' + ['A','B','C','D'][q.answer] + '。' + q.explain;
+      ex.classList.add('show');
+      $('csEventBtn').style.display = '';
+      $('csEventBtn').onclick = function(){
         $('chessModal').classList.remove('show');
         const delta = correct ? 2 : -1;
-        csApplyBonus(delta, correct);
-      }, 900);
+        csApplyBonus(delta);
+      };
     });
   });
 }
 
 /* 答对+2 / 答错-1 */
-function csApplyBonus(delta, correct){
+function csApplyBonus(delta){
   const pl = csPlayers[csCurrent];
   const newDist = Math.max(0, Math.min(CS_TOTAL, pl.dist + delta));
   const diff = newDist - pl.dist;
@@ -1936,21 +2099,139 @@ function csApplyBonus(delta, correct){
   });
 }
 
-/* 大冒险/真心话/随机挑战 */
+/* 真心话/大冒险 */
 function csShowPlain(type, text){
   const pl = csPlayers[csCurrent];
-  const meta = {dare:['dare','大冒险'], truth:['truth','真心话'], random:['random','随机挑战']}[type];
-  csOpenEvent(meta[0], meta[1]+' · '+pl.name,
-    '<div class="cs-plain-text"></div>', '完成');
+  const meta = {dare:['dare','大冒险'], truth:['truth','真心话']}[type];
+  csOpenEvent(meta[0], meta[1]+' · '+pl.name, meta[1],
+    '<div class="cs-plain-text" style="text-align:center;font-size:16px"></div>', '完成');
   $('csEventBody').querySelector('.cs-plain-text').textContent = text;
+}
+
+/* 幸运格：三选一 buff */
+function csShowLucky(){
+  const pl = csPlayers[csCurrent];
+  csOpenEvent('lucky', '幸运格 · '+pl.name, '幸运格！三选一 buff',
+    '<div class="buff-grid">'+
+      '<button type="button" class="buff-btn" data-buff="nextPlus2"><div class="buff-title">下次掷骰 +2</div><div class="buff-desc">下一次掷骰子结果额外加2点</div></button>'+
+      '<button type="button" class="buff-btn" data-buff="immuneJail"><div class="buff-title">免疫一次监狱</div><div class="buff-desc">下次踩中监狱格直接跳过，不坐牢</div></button>'+
+      '<button type="button" class="buff-btn" data-buff="advance3"><div class="buff-title">立即前进 3 格</div><div class="buff-desc">马上向前走3格</div></button>'+
+    '</div>', '完成');
+  $('csEventBtn').style.display = 'none';
+  $('csEventBody').querySelectorAll('.buff-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const buff = btn.dataset.buff;
+      $('chessModal').classList.remove('show');
+      if(buff === 'nextPlus2'){
+        pl.nextPlus2 = true;
+        csRenderChips();
+        csMoving = false; csNextTurn();
+      } else if(buff === 'immuneJail'){
+        pl.immuneJail = true;
+        csRenderChips();
+        csMoving = false; csNextTurn();
+      } else if(buff === 'advance3'){
+        csAnimateMove(1, 3, ()=>{
+          csMoving = false;
+          csOnLanding();
+        });
+      }
+    });
+  });
+}
+
+/* 试卷格：随机抽3-5道混合题 */
+let csPaperState = null;
+function csStartPaper(){
+  const pl = csPlayers[csCurrent];
+  /* 从10科随机抽题，共3-5道 */
+  const total = 3 + Math.floor(Math.random()*3);
+  const subjects = Object.keys(QUIZ_BANK);
+  const picked = [];
+  for(let i=0;i<total;i++){
+    const s = subjects[Math.floor(Math.random()*subjects.length)];
+    const q = QUIZ_BANK[s][Math.floor(Math.random()*QUIZ_BANK[s].length)];
+    picked.push({subject:s, q:q});
+  }
+  csPaperState = {list: picked, idx:0, correct:0};
+  csShowPaperQuestion();
+}
+function csShowPaperQuestion(){
+  const st = csPaperState;
+  const pl = csPlayers[csCurrent];
+  const item = st.list[st.idx];
+  const q = item.q;
+  let optsHtml = '';
+  q.options.forEach((opt, i)=>{
+    const L = ['A','B','C','D'][i];
+    optsHtml += '<button type="button" class="cs-opt" data-idx="'+i+'">' +
+      '<span class="opt-label">'+L+'</span><span>'+opt+'</span></button>';
+  });
+  csOpenEvent('paper', '试卷挑战 · '+pl.name, '小测验（'+item.subject+'）',
+    '<div class="paper-progress"><span>第 <b>'+(st.idx+1)+'</b> / '+st.list.length+' 题</span><span>答对 <b>'+st.correct+'</b> 题</span></div>' +
+    '<div class="cs-q-text"></div><div class="cs-opts">'+optsHtml+'</div><div class="cs-explain"></div>',
+    '完成');
+  $('csEventBody').querySelector('.cs-q-text').textContent = q.q;
+  $('csEventBtn').style.display = 'none';
+  let answered = false;
+  $('csEventBody').querySelectorAll('.cs-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(answered) return;
+      answered = true;
+      const chosen = parseInt(btn.dataset.idx, 10);
+      const correct = (chosen === q.answer);
+      if(correct) st.correct++;
+      $('csEventBody').querySelectorAll('.cs-opt').forEach(o=>{
+        const i = parseInt(o.dataset.idx, 10);
+        if(i === q.answer) o.classList.add('correct');
+        else if(o === btn && !correct) o.classList.add('wrong');
+        o.style.pointerEvents = 'none';
+      });
+      const ex = $('csEventBody').querySelector('.cs-explain');
+      ex.innerHTML = (correct ? '<b>回答正确！</b>' : '<b>回答错误。</b>') + ' 正确答案：' + ['A','B','C','D'][q.answer] + '。' + q.explain;
+      ex.classList.add('show');
+      $('csEventBtn').style.display = '';
+      $('csEventBtn').textContent = (st.idx >= st.list.length-1) ? '查看结果' : '下一题';
+      $('csEventBtn').onclick = function(){
+        st.idx++;
+        if(st.idx < st.list.length){
+          csShowPaperQuestion();
+        } else {
+          csFinishPaper();
+        }
+      };
+    });
+  });
+}
+function csFinishPaper(){
+  const st = csPaperState;
+  const pl = csPlayers[csCurrent];
+  const rate = st.correct / st.list.length;
+  const pass = rate >= 0.6;
+  $('chessModal').classList.remove('show');
+  const delta = pass ? 3 : -2;
+  csAnimateMove(Math.sign(delta), Math.abs(delta), ()=>{
+    csMoving = false;
+    csNextTurn();
+    showToast('试卷成绩：'+st.correct+'/'+st.list.length+'，'+(pass?'前进3格':'后退2格'));
+  });
+  csPaperState = null;
 }
 
 /* 进监狱 */
 function csShowJail(){
   const pl = csPlayers[csCurrent];
+  if(pl.immuneJail){
+    pl.immuneJail = false;
+    csRenderChips();
+    csOpenEvent('jail', '幸运免疫 · '+pl.name, '监狱格',
+      '<div class="cs-plain-text" style="text-align:center">你触发了<b style="color:#B45309">免疫监狱</b>buff，本轮不受影响！</div>',
+      '继续');
+    return;
+  }
   pl.inJail = true;
   csRenderChips();
-  csOpenEvent('jail', '进监狱 · '+pl.name,
+  csOpenEvent('jail', '进监狱 · '+pl.name, '进监狱',
     '<div class="cs-jail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16M4 9h16M4 15h16"/></svg></div>' +
     '<div class="cs-plain-text" style="text-align:center">不幸进监狱，<b>下一轮停一次</b>，请继续下一位玩家。</div>',
     '知道了');
@@ -1959,14 +2240,13 @@ function csShowJail(){
 /* 回合切换 */
 function csNextTurn(){
   if(!csPlaying) return;
-  /* 找下一个未在监狱的玩家；监狱玩家跳过一次并清除标记 */
   let next = csCurrent;
   for(let i=0;i<csPlayers.length;i++){
     next = (next + 1) % csPlayers.length;
     if(csPlayers[next].inJail){
       csPlayers[next].inJail = false;
       csRenderChips();
-      continue; /* 跳过该玩家这一轮 */
+      continue;
     }
     break;
   }
@@ -1978,18 +2258,16 @@ function csNextTurn(){
 function csWin(){
   const pl = csPlayers[csCurrent];
   csPlaying = false;
-  csOpenEvent('win', '游戏结束',
+  csOpenEvent('win', '游戏结束', '获胜',
     '<div class="cs-win-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 6H4a1 1 0 00-1 1c0 2 1.5 3.5 4 3.5M17 6h3a1 1 0 011 1c0 2-1.5 3.5-4 3.5"/></svg></div>' +
     '<div class="cs-win-name"></div>' +
     '<div class="cs-plain-text" style="text-align:center">走完一圈回到自己起点，赢得本局飞行棋！</div>',
     '再来一局');
   $('csEventBody').querySelector('.cs-win-name').textContent = pl.name + ' 获胜！';
   csLaunchConfetti();
-  /* 覆盖完成按钮行为 */
   $('csEventBtn').onclick = function(){
     $('chessModal').classList.remove('show');
-    $('csEventBtn').onclick = chessEventDone;
-    chessReset();
+    chessEndGame();
   };
 }
 
@@ -2008,14 +2286,6 @@ function csLaunchConfetti(){
     box.appendChild(c);
   }
   setTimeout(()=>{ box.innerHTML=''; }, 4500);
-}
-
-/* 重新开始 */
-function chessReset(){
-  csPlaying = false;
-  csMoving = false;
-  $('chessGame').style.display = 'none';
-  $('chessSetup').style.display = 'block';
 }
 
 /* 窗口缩放时重算棋子位置 */
