@@ -168,6 +168,7 @@ tr:hover td{background:var(--surface-2)}
   .table-wrap{overflow-x:auto}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -249,8 +250,11 @@ tr:hover td{background:var(--surface-2)}
         <button class="btn ghost" onclick="document.getElementById('import-file').click()">导入数据 (JSON)</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
         <button class="btn ghost" onclick="exportClassXLS()">导出当前班级课表 (XLS)</button>
+        <button class="btn ghost" onclick="exportExcel()">Excel批量导出 (4类数据)</button>
+        <button class="btn ghost" onclick="document.getElementById('excel-file').click()">Excel批量导入</button>
+        <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
       </div>
-      <div class="sub">导出包含：班级 / 教师 / 科目 / 连排配置 / 时间设置 / 节假日调休 / 全部班级课表（含单双周、代课）/ 课时记录 / 历史版本 / 调课记录。导入遇同名班级、同名或同 ID 教师、同名科目时，将弹窗询问「覆盖 / 合并 / 跳过」。</div>
+      <div class="sub">导出包含：班级 / 教师 / 科目 / 连排配置 / 时间设置 / 节假日调休 / 全部班级课表（含单双周、代课）/ 课时记录 / 历史版本 / 调课记录。导入遇同名班级、同名或同 ID 教师、同名科目时，将弹窗询问「覆盖 / 合并 / 跳过」。Excel导入模板见「排课系统导入模板.xlsx」（含班级/教师/科目/班级科目配置4个sheet）。</div>
     </div>
   </section>
 
@@ -1573,6 +1577,107 @@ function exportClassXLS(){
   a.href=URL.createObjectURL(blob);
   a.download=(c?c.name:"班级")+"课表.xls";
   a.click();
+}
+
+/* ============ Excel 批量导入导出 ============ */
+function exportExcel(){
+  if(typeof XLSX==="undefined"){ toast("Excel库加载失败，请检查网络","err"); return; }
+  const wb=XLSX.utils.book_new();
+  // 班级
+  const clsData=[["班级名称","年级","人数"]].concat(
+    db.classes.map(c=>[c.name,c.grade||"",c.count||0]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(clsData),"班级");
+  // 教师
+  const tchData=[["姓名","所带科目(多个用分号分隔)","周课时上限"]].concat(
+    db.teachers.map(t=>{
+      const subs=t.subjects.map(sid=>(db.subjects.find(s=>s.id===sid)||{}).name||"?").join(";");
+      return [t.name,subs,t.weeklyLimit||""];
+    }));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tchData),"教师");
+  // 科目
+  const subData=[["科目名称","简称","颜色(十六进制)"]].concat(
+    db.subjects.map(s=>[s.name,s.short,s.color]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(subData),"科目");
+  // 班级科目配置
+  const cfgData=[["班级名称","科目名称","每周课时数"]];
+  db.classes.forEach(c=>{
+    const cfg=db.classConfig[c.id]||{};
+    Object.entries(cfg).forEach(([sid,h])=>{
+      if(h>0){ const s=db.subjects.find(x=>x.id===sid); cfgData.push([c.name,s?s.name:"?",h]); }
+    });
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cfgData),"班级科目配置");
+  XLSX.writeFile(wb,"排课数据导出_"+new Date().toISOString().slice(0,10)+".xlsx");
+  toast("已导出Excel（班级/教师/科目/配置4个sheet）","ok");
+}
+
+function importExcel(ev){
+  if(typeof XLSX==="undefined"){ toast("Excel库加载失败，请检查网络","err"); return; }
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:"array"});
+      let clsCount=0,tchCount=0,subCount=0,cfgCount=0;
+      // 科目
+      const subSheet=wb.Sheets["科目"];
+      if(subSheet){
+        const rows=XLSX.utils.sheet_to_json(subSheet,{header:1});
+        rows.slice(1).forEach(r=>{
+          if(!r[0]) return;
+          const name=String(r[0]).trim();
+          if(db.subjects.find(s=>s.name===name)) return;
+          db.subjects.push({id:uid(),name,short:String(r[1]||name.slice(0,1)).trim(),color:String(r[2]||"#4F6BFF").trim(),allowConsec:false,consecCount:1});
+          subCount++;
+        });
+      }
+      // 班级
+      const clsSheet=wb.Sheets["班级"];
+      if(clsSheet){
+        const rows=XLSX.utils.sheet_to_json(clsSheet,{header:1});
+        rows.slice(1).forEach(r=>{
+          if(!r[0]) return;
+          const name=String(r[0]).trim();
+          if(db.classes.find(c=>c.name===name)) return;
+          const c={id:uid(),name,grade:String(r[1]||"").trim(),count:parseInt(r[2])||45};
+          db.classes.push(c); db.classConfig[c.id]={};
+          clsCount++;
+        });
+      }
+      // 教师
+      const tchSheet=wb.Sheets["教师"];
+      if(tchSheet){
+        const rows=XLSX.utils.sheet_to_json(tchSheet,{header:1});
+        rows.slice(1).forEach(r=>{
+          if(!r[0]) return;
+          const name=String(r[0]).trim();
+          if(db.teachers.find(t=>t.name===name)) return;
+          const subNames=String(r[1]||"").split(/[;；,，]/).map(s=>s.trim()).filter(Boolean);
+          const subIds=subNames.map(n=>{const s=db.subjects.find(x=>x.name===n);return s?s.id:null;}).filter(Boolean);
+          db.teachers.push({id:uid(),name,subjects:subIds,weeklyLimit:parseInt(r[2])||20});
+          tchCount++;
+        });
+      }
+      // 班级科目配置
+      const cfgSheet=wb.Sheets["班级科目配置"];
+      if(cfgSheet){
+        const rows=XLSX.utils.sheet_to_json(cfgSheet,{header:1});
+        rows.slice(1).forEach(r=>{
+          if(!r[0]||!r[1]) return;
+          const c=db.classes.find(x=>x.name===String(r[0]).trim());
+          const s=db.subjects.find(x=>x.name===String(r[1]).trim());
+          if(!c||!s) return;
+          if(!db.classConfig[c.id]) db.classConfig[c.id]={};
+          db.classConfig[c.id][s.id]=parseInt(r[2])||0;
+          cfgCount++;
+        });
+      }
+      save(); renderAll();
+      toast(`Excel导入成功：班级${clsCount}、教师${tchCount}、科目${subCount}、配置${cfgCount}条`,"ok");
+    }catch(err){ toast("Excel解析失败："+err.message,"err"); }
+    ev.target.value="";
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 /* ============ helpers ============ */
