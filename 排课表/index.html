@@ -5,337 +5,406 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>智能排课表系统</title>
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%234F6BFF'/><rect x='5' y='5' width='14' height='3' rx='1' fill='white'/><rect x='5' y='10.5' width='6' height='3' rx='1' fill='white' opacity='.85'/><rect x='13' y='10.5' width='6' height='3' rx='1' fill='white' opacity='.6'/><rect x='5' y='16' width='9' height='3' rx='1' fill='white' opacity='.4'/></svg>">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg-gradient:linear-gradient(135deg,#E6ECFF 0%,#DCEEFF 45%,#EDE8FF 100%);
-  --surface:#FFFFFF; --surface-2:#F8FAFF;
-  --radius-lg:20px; --radius:14px; --radius-sm:10px;
-  --shadow-card:0 4px 24px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
-  --shadow-hover:0 8px 32px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
-  --accent:#4F6BFF; --accent-hover:#3D56E0; --accent-soft:rgba(79,107,255,.08);
-  --cyan:#38BDF8; --green:#22C55E; --orange:#F59E0B; --red:#EF4444;
-  --text:#0F172A; --text-2:#334155; --text-3:#64748B;
+  --surface:#FFFFFF;--surface-2:#F8FAFF;
+  --radius-lg:18px;--radius:12px;--radius-sm:9px;
+  --shadow-card:0 4px 20px rgba(79,107,255,.08),0 1px 3px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 28px rgba(79,107,255,.14),0 2px 6px rgba(0,0,0,.05);
+  --accent:#4F6BFF;--accent-hover:#3D56E0;--accent-soft:rgba(79,107,255,.08);
+  --cyan:#38BDF8;--green:#22C55E;--orange:#F59E0B;--red:#EF4444;
+  --text:#0F172A;--text-2:#334155;--text-3:#64748B;
   --border:rgba(79,107,255,.12);
   --grad-text:linear-gradient(90deg,#4F6BFF,#38BDF8);
   --font:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg-gradient);background-attachment:fixed;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
-body{padding:24px 16px 60px}
-.wrap{max-width:1180px;margin:0 auto}
+html,body{background:var(--bg-gradient);background-attachment:fixed;color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.55;min-height:100vh}
+body{padding:16px 12px 32px;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle at 15% 20%,rgba(79,107,255,.05) 0,transparent 40%),
+                   radial-gradient(circle at 85% 70%,rgba(56,189,248,.05) 0,transparent 40%)}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto}
 
 /* Header */
-.hero{padding:12px 4px 20px}
-.capsule{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:6px 16px;box-shadow:var(--shadow-card);font-size:11px;letter-spacing:1.5px;color:var(--text-3);font-weight:600}
+.hero{text-align:center;margin-bottom:14px}
+.capsule{display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:4px 13px;
+  box-shadow:var(--shadow-card);font-size:10.5px;letter-spacing:1.5px;color:var(--accent);font-weight:700;text-transform:uppercase}
 .capsule::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.hero h1{font-size:30px;font-weight:800;margin:14px 0 6px;letter-spacing:.5px}
+.hero h1{font-size:26px;font-weight:800;margin:10px 0 4px;letter-spacing:-.3px}
 .hero h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{color:var(--text-3);font-size:14px}
+.hero p{color:var(--text-3);font-size:12.5px}
+
+/* Stats bar */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-card);
+  display:flex;align-items:center;gap:10px}
+.stat-card .icon{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.stat-card .icon svg{width:18px;height:18px}
+.stat-card .num{font-size:22px;font-weight:800;color:var(--accent);line-height:1.1}
+.stat-card .label{font-size:11.5px;color:var(--text-3)}
 
 /* Tabs */
-.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 20px;background:rgba(255,255,255,.6);padding:6px;border-radius:999px;box-shadow:var(--shadow-card)}
-.tab-btn{border:0;background:transparent;color:var(--text-2);padding:10px 18px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;font-family:var(--font)}
-.tab-btn.active{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;box-shadow:0 4px 14px rgba(79,107,255,.35)}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;background:rgba(255,255,255,.7);padding:5px;border-radius:999px;box-shadow:var(--shadow-card)}
+.tab-btn{border:0;background:transparent;color:var(--text-3);padding:7px 15px;border-radius:999px;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .18s;font-family:var(--font);white-space:nowrap}
+.tab-btn.active{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;box-shadow:0 3px 12px rgba(79,107,255,.3)}
 .tab-btn:not(.active):hover{background:var(--accent-soft);color:var(--accent)}
 
 /* Cards */
-.card{background:var(--surface);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-card);margin-bottom:18px}
-.card h2{font-size:18px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.card h2::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--grad-text)}
-.card h3{font-size:15px;font-weight:700;margin:14px 0 10px;color:var(--text)}
-.sub{color:var(--text-3);font-size:12.5px;margin-bottom:12px}
+.card{background:var(--surface);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-card);margin-bottom:12px}
+.card h2{font-size:15.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:3.5px;height:15px;border-radius:2px;background:var(--grad-text)}
+.card h2 .sub{font-size:11.5px;color:var(--text-3);font-weight:400;margin-left:4px}
+.card h3{font-size:13.5px;font-weight:700;margin:10px 0 7px;color:var(--text)}
+.sub{color:var(--text-3);font-size:11.5px;margin-bottom:8px;line-height:1.5}
+
+/* Two-col layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two-col .card{margin-bottom:0}
 
 /* Forms */
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
-input,select,textarea{font-family:var(--font);font-size:14px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:all .15s;min-height:40px}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,107,255,.12)}
-input[type=number]{width:90px}
-input[type=checkbox]{min-height:auto;width:auto}
-label.f{font-size:13px;color:var(--text-2);font-weight:600}
-.btn{border:0;background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s;font-family:var(--font);min-height:40px;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,107,255,.3)}
+.row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:7px}
+input,select,textarea{font-family:var(--font);font-size:13px;padding:7px 10px;border:1px solid var(--border);
+  border-radius:9px;background:#fff;color:var(--text);outline:none;transition:all .15s;min-height:34px}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,107,255,.1)}
+input[type=number]{width:72px}
+input[type=color]{width:42px;height:34px;padding:3px;cursor:pointer}
+label.f{font-size:12px;color:var(--text-2);font-weight:600}
+.btn{border:0;background:var(--accent);color:#fff;padding:7px 14px;border-radius:9px;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .15s;font-family:var(--font);min-height:34px;
+  display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,107,255,.25)}
 .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
 .btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
 .btn.danger{background:var(--red)}
 .btn.danger:hover{background:#DC2626}
-.btn.sm{padding:6px 12px;font-size:12.5px;min-height:32px;border-radius:8px}
+.btn.sm{padding:5px 10px;font-size:11.5px;min-height:28px;border-radius:7px}
 .btn.green{background:var(--green)}
+.btn.green:hover{background:#16A34A}
+.link-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;
+  padding:3px 6px;border-radius:5px;font-family:var(--font);transition:background .15s}
+.link-btn:hover{background:rgba(239,68,68,.08)}
 
 /* Tables */
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border)}
-th{background:var(--surface-2);font-weight:700;color:var(--text);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--surface-2);font-weight:700;color:var(--text);font-size:12px}
 tr:hover td{background:var(--surface-2)}
 .table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
 
 /* Tags */
-.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;margin:2px}
-.tag-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;margin:2px;cursor:pointer;border:1px solid transparent}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;color:#fff;margin:1px}
+.tag-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:var(--accent-soft);
+  color:var(--accent);font-size:11.5px;font-weight:600;margin:1px;cursor:pointer;border:1px solid transparent;transition:all .15s}
 .tag-chip.on{background:var(--accent);color:#fff}
+.tag-chip:not(.on):hover{border-color:var(--accent)}
 .color-dot{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:middle}
-
-/* Week toggle segmented control */
-.seg{display:inline-flex;background:var(--accent-soft);border-radius:999px;padding:4px;gap:4px;flex-wrap:wrap}
-.seg button{border:0;background:transparent;color:var(--text-2);padding:7px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font)}
-.seg button.on{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;box-shadow:0 3px 10px rgba(79,107,255,.3)}
 
 /* Schedule grid */
 .sched-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
-.sched{border-collapse:separate;border-spacing:0;width:100%}
+.sched{border-collapse:separate;border-spacing:0;width:100%;min-width:640px}
 .sched th,.sched td{border:1px solid var(--border);padding:0;text-align:center;vertical-align:middle}
-.sched thead th{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;font-weight:700;padding:10px 6px;font-size:13.5px;min-width:100px}
-.sched thead th.corner{min-width:64px}
-.sched .period-label{background:var(--surface-2);font-weight:700;color:var(--text-2);padding:8px 6px;font-size:12.5px;min-width:64px}
-.sched .period-label small{display:block;color:var(--text-3);font-weight:400;font-size:11px}
-.cell{height:auto;min-height:58px;padding:5px;cursor:pointer;position:relative;background:#fff;transition:all .15s;font-size:12.5px}
+.sched thead th{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;font-weight:700;padding:7px 4px;font-size:12.5px;min-width:90px}
+.sched thead th.corner{min-width:52px}
+.sched .period-label{background:var(--surface-2);font-weight:700;color:var(--text-2);padding:5px 4px;font-size:11.5px;min-width:52px}
+.sched .period-label small{display:block;color:var(--text-3);font-weight:400;font-size:10px}
+.cell{height:50px;padding:4px;cursor:pointer;position:relative;background:#fff;transition:background .12s;font-size:11.5px}
 .cell:hover{background:var(--accent-soft)}
-.cell .sub-name{font-weight:700;display:block;line-height:1.25}
-.cell .t-name{color:var(--text-3);font-size:11px;display:block;margin-top:1px;line-height:1.2}
-.cell.empty{color:var(--text-3);font-style:italic;font-size:12px;cursor:default}
+.cell .sub-name{font-weight:700;display:block;line-height:1.2}
+.cell .t-name{color:var(--text-3);font-size:10.5px;display:block;margin-top:1px}
+.cell.empty{color:var(--text-3);font-style:italic;font-size:11px;cursor:default}
 .cell.locked{background:#FFFBEB}
-.cell.locked::after{content:"";position:absolute;top:4px;right:4px;width:13px;height:13px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23F59E0B" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>') center/contain no-repeat}
+.cell.locked::after{content:"";position:absolute;top:3px;right:3px;width:11px;height:11px;
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23F59E0B" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>') center/contain no-repeat}
 .cell.conflict{background:#FEE2E2!important;outline:2px solid var(--red)}
-.cell.has-color{border-left:5px solid var(--c,#4F6BFF)}
-.week-slot{padding:2px 2px}
-.week-slot .wk-tag{display:inline-block;font-size:9px;background:rgba(79,107,255,.12);color:var(--accent);border-radius:4px;padding:0 4px;margin-right:3px;font-weight:700}
-.week-div{border-top:1px dashed var(--border);margin:2px 0}
-.sub-tag{color:var(--orange);font-size:10.5px;font-weight:600}
+.cell.has-color{border-left:4px solid var(--c,#4F6BFF)}
+.week-slot{padding:1px 0}
+.week-div{height:1px;background:var(--border);margin:2px 0}
+.wk-tag{display:inline-block;font-size:9px;background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:0 3px;margin-right:2px;font-weight:700}
+.sub-tag{color:var(--orange);font-size:10px}
 
-/* Mini grid */
-.mini-grid{border-collapse:collapse;font-size:12px}
-.mini-grid th,.mini-grid td{border:1px solid var(--border);padding:4px;text-align:center;min-width:38px}
-.mini-grid th{background:var(--surface-2);font-size:11.5px}
-.mini-grid td{cursor:pointer;height:30px}
+/* Mini grid (busy/no-class) */
+.mini-grid{border-collapse:collapse;font-size:11px}
+.mini-grid th,.mini-grid td{border:1px solid var(--border);padding:3px;text-align:center;min-width:32px}
+.mini-grid th{background:var(--surface-2);font-size:11px}
+.mini-grid td{cursor:pointer;height:26px}
 .mini-grid td.on{background:var(--accent);color:#fff}
 .mini-grid td:not(.on):hover{background:var(--accent-soft)}
 
+/* Segmented control */
+.seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 11px;border-radius:6px;cursor:pointer;
+  font-size:12px;font-weight:600;color:var(--text-3);font-family:var(--font);transition:all .15s}
+.seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* Score box */
+.score-big{font-size:32px;font-weight:800;color:var(--accent);line-height:1}
+.score-box{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.score-box .stat{background:var(--surface-2);border-radius:10px;padding:8px 14px;text-align:center;min-width:70px}
+.score-box .stat .num{font-size:18px;font-weight:800}
+.score-box .stat .lbl{font-size:10.5px;color:var(--text-3)}
+.score-box .stat.good .num{color:var(--green)}
+.score-box .stat.warn .num{color:var(--orange)}
+.score-box .stat.bad .num{color:var(--red)}
+.suggest{margin:6px 0 0 18px;font-size:12px;color:var(--text-2)}
+.suggest li{margin:2px 0}
+
+/* Version items */
+.ver-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.ver-item:last-child{border-bottom:none}
+.ver-item .vtime{font-size:12.5px;font-weight:600;color:var(--text)}
+.ver-item .vmeta{font-size:11px;color:var(--text-3);margin-top:2px}
+
 /* Modal */
-.mask{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:16px}
 .mask.show{display:flex}
-.modal{background:#fff;border-radius:var(--radius-lg);padding:22px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
-.modal h3{font-size:16px;margin-bottom:14px}
-.modal .row input,.modal .row select{flex:1;min-width:120px}
-.radio-row{display:flex;gap:14px;flex-wrap:wrap}
-.radio-row label{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px;cursor:pointer;padding:6px 12px;border:1px solid var(--border);border-radius:10px}
-.radio-row label.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.modal{background:#fff;border-radius:var(--radius-lg);padding:18px;width:100%;max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:88vh;overflow-y:auto}
+.modal h3{font-size:15.5px;margin-bottom:12px}
+.modal .row input,.modal .row select{flex:1;min-width:110px}
+.radio-row{display:flex;gap:10px;flex-wrap:wrap}
+.radio-row label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:12.5px;
+  padding:5px 11px;border-radius:8px;border:1px solid var(--border);transition:all .15s}
+.radio-row label.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.radio-row input{display:none}
 
 /* Toast */
-#toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:13.5px;z-index:200;transition:transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0}
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--text);
+  color:#fff;padding:9px 18px;border-radius:9px;font-size:13px;z-index:200;transition:transform .25s;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;max-width:80vw;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 #toast.ok{background:var(--green)}
 #toast.err{background:var(--red)}
 
 /* Empty */
-.empty{text-align:center;padding:30px;color:var(--text-3);font-size:13.5px}
-.empty svg{width:40px;height:40px;margin-bottom:8px;opacity:.4}
-
-/* Stats */
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:14px}
-.stat{background:var(--surface-2);border-radius:var(--radius-sm);padding:14px;text-align:center}
-.stat .num{font-size:24px;font-weight:800;color:var(--accent)}
-.stat .lbl{font-size:12px;color:var(--text-3)}
-.stat.good .num{color:var(--green)}
-.stat.bad .num{color:var(--red)}
-.stat.warn .num{color:var(--orange)}
-
-/* Score ring */
-.score-big{font-size:44px;font-weight:800;color:var(--accent);line-height:1}
-.suggest li{margin:4px 0 4px 18px;font-size:13px;color:var(--text-2)}
-.ver-item{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.ver-item .vtime{font-weight:700}
-.ver-item .vmeta{font-size:12.5px;color:var(--text-3)}
+.empty{text-align:center;padding:22px 12px;color:var(--text-3);font-size:12.5px}
+.empty svg{width:34px;height:34px;margin-bottom:6px;opacity:.4}
 
 /* Print */
 @media print{
   body{background:#fff;padding:0}
-  .tabs,.hero .capsule,.btn,.no-print,.seg{display:none!important}
-  .card{box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+  .tabs,.hero .capsule,.btn,.no-print,.card .no-print,.stats{display:none!important}
+  .hero{margin-bottom:8px}
+  .hero h1{font-size:18px}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;page-break-inside:avoid;margin-bottom:8px}
   .sched-wrap{border:1px solid #ccc}
+  .two-col{grid-template-columns:1fr}
 }
 
-@media (max-width:768px){
-  body{padding:12px 8px 40px}
-  .hero h1{font-size:22px}
-  .card{padding:16px;border-radius:16px}
-  .tab-btn{padding:8px 12px;font-size:12.5px}
-  input,select{font-size:16px}
-  .sched{min-width:0}
-  .sched thead th{min-width:0;padding:6px 2px;font-size:11.5px}
-  .sched .period-label{min-width:0;padding:6px 2px;font-size:11px}
-  .cell{padding:3px;font-size:11px;min-height:44px}
-  .cell .t-name{font-size:9.5px}
-  .cell .sub-name{font-size:11px}
-  .table-wrap{overflow-x:auto}
+/* Responsive */
+@media(max-width:900px){
+  .two-col{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  body{padding:12px 8px 24px}
+  .hero h1{font-size:20px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:7px}
+  .stat-card{padding:9px 10px}
+  .stat-card .num{font-size:18px}
+  .card{padding:12px}
+  .tab-btn{padding:6px 11px;font-size:12px}
+  input,select{font-size:15px}
+  .cell{height:44px}
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <div class="hero">
-    <span class="capsule">SMART SCHEDULING · 教务排课</span>
+
+  <header class="hero">
+    <div class="capsule">SMART SCHEDULING · 教务排课</div>
     <h1>智能<span class="grad">排课表</span>系统</h1>
-    <p>单双周排课 · 自动排课评分 · 历史版本回退 · 导入导出冲突合并 · 代课调课全程记录。</p>
+    <p>班级 / 教师 / 科目一体化管理，一键自动排课，冲突自动检测，课时全程记录</p>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div>
+      <div><div class="num" id="stat-cls">0</div><div class="label">班级</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div><div class="num" id="stat-tch">0</div><div class="label">教师</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+      <div><div class="num" id="stat-sub">0</div><div class="label">科目</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div><div class="num" id="stat-rec">0</div><div class="label">课时记录</div></div>
+    </div>
   </div>
 
+  <!-- Tabs -->
   <div class="tabs" id="tabs">
     <button class="tab-btn active" data-tab="data">数据管理</button>
     <button class="tab-btn" data-tab="time">时间设置</button>
     <button class="tab-btn" data-tab="gen">排课</button>
     <button class="tab-btn" data-tab="view">课表</button>
     <button class="tab-btn" data-tab="record">课时</button>
-    <button class="tab-btn" data-tab="hist">历史与记录</button>
+    <button class="tab-btn" data-tab="hist">历史</button>
   </div>
 
   <!-- TAB 1: DATA -->
   <section id="tab-data" class="tab-pane">
-    <div class="card">
-      <h2>快速开始</h2>
-      <div class="sub">一键载入演示数据（3 班 / 5 教师 / 6 科目），便于体验与测试；也可清空全部数据从零开始。</div>
-      <div class="row">
-        <button class="btn green" onclick="loadDemoData()">载入测试数据</button>
-        <button class="btn danger" onclick="wipeAll()">清空所有数据</button>
-      </div>
-    </div>
+    <div class="two-col">
+      <!-- 左列 -->
+      <div>
+        <div class="card">
+          <h2>班级管理 <span class="sub">添加 / 删除班级</span></h2>
+          <div class="row">
+            <input id="cls-name" placeholder="班级名称，如 高一1班" style="flex:1;min-width:120px">
+            <input id="cls-grade" placeholder="年级" style="width:80px">
+            <input id="cls-count" type="number" placeholder="人数" min="0" style="width:64px">
+            <button class="btn" onclick="addClass()">添加</button>
+          </div>
+          <div class="table-wrap" id="cls-list"></div>
+        </div>
 
-    <div class="card">
-      <h2>班级管理</h2>
-      <div class="row">
-        <input id="cls-name" placeholder="班级名称，如 高一1班">
-        <input id="cls-grade" placeholder="年级，如 高一" style="width:110px">
-        <input id="cls-count" type="number" placeholder="人数" min="0" style="width:90px">
-        <button class="btn" onclick="addClass()">添加班级</button>
+        <div class="card" style="margin-top:12px">
+          <h2>教师管理 <span class="sub">设置所带科目与周课时上限</span></h2>
+          <div class="row">
+            <input id="tch-name" placeholder="教师姓名" style="flex:1;min-width:100px">
+            <input id="tch-limit" type="number" placeholder="周上限" min="0" style="width:72px" value="20">
+            <button class="btn" onclick="addTeacher()">添加</button>
+          </div>
+          <div class="sub">点击下方科目标签选择该教师所带科目（可多选）</div>
+          <div id="tch-subject-picker" style="margin-bottom:8px"></div>
+          <div class="table-wrap" id="tch-list"></div>
+        </div>
       </div>
-      <div class="table-wrap" id="cls-list"></div>
-    </div>
 
-    <div class="card">
-      <h2>教师管理</h2>
-      <div class="row">
-        <input id="tch-name" placeholder="教师姓名">
-        <input id="tch-limit" type="number" placeholder="周课时上限" min="0" style="width:110px" title="一周最多上多少节">
-        <button class="btn" onclick="addTeacher()">添加教师</button>
-      </div>
-      <div class="sub">点击下方科目标签设置该教师所带科目（可多选）。周课时上限在排课时自动遵守。</div>
-      <div id="tch-subject-picker" style="margin-bottom:10px"></div>
-      <div class="table-wrap" id="tch-list"></div>
-    </div>
+      <!-- 右列 -->
+      <div>
+        <div class="card">
+          <h2>科目管理 <span class="sub">颜色 / 简称 / 连排设置</span></h2>
+          <div class="row">
+            <input id="sub-name" placeholder="科目名称" style="flex:1;min-width:80px">
+            <input id="sub-short" placeholder="简称" style="width:60px">
+            <input type="color" id="sub-color" value="#8B5CF6">
+            <label class="f" style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="sub-consec" style="min-height:auto;width:auto"> 连排</label>
+            <input id="sub-consec-n" type="number" value="2" min="2" style="width:50px" title="连排节数">
+            <button class="btn" onclick="addSubject()">添加</button>
+          </div>
+          <div class="table-wrap" id="sub-list"></div>
+        </div>
 
-    <div class="card">
-      <h2>科目管理</h2>
-      <div class="row">
-        <input id="sub-name" placeholder="科目名称，如 音乐">
-        <input id="sub-short" placeholder="简称，如 音" style="width:90px">
-        <input type="color" id="sub-color" value="#8B5CF6" style="width:50px;height:40px;padding:4px">
-        <label style="font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="sub-consec"> 允许连排</label>
-        <input id="sub-consec-n" type="number" value="2" min="2" max="4" style="width:70px" title="连排节数">
-        <button class="btn" onclick="addSubject()">添加科目</button>
-      </div>
-      <div class="table-wrap" id="sub-list"></div>
-    </div>
+        <div class="card" style="margin-top:12px">
+          <h2>班级科目配置 <span class="sub">每周课时数</span></h2>
+          <div class="row">
+            <label class="f">选择班级</label>
+            <select id="cfg-cls" onchange="renderCfg()" style="flex:1"></select>
+          </div>
+          <div id="cfg-body"></div>
+        </div>
 
-    <div class="card">
-      <h2>班级科目配置（每周课时）</h2>
-      <div class="row">
-        <label class="f">选择班级</label>
-        <select id="cfg-cls" onchange="renderCfg()"></select>
+        <div class="card" style="margin-top:12px">
+          <h2>导入 / 导出 <span class="sub">数据备份与批量操作</span></h2>
+          <div class="row" style="flex-wrap:wrap">
+            <button class="btn ghost sm" onclick="exportJSON()">导出JSON</button>
+            <button class="btn ghost sm" onclick="document.getElementById('import-file').click()">导入JSON</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+            <button class="btn ghost sm" onclick="exportExcel()">导出Excel</button>
+            <button class="btn ghost sm" onclick="document.getElementById('excel-file').click()">导入Excel</button>
+            <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
+            <button class="btn ghost sm" onclick="loadDemoData()">载入测试数据</button>
+            <button class="btn danger sm" onclick="wipeAll()">清空全部</button>
+          </div>
+          <div class="sub" style="margin-top:6px">JSON含全部数据（课表/课时/历史）；Excel含班级/教师/科目/配置4个sheet，模板见「排课系统导入模板.xlsx」</div>
+        </div>
       </div>
-      <div id="cfg-body"></div>
-    </div>
-
-    <div class="card">
-      <h2>导入 / 导出</h2>
-      <div class="row">
-        <button class="btn ghost" onclick="exportJSON()">导出全部数据 (JSON)</button>
-        <button class="btn ghost" onclick="document.getElementById('import-file').click()">导入数据 (JSON)</button>
-        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn ghost" onclick="exportClassXLS()">导出当前班级课表 (XLS)</button>
-        <button class="btn ghost" onclick="exportExcel()">Excel批量导出 (4类数据)</button>
-        <button class="btn ghost" onclick="document.getElementById('excel-file').click()">Excel批量导入</button>
-        <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
-      </div>
-      <div class="sub">导出包含：班级 / 教师 / 科目 / 连排配置 / 时间设置 / 节假日调休 / 全部班级课表（含单双周、代课）/ 课时记录 / 历史版本 / 调课记录。导入遇同名班级、同名或同 ID 教师、同名科目时，将弹窗询问「覆盖 / 合并 / 跳过」。Excel导入模板见「排课系统导入模板.xlsx」（含班级/教师/科目/班级科目配置4个sheet）。</div>
     </div>
   </section>
 
   <!-- TAB 2: TIME -->
   <section id="tab-time" class="tab-pane" style="display:none">
-    <div class="card">
-      <h2>课表容量</h2>
-      <div class="row">
-        <label class="f">每周上课天数</label>
-        <input type="number" id="set-days" min="5" max="7" value="5" onchange="saveTime()">
-        <label class="f">每天节数</label>
-        <input type="number" id="set-periods" min="6" max="12" value="8" onchange="saveTime()">
-        <button class="btn sm" onclick="saveTime()">保存</button>
-      </div>
-      <div class="sub">范围：天数 5–7，节数 6–12。修改后已有课表将按新尺寸裁剪/补空。</div>
-    </div>
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <h2>课表容量</h2>
+          <div class="row">
+            <label class="f">每周天数</label>
+            <input type="number" id="set-days" min="5" max="7" value="5" onchange="saveTime()">
+            <label class="f">每天节数</label>
+            <input type="number" id="set-periods" min="6" max="12" value="8" onchange="saveTime()">
+            <button class="btn sm" onclick="saveTime()">保存</button>
+          </div>
+          <div class="sub">天数 5–7，节数 6–12。修改后已有课表按新尺寸调整</div>
+        </div>
 
-    <div class="card">
-      <h2>每节上下课时间</h2>
-      <div class="sub">例如：第1节 8:00-8:45。填写后课表视图会显示节次时间。</div>
-      <div id="period-times"></div>
-      <button class="btn sm" onclick="savePeriodTimes()">保存时间</button>
-    </div>
+        <div class="card" style="margin-top:12px">
+          <h2>每节上下课时间 <span class="sub">可选</span></h2>
+          <div id="period-times"></div>
+          <button class="btn sm" onclick="savePeriodTimes()">保存时间</button>
+        </div>
 
-    <div class="card">
-      <h2>节假日 / 调休标记</h2>
-      <div class="sub">标记节假日（该日不排课）；调休日（如周六上周三的课）。仅用于备忘与导出，不影响网格排课。</div>
-      <div class="row">
-        <input type="date" id="holiday-date">
-        <button class="btn sm" onclick="addHoliday()">标记节假日</button>
+        <div class="card" style="margin-top:12px">
+          <h2>节假日 / 调休</h2>
+          <div class="row">
+            <input type="date" id="holiday-date">
+            <button class="btn sm" onclick="addHoliday()">标记节假日</button>
+          </div>
+          <div class="table-wrap" id="holiday-list" style="margin-bottom:8px"></div>
+          <div class="row">
+            <input type="date" id="makeup-date">
+            <label class="f">上</label>
+            <select id="makeup-weekday">
+              <option value="0">周一</option><option value="1">周二</option><option value="2">周三</option>
+              <option value="3">周四</option><option value="4">周五</option><option value="5">周六</option><option value="6">周日</option>
+            </select>
+            <button class="btn sm" onclick="addMakeup()">添加调休</button>
+          </div>
+          <div class="table-wrap" id="makeup-list"></div>
+        </div>
       </div>
-      <div class="table-wrap" id="holiday-list" style="margin-bottom:12px"></div>
-      <div class="row">
-        <input type="date" id="makeup-date">
-        <label class="f">实际上</label>
-        <select id="makeup-weekday">
-          <option value="0">周一的课</option><option value="1">周二的课</option>
-          <option value="2">周三的课</option><option value="3">周四的课</option>
-          <option value="4">周五的课</option><option value="5">周六的课</option><option value="6">周日的课</option>
-        </select>
-        <button class="btn sm" onclick="addMakeup()">添加调休</button>
-      </div>
-      <div class="table-wrap" id="makeup-list"></div>
-    </div>
 
-    <div class="card">
-      <h2>教师不排课时间</h2>
-      <div class="row">
-        <label class="f">选择教师</label>
-        <select id="busy-tch" onchange="renderBusyGrid()"></select>
-      </div>
-      <div id="busy-grid"></div>
-      <div class="sub">勾选网格标记该教师在该节不可排课（如周三第3节有会议）。</div>
-    </div>
+      <div>
+        <div class="card">
+          <h2>教师不排课时间</h2>
+          <div class="row">
+            <label class="f">选择教师</label>
+            <select id="busy-tch" onchange="renderBusyGrid()" style="flex:1"></select>
+          </div>
+          <div id="busy-grid"></div>
+          <div class="sub">点击格子标记该教师此节不可排课（如教研会议）</div>
+        </div>
 
-    <div class="card">
-      <h2>班级固定无课时间</h2>
-      <div class="row">
-        <label class="f">选择班级</label>
-        <select id="nocls-cls" onchange="renderNoClsGrid()"></select>
+        <div class="card" style="margin-top:12px">
+          <h2>班级固定无课时间</h2>
+          <div class="row">
+            <label class="f">选择班级</label>
+            <select id="nocls-cls" onchange="renderNoClsGrid()" style="flex:1"></select>
+          </div>
+          <div id="nocls-grid"></div>
+          <div class="sub">点击格子标记该班级此节固定无课（如班会、自习）</div>
+        </div>
       </div>
-      <div id="nocls-grid"></div>
-      <div class="sub">勾选网格标记该班级该节固定无课（如周五下午班会）。</div>
     </div>
   </section>
 
   <!-- TAB 3: GENERATE -->
   <section id="tab-gen" class="tab-pane" style="display:none">
     <div class="card">
-      <h2>排课</h2>
-      <div class="row">
-        <label class="f">选择班级</label>
+      <h2>排课操作 <span class="sub">自动排课 + 手动调课</span></h2>
+      <div class="row" style="flex-wrap:wrap">
+        <label class="f">班级</label>
         <select id="gen-cls" onchange="renderGen()"></select>
-        <button class="btn green" onclick="autoGen()">快速排课</button>
-        <button class="btn ghost" onclick="clearGen()">清空课表</button>
-        <button class="btn danger" onclick="clearGen(true)">清空并解锁</button>
+        <button class="btn green" onclick="autoGen()">⚡ 快速排课</button>
+        <button class="btn ghost sm" onclick="clearGen()">清空课表</button>
+        <button class="btn ghost sm" onclick="clearGen(true)">清空并解锁</button>
+        <button class="btn ghost sm" onclick="exportClassXLS()">导出本班XLS</button>
       </div>
-      <div id="score-box"></div>
-      <div id="gen-info"></div>
-      <div id="gen-alert" style="margin:10px 0"></div>
-      <div class="sub" style="margin-top:10px">点击课格可修改科目/教师/周次/代课/锁定；自动排课默认全周，手动调整时可设置单周/双周。每次自动排课自动保存历史版本。</div>
+      <div id="score-box" style="margin:10px 0"></div>
+      <div id="gen-info" style="margin-bottom:10px"></div>
+      <div id="gen-alert" style="margin:8px 0"></div>
+      <div class="sub">点击课格可修改科目/教师/周次/代课/锁定；自动排课默认全周，手动调整可设单双周</div>
       <div id="gen-grid"></div>
     </div>
   </section>
@@ -343,26 +412,23 @@ tr:hover td{background:var(--surface-2)}
   <!-- TAB 4: VIEW -->
   <section id="tab-view" class="tab-pane" style="display:none">
     <div class="card">
-      <h2>课表查看</h2>
-      <div class="row">
+      <h2>课表查看 <span class="sub">按班级 / 按教师</span></h2>
+      <div class="row" style="flex-wrap:wrap">
         <label class="f">视图</label>
         <select id="view-mode" onchange="renderView()">
           <option value="class">按班级</option>
           <option value="teacher">按教师</option>
         </select>
         <select id="view-target" onchange="renderView()"></select>
-      </div>
-      <div class="row">
-        <label class="f">周次</label>
         <span class="seg" id="week-seg">
-          <button data-w="all" class="on" onclick="setWeekView('all')">全部（单双周同格分行）</button>
-          <button data-w="odd" onclick="setWeekView('odd')">仅单周</button>
-          <button data-w="even" onclick="setWeekView('even')">仅双周</button>
+          <button data-w="all" class="on" onclick="setWeekView('all')">全部</button>
+          <button data-w="odd" onclick="setWeekView('odd')">单周</button>
+          <button data-w="even" onclick="setWeekView('even')">双周</button>
         </span>
-        <button class="btn ghost" onclick="window.print()">打印 / 存为 PDF</button>
-        <button class="btn ghost" onclick="exportClassXLS()">导出本班 XLS</button>
+        <button class="btn ghost sm" onclick="window.print()">打印/PDF</button>
+        <button class="btn ghost sm" onclick="exportClassXLS()">导出XLS</button>
       </div>
-      <div id="view-grid"></div>
+      <div id="view-grid" style="margin-top:10px"></div>
     </div>
   </section>
 
@@ -370,29 +436,29 @@ tr:hover td{background:var(--surface-2)}
   <section id="tab-record" class="tab-pane" style="display:none">
     <div class="card">
       <h2>快速记录课时</h2>
-      <div class="row">
-        <select id="rec-tch"></select>
-        <select id="rec-subject"></select>
-        <select id="rec-cls"></select>
+      <div class="row" style="flex-wrap:wrap">
+        <select id="rec-tch" style="min-width:100px"></select>
+        <select id="rec-subject" style="min-width:90px"></select>
+        <select id="rec-cls" style="min-width:110px"></select>
         <input type="date" id="rec-date">
-        <select id="rec-period"></select>
+        <select id="rec-period" style="min-width:80px"></select>
         <button class="btn" onclick="addRecord()">记录课时</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-top:12px">
       <h2>课时统计</h2>
-      <div class="stat-row" id="rec-stats"></div>
-      <h3>按教师统计（含周课时负载）</h3>
-      <div class="table-wrap" id="stat-tch"></div>
+      <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="rec-stats"></div>
+      <h3>按教师统计</h3>
+      <div class="table-wrap" id="stat-tch" style="margin-bottom:10px"></div>
       <h3>按科目统计</h3>
       <div class="table-wrap" id="stat-sub"></div>
     </div>
 
-    <div class="card">
-      <h2>课时记录列表</h2>
+    <div class="card" style="margin-top:12px">
+      <h2>课时记录 <span class="sub">最新在前</span></h2>
       <div class="row no-print">
-        <button class="btn ghost" onclick="exportCSV()">导出 CSV</button>
+        <button class="btn ghost sm" onclick="exportCSV()">导出CSV</button>
       </div>
       <div class="table-wrap" id="rec-list"></div>
     </div>
@@ -400,50 +466,45 @@ tr:hover td{background:var(--surface-2)}
 
   <!-- TAB 6: HISTORY -->
   <section id="tab-hist" class="tab-pane" style="display:none">
-    <div class="card">
-      <h2>排课历史版本（最近 10 个）</h2>
-      <div class="sub">每次「快速排课」自动保存一个快照。可回退到任意历史版本，或查看与当前课表的差异。</div>
-      <div id="ver-list"></div>
-    </div>
-    <div class="card">
-      <h2>调课记录</h2>
-      <div class="sub">手动修改课格、清空课节时自动记录（操作人：当前用户）。</div>
-      <div class="table-wrap" id="adj-list"></div>
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <h2>排课历史版本 <span class="sub">最近10个</span></h2>
+          <div class="sub">每次「快速排课」自动保存快照，可回退或查看差异</div>
+          <div id="ver-list"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h2>调课记录 <span class="sub">最近100条</span></h2>
+          <div class="sub">手动修改课格、清空课节时自动记录</div>
+          <div class="table-wrap" id="adj-list"></div>
+        </div>
+      </div>
     </div>
   </section>
+
 </div>
 
 <!-- Modal: edit cell -->
 <div class="mask" id="cell-modal">
   <div class="modal">
     <h3 id="cell-modal-title">修改课节</h3>
-    <div class="row">
-      <label class="f">科目</label>
-      <select id="cell-subject"></select>
-    </div>
-    <div class="row">
-      <label class="f">教师</label>
-      <select id="cell-teacher"></select>
-    </div>
-    <div class="row">
-      <label class="f">代课教师</label>
-      <select id="cell-sub"></select>
-    </div>
-    <div class="row">
-      <label class="f">周次</label>
+    <div class="row"><label class="f">科目</label><select id="cell-subject"></select></div>
+    <div class="row"><label class="f">教师</label><select id="cell-teacher"></select></div>
+    <div class="row"><label class="f">代课教师</label><select id="cell-sub"></select></div>
+    <div class="row"><label class="f">周次</label>
       <div class="radio-row" id="cell-week">
         <label data-w="all" class="on"><input type="radio" name="cw" value="all" checked> 全周</label>
         <label data-w="odd"><input type="radio" name="cw" value="odd"> 单周</label>
         <label data-w="even"><input type="radio" name="cw" value="even"> 双周</label>
       </div>
     </div>
-    <div class="row">
-      <label style="font-weight:600"><input type="checkbox" id="cell-lock"> 锁定（自动排课不覆盖）</label>
-    </div>
-    <div class="row" style="justify-content:flex-end">
-      <button class="btn ghost" onclick="closeCellModal()">取消</button>
-      <button class="btn danger" onclick="clearCell()">清空此节（按所选周次）</button>
-      <button class="btn" onclick="saveCell()">保存</button>
+    <div class="row"><label style="font-weight:600;display:flex;align-items:center;gap:5px"><input type="checkbox" id="cell-lock" style="min-height:auto;width:auto"> 锁定（自动排课不覆盖）</label></div>
+    <div class="row" style="justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost sm" onclick="closeCellModal()">取消</button>
+      <button class="btn danger sm" onclick="clearCell()">清空此节</button>
+      <button class="btn sm" onclick="saveCell()">保存</button>
     </div>
   </div>
 </div>
@@ -452,17 +513,13 @@ tr:hover td{background:var(--surface-2)}
 <div class="mask" id="import-modal">
   <div class="modal">
     <h3>导入冲突处理</h3>
-    <div id="import-conflict-info" style="font-size:13.5px;color:var(--text-2);margin-bottom:12px"></div>
-    <div class="sub">
-      <b>覆盖</b>：用导入数据替换同名/同 ID 现有项；<br>
-      <b>合并</b>：保留现有项，仅导入新增项；<br>
-      <b>跳过</b>：忽略冲突项，只导入无冲突的新数据。
-    </div>
-    <div class="row" style="justify-content:flex-end;margin-bottom:0">
-      <button class="btn ghost" onclick="cancelImport()">取消</button>
-      <button class="btn danger" onclick="resolveImport('overwrite')">覆盖</button>
-      <button class="btn" onclick="resolveImport('merge')">合并</button>
-      <button class="btn ghost" onclick="resolveImport('skip')">跳过</button>
+    <div id="import-conflict-info" style="font-size:13px;color:var(--text-2);margin-bottom:10px"></div>
+    <div class="sub"><b>覆盖</b>：替换同名现有项；<b>合并</b>：保留现有仅导入新增；<b>跳过</b>：忽略冲突项</div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn ghost sm" onclick="cancelImport()">取消</button>
+      <button class="btn danger sm" onclick="resolveImport('overwrite')">覆盖</button>
+      <button class="btn sm" onclick="resolveImport('merge')">合并</button>
+      <button class="btn ghost sm" onclick="resolveImport('skip')">跳过</button>
     </div>
   </div>
 </div>
@@ -471,9 +528,9 @@ tr:hover td{background:var(--surface-2)}
 
 <script>
 /* ============ DATA LAYER ============ */
-const KEY = "schedule_data_v2";
-const LEGACY_KEY = "schedule_data";
-const DEFAULT_SUBJECTS = [
+const KEY="schedule_data_v2";
+const LEGACY_KEY="schedule_data";
+const DEFAULT_SUBJECTS=[
   {name:"语文",short:"语",color:"#EF4444"},
   {name:"数学",short:"数",color:"#4F6BFF"},
   {name:"英语",short:"英",color:"#22C55E"},
@@ -485,47 +542,39 @@ const DEFAULT_SUBJECTS = [
   {name:"生物",short:"生",color:"#65A30D"},
   {name:"信息技术",short:"信",color:"#F59E0B"}
 ];
-const DAY_NAMES = ["周一","周二","周三","周四","周五","周六","周日"];
-let db = load();
-let weekView = "all"; // all | odd | even
-let pendingImport = null;
+const DAY_NAMES=["周一","周二","周三","周四","周五","周六","周日"];
+let db=load();
+let weekView="all";
+let pendingImport=null;
 
 function freshDB(){
-  const d = {
-    classes:[], teachers:[], subjects:[],
-    classConfig:{},
+  const d={classes:[],teachers:[],subjects:[],classConfig:{},
     time:{days:5,periods:8,periodTimes:[],holidays:[],makeupDays:[]},
-    teacherBusy:{},
-    classNoClass:{},
-    schedules:{},
-    records:[],
-    versions:[],
-    adjustments:[]
-  };
+    teacherBusy:{},classNoClass:{},schedules:{},records:[],versions:[],adjustments:[]};
   DEFAULT_SUBJECTS.forEach(s=>d.subjects.push({id:uid(),...s,allowConsec:false,consecCount:2}));
   return d;
 }
 function migrateSchedule(oldCells){
-  if(!oldCells||!oldCells.length) return oldCells||[];
+  if(!oldCells||!oldCells.length)return oldCells||[];
   return oldCells.map(row=>row.map(c=>{
-    if(!c) return {odd:null,even:null};
-    if(c.odd!==undefined) return c;
+    if(!c)return{odd:null,even:null};
+    if(c.odd!==undefined)return c;
     const slot={subjectId:c.subjectId||null,teacherId:c.teacherId||null,locked:!!c.locked,subId:c.subId||null};
-    return {odd:JSON.parse(JSON.stringify(slot)),even:JSON.parse(JSON.stringify(slot))};
+    return{odd:JSON.parse(JSON.stringify(slot)),even:JSON.parse(JSON.stringify(slot))};
   }));
 }
 function load(){
-  let raw = localStorage.getItem(KEY);
+  let raw=localStorage.getItem(KEY);
   if(!raw){
-    raw = localStorage.getItem(LEGACY_KEY);
+    raw=localStorage.getItem(LEGACY_KEY);
     if(raw){
       try{
         const old=JSON.parse(raw);
         old.schedules=old.schedules||{};
-        Object.keys(old.schedules).forEach(cid=>{ if(old.schedules[cid]) old.schedules[cid].cells = migrateSchedule(old.schedules[cid].cells); });
-        old.versions=[]; old.adjustments=[];
-        old.time = Object.assign({holidays:[],makeupDays:[]},old.time);
-        localStorage.setItem(KEY, JSON.stringify(old));
+        Object.keys(old.schedules).forEach(cid=>{if(old.schedules[cid])old.schedules[cid].cells=migrateSchedule(old.schedules[cid].cells)});
+        old.versions=[];old.adjustments=[];
+        old.time=Object.assign({holidays:[],makeupDays:[]},old.time);
+        localStorage.setItem(KEY,JSON.stringify(old));
         localStorage.removeItem(LEGACY_KEY);
         return old;
       }catch(e){}
@@ -534,30 +583,36 @@ function load(){
   if(raw){
     try{
       const d=JSON.parse(raw);
-      d.schedules = d.schedules||{};
-      Object.keys(d.schedules).forEach(cid=>{ if(d.schedules[cid]) d.schedules[cid].cells = migrateSchedule(d.schedules[cid].cells); });
-      d.versions=d.versions||[]; d.adjustments=d.adjustments||[];
+      d.schedules=d.schedules||{};
+      Object.keys(d.schedules).forEach(cid=>{if(d.schedules[cid])d.schedules[cid].cells=migrateSchedule(d.schedules[cid].cells)});
+      d.versions=d.versions||[];d.adjustments=d.adjustments||[];
       d.time=d.time||{days:5,periods:8,periodTimes:[],holidays:[],makeupDays:[]};
-      d.time.holidays=d.time.holidays||[]; d.time.makeupDays=d.time.makeupDays||[];
-      d.teachers.forEach(t=>{ if(t.weeklyLimit==null) t.weeklyLimit=20; });
-      d.subjects.forEach(s=>{ if(s.allowConsec==null) s.allowConsec=false; if(!s.consecCount) s.consecCount=2; });
+      d.time.holidays=d.time.holidays||[];d.time.makeupDays=d.time.makeupDays||[];
+      d.teachers.forEach(t=>{if(t.weeklyLimit==null)t.weeklyLimit=20});
+      d.subjects.forEach(s=>{if(s.allowConsec==null)s.allowConsec=false;if(!s.consecCount)s.consecCount=2});
       return d;
     }catch(e){}
   }
   return freshDB();
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
-function uid(){ return Math.random().toString(36).slice(2,10); }
-function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function save(){localStorage.setItem(KEY,JSON.stringify(db));updateStats()}
+function uid(){return Math.random().toString(36).slice(2,10)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(msg,type){
   const t=document.getElementById("toast");
-  t.textContent=msg; t.className="show "+(type||"");
-  clearTimeout(t._tm); t._tm=setTimeout(()=>t.className="",2400);
+  t.textContent=msg;t.className="show "+(type||"");
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.className="",2400);
+}
+function updateStats(){
+  document.getElementById("stat-cls").textContent=db.classes.length;
+  document.getElementById("stat-tch").textContent=db.teachers.length;
+  document.getElementById("stat-sub").textContent=db.subjects.length;
+  document.getElementById("stat-rec").textContent=db.records.length;
 }
 
 /* ============ TABS ============ */
 document.getElementById("tabs").addEventListener("click",e=>{
-  const b=e.target.closest(".tab-btn"); if(!b) return;
+  const b=e.target.closest(".tab-btn");if(!b)return;
   document.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));
   document.querySelectorAll(".tab-pane").forEach(p=>p.style.display="none");
   document.getElementById("tab-"+b.dataset.tab).style.display="block";
@@ -566,181 +621,175 @@ document.getElementById("tabs").addEventListener("click",e=>{
 
 /* ============ RENDER ALL ============ */
 function renderAll(){
-  renderClasses(); renderTeachers(); renderSubjects();
-  renderCfg(); renderTime(); renderGen(); renderView(); renderRecords();
-  renderVersions(); renderAdjs();
-  syncSelectors();
+  renderClasses();renderTeachers();renderSubjects();
+  renderCfg();renderTime();renderGen();renderView();renderRecords();
+  renderVersions();renderAdjs();syncSelectors();updateStats();
 }
 function syncSelectors(){
-  const clsOpts = db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
-  const tchOpts = db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
-  setOpts("cfg-cls",clsOpts); setOpts("gen-cls",clsOpts);
-  setOpts("busy-tch",tchOpts); setOpts("nocls-cls",clsOpts);
+  const clsOpts=db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  const tchOpts=db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+  setOpts("cfg-cls",clsOpts);setOpts("gen-cls",clsOpts);
+  setOpts("busy-tch",tchOpts);setOpts("nocls-cls",clsOpts);
   const vm=document.getElementById("view-mode").value;
-  document.getElementById("view-target").innerHTML = vm==="class"?clsOpts:tchOpts;
-  renderBusyGrid(); renderNoClsGrid();
-  renderHolidays(); renderMakeups();
+  document.getElementById("view-target").innerHTML=vm==="class"?clsOpts:tchOpts;
+  renderBusyGrid();renderNoClsGrid();renderHolidays();renderMakeups();
 }
 function setOpts(id,opts){
-  const el=document.getElementById(id); if(!el) return;
-  const cur=el.value; el.innerHTML=opts; if([...el.options].some(o=>o.value===cur)) el.value=cur;
+  const el=document.getElementById(id);if(!el)return;
+  const cur=el.value;el.innerHTML=opts;
+  if([...el.options].some(o=>o.value===cur))el.value=cur;
 }
 
 /* ============ DEMO / WIPE ============ */
 function loadDemoData(){
-  if(!confirm("载入测试数据将替换当前全部数据，继续？")) return;
-  db = freshDB();
+  if(!confirm("载入测试数据将替换当前全部数据，继续？"))return;
+  db=freshDB();
   const want=["语文","数学","英语","物理","化学","信息技术"];
-  db.subjects = db.subjects.filter(s=>want.includes(s.name));
-  db.subjects.find(s=>s.name==="物理").allowConsec=true; db.subjects.find(s=>s.name==="物理").consecCount=2;
-  db.subjects.find(s=>s.name==="化学").allowConsec=true; db.subjects.find(s=>s.name==="化学").consecCount=2;
+  db.subjects=db.subjects.filter(s=>want.includes(s.name));
+  db.subjects.find(s=>s.name==="物理").allowConsec=true;db.subjects.find(s=>s.name==="物理").consecCount=2;
+  db.subjects.find(s=>s.name==="化学").allowConsec=true;db.subjects.find(s=>s.name==="化学").consecCount=2;
   const tn=["张老师","李老师","王老师","赵老师","陈老师"];
-  db.teachers = tn.map((n)=>({id:uid(),name:n,subjects:[],weeklyLimit:25}));
+  db.teachers=tn.map(n=>({id:uid(),name:n,subjects:[],weeklyLimit:25}));
   db.teachers[0].subjects=[db.subjects.find(s=>s.name==="语文").id];
   db.teachers[1].subjects=[db.subjects.find(s=>s.name==="数学").id];
   db.teachers[2].subjects=[db.subjects.find(s=>s.name==="英语").id];
-  db.teachers[3].subjects=[db.subjects.find(s=>s.name==="物理").id, db.subjects.find(s=>s.name==="化学").id];
+  db.teachers[3].subjects=[db.subjects.find(s=>s.name==="物理").id,db.subjects.find(s=>s.name==="化学").id];
   db.teachers[4].subjects=[db.subjects.find(s=>s.name==="信息技术").id];
   db.classes=["高一1班","高一2班","高一3班"].map(n=>({id:uid(),name:n,grade:"高一",count:45}));
   db.classes.forEach((c,ci)=>{
     db.classConfig[c.id]={};
-    db.subjects.forEach((s,i)=>{ db.classConfig[c.id][s.id]=[5,5,5,4,4,4][i]; });
+    db.subjects.forEach((s,i)=>{db.classConfig[c.id][s.id]=[5,5,5,4,4,4][i]});
   });
-  save(); renderAll(); toast("测试数据已载入：3班/5教师/6科目","ok");
+  save();renderAll();toast("测试数据已载入：3班/5教师/6科目","ok");
 }
 function wipeAll(){
-  if(!confirm("将清空所有数据（班级/教师/科目/课表/课时/历史），此操作不可恢复，继续？")) return;
-  db = freshDB();
-  save(); renderAll(); toast("已清空","ok");
+  if(!confirm("将清空所有数据，此操作不可恢复，继续？"))return;
+  db=freshDB();save();renderAll();toast("已清空","ok");
 }
 
-/* ============ TAB1: CLASSES ============ */
+/* ============ CLASSES ============ */
 function addClass(){
   const name=document.getElementById("cls-name").value.trim();
   const grade=document.getElementById("cls-grade").value.trim();
   const count=parseInt(document.getElementById("cls-count").value)||0;
-  if(!name){toast("请输入班级名称","err");return;}
+  if(!name){toast("请输入班级名称","err");return}
   db.classes.push({id:uid(),name,grade,count});
-  document.getElementById("cls-name").value="";
-  document.getElementById("cls-grade").value="";
-  document.getElementById("cls-count").value="";
-  save(); renderAll(); toast("班级已添加","ok");
+  document.getElementById("cls-name").value="";document.getElementById("cls-grade").value="";document.getElementById("cls-count").value="";
+  save();renderAll();toast("班级已添加","ok");
 }
 function delClass(id){
-  if(!confirm("删除该班级将同时删除其课表与配置，确定？")) return;
+  if(!confirm("删除该班级将同时删除其课表与配置，确定？"))return;
   db.classes=db.classes.filter(c=>c.id!==id);
-  delete db.classConfig[id]; delete db.schedules[id]; delete db.classNoClass[id];
+  delete db.classConfig[id];delete db.schedules[id];delete db.classNoClass[id];
   db.records=db.records.filter(r=>r.classId!==id);
-  save(); renderAll();
+  save();renderAll();
 }
 function renderClasses(){
   const el=document.getElementById("cls-list");
-  if(!db.classes.length){el.innerHTML=emptyHTML("暂无班级，请先添加");return;}
+  if(!db.classes.length){el.innerHTML=emptyHTML("暂无班级");return}
   el.innerHTML=`<table><thead><tr><th>班级名称</th><th>年级</th><th>人数</th><th>操作</th></tr></thead><tbody>`+
     db.classes.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.grade)||"-"}</td><td>${c.count||0}</td>
-      <td><button class="btn danger sm" onclick="delClass('${c.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
+      <td><button class="link-btn" onclick="delClass('${c.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
 }
 
-/* ============ TAB1: TEACHERS ============ */
-let tchPickerSubjects = [];
+/* ============ TEACHERS ============ */
+let tchPickerSubjects=[];
 function addTeacher(){
   const name=document.getElementById("tch-name").value.trim();
   const limit=parseInt(document.getElementById("tch-limit").value)||20;
-  if(!name){toast("请输入教师姓名","err");return;}
+  if(!name){toast("请输入教师姓名","err");return}
   db.teachers.push({id:uid(),name,subjects:[...tchPickerSubjects],weeklyLimit:limit});
-  document.getElementById("tch-name").value="";
-  document.getElementById("tch-limit").value="";
-  tchPickerSubjects=[]; renderTchPicker();
-  save(); renderAll(); toast("教师已添加","ok");
+  document.getElementById("tch-name").value="";document.getElementById("tch-limit").value="20";
+  tchPickerSubjects=[];renderTchPicker();
+  save();renderAll();toast("教师已添加","ok");
 }
 function renderTchPicker(){
   const el=document.getElementById("tch-subject-picker");
-  el.innerHTML = db.subjects.map(s=>`<span class="tag-chip ${tchPickerSubjects.includes(s.id)?"on":""}" onclick="togglePickerSub('${s.id}')">
-    <span class="color-dot" style="background:${s.color}"></span>${esc(s.name)}</span>`).join("") || `<span class="empty">请先添加科目</span>`;
+  el.innerHTML=db.subjects.map(s=>`<span class="tag-chip ${tchPickerSubjects.includes(s.id)?"on":""}" onclick="togglePickerSub('${s.id}')">
+    <span class="color-dot" style="background:${s.color}"></span>${esc(s.name)}</span>`).join("")||`<span class="empty">请先添加科目</span>`;
 }
 function togglePickerSub(id){
   const i=tchPickerSubjects.indexOf(id);
-  if(i>=0) tchPickerSubjects.splice(i,1); else tchPickerSubjects.push(id);
+  if(i>=0)tchPickerSubjects.splice(i,1);else tchPickerSubjects.push(id);
   renderTchPicker();
 }
 function delTeacher(id){
-  if(!confirm("删除该教师？其课时记录将保留但显示为已删除。")) return;
+  if(!confirm("删除该教师？其课时记录将保留但显示为已删除。"))return;
   db.teachers=db.teachers.filter(t=>t.id!==id);
   delete db.teacherBusy[id];
   Object.values(db.schedules).forEach(sched=>{
     sched.cells.forEach(row=>row.forEach(cell=>{
-      ["odd","even"].forEach(p=>{ if(cell[p]&&cell[p].teacherId===id){cell[p].teacherId=null;cell[p].subId=null;} });
+      ["odd","even"].forEach(p=>{if(cell[p]&&cell[p].teacherId===id){cell[p].teacherId=null;cell[p].subId=null}});
     }));
   });
-  save(); renderAll();
+  save();renderAll();
 }
 function setTeacherLimit(tid,v){
-  const t=db.teachers.find(x=>x.id===tid); if(!t) return;
-  t.weeklyLimit=parseInt(v)||0; save();
+  const t=db.teachers.find(x=>x.id===tid);if(!t)return;
+  t.weeklyLimit=parseInt(v)||0;save();
 }
 function toggleTchSub(tid,sid){
-  const t=db.teachers.find(x=>x.id===tid); if(!t) return;
+  const t=db.teachers.find(x=>x.id===tid);if(!t)return;
   const i=t.subjects.indexOf(sid);
-  if(i>=0) t.subjects.splice(i,1); else t.subjects.push(sid);
-  save(); renderAll();
+  if(i>=0)t.subjects.splice(i,1);else t.subjects.push(sid);
+  save();renderAll();
 }
 function renderTeachers(){
   const el=document.getElementById("tch-list");
   renderTchPicker();
-  if(!db.teachers.length){el.innerHTML=emptyHTML("暂无教师");return;}
-  el.innerHTML=`<table><thead><tr><th>姓名</th><th>周课时上限</th><th>所带科目（点击切换）</th><th>操作</th></tr></thead><tbody>`+
+  if(!db.teachers.length){el.innerHTML=emptyHTML("暂无教师");return}
+  el.innerHTML=`<table><thead><tr><th>姓名</th><th>周上限</th><th>所带科目（点击切换）</th><th>操作</th></tr></thead><tbody>`+
     db.teachers.map(t=>`<tr><td>${esc(t.name)}</td>
-      <td><input type="number" min="0" value="${t.weeklyLimit||20}" onchange="setTeacherLimit('${t.id}',this.value)" style="width:80px"></td>
-      <td>${
-        db.subjects.map(s=>`<span class="tag-chip ${t.subjects.includes(s.id)?"on":""}" onclick="toggleTchSub('${t.id}','${s.id}')">
-          <span class="color-dot" style="background:${s.color}"></span>${esc(s.short)}</span>`).join("")
-      }</td><td><button class="btn danger sm" onclick="delTeacher('${t.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
+      <td><input type="number" min="0" value="${t.weeklyLimit||20}" onchange="setTeacherLimit('${t.id}',this.value)" style="width:64px"></td>
+      <td>${db.subjects.map(s=>`<span class="tag-chip ${t.subjects.includes(s.id)?"on":""}" onclick="toggleTchSub('${t.id}','${s.id}')">
+        <span class="color-dot" style="background:${s.color}"></span>${esc(s.short)}</span>`).join("")}</td>
+      <td><button class="link-btn" onclick="delTeacher('${t.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
 }
 
-/* ============ TAB1: SUBJECTS ============ */
+/* ============ SUBJECTS ============ */
 function addSubject(){
   const name=document.getElementById("sub-name").value.trim();
   const short=document.getElementById("sub-short").value.trim();
   const color=document.getElementById("sub-color").value;
   const allowConsec=document.getElementById("sub-consec").checked;
   const consecCount=Math.max(2,parseInt(document.getElementById("sub-consec-n").value)||2);
-  if(!name||!short){toast("请输入科目名称与简称","err");return;}
+  if(!name||!short){toast("请输入科目名称与简称","err");return}
   db.subjects.push({id:uid(),name,short,color,allowConsec,consecCount});
   document.getElementById("sub-name").value="";
-  save(); renderAll(); toast("科目已添加","ok");
+  save();renderAll();toast("科目已添加","ok");
 }
 function toggleConsec(sid){
-  const s=db.subjects.find(x=>x.id===sid); if(!s) return;
-  s.allowConsec=!s.allowConsec; save(); renderAll();
+  const s=db.subjects.find(x=>x.id===sid);if(!s)return;
+  s.allowConsec=!s.allowConsec;save();renderAll();
 }
 function delSubject(id){
-  if(!confirm("删除该科目？相关配置与课格将清空。")) return;
+  if(!confirm("删除该科目？相关配置与课格将清空。"))return;
   db.subjects=db.subjects.filter(s=>s.id!==id);
   db.teachers.forEach(t=>t.subjects=t.subjects.filter(x=>x!==id));
-  Object.values(db.classConfig).forEach(cfg=>{ delete cfg[id]; });
+  Object.values(db.classConfig).forEach(cfg=>{delete cfg[id]});
   Object.values(db.schedules).forEach(sched=>sched.cells.forEach(row=>row.forEach(cell=>{
-    ["odd","even"].forEach(p=>{ if(cell[p]&&cell[p].subjectId===id){cell[p].subjectId=null;cell[p].teacherId=null;cell[p].subId=null;} });
+    ["odd","even"].forEach(p=>{if(cell[p]&&cell[p].subjectId===id){cell[p].subjectId=null;cell[p].teacherId=null;cell[p].subId=null}});
   })));
   db.records=db.records.filter(r=>r.subjectId!==id);
-  save(); renderAll();
+  save();renderAll();
 }
 function renderSubjects(){
   const el=document.getElementById("sub-list");
-  if(!db.subjects.length){el.innerHTML=emptyHTML("暂无科目");return;}
+  if(!db.subjects.length){el.innerHTML=emptyHTML("暂无科目");return}
   el.innerHTML=`<table><thead><tr><th>颜色</th><th>科目</th><th>简称</th><th>连排</th><th>操作</th></tr></thead><tbody>`+
-    db.subjects.map(s=>`<tr><td><span class="color-dot" style="background:${s.color};width:18px;height:18px"></span></td>
+    db.subjects.map(s=>`<tr><td><span class="color-dot" style="background:${s.color};width:16px;height:16px"></span></td>
       <td>${esc(s.name)}</td><td>${esc(s.short)}</td>
       <td><span class="tag-chip ${s.allowConsec?"on":""}" onclick="toggleConsec('${s.id}')">${s.allowConsec?"连排"+s.consecCount+"节":"不连排"}</span></td>
-      <td><button class="btn danger sm" onclick="delSubject('${s.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
+      <td><button class="link-btn" onclick="delSubject('${s.id}')">删除</button></td></tr>`).join("")+`</tbody></table>`;
 }
 
-/* ============ TAB1: CLASS CONFIG ============ */
+/* ============ CLASS CONFIG ============ */
 function renderCfg(){
   const cid=document.getElementById("cfg-cls").value;
   const el=document.getElementById("cfg-body");
-  if(!cid){el.innerHTML=emptyHTML("请先添加并选择班级");return;}
-  if(!db.classConfig[cid]) db.classConfig[cid]={};
-  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>科目</th><th>每周课时数</th></tr></thead><tbody>`+
+  if(!cid){el.innerHTML=emptyHTML("请先添加并选择班级");return}
+  if(!db.classConfig[cid])db.classConfig[cid]={};
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>科目</th><th>每周课时</th></tr></thead><tbody>`+
     db.subjects.map(s=>{
       const h=db.classConfig[cid][s.id]||0;
       return `<tr><td><span class="color-dot" style="background:${s.color}"></span> ${esc(s.name)}${s.allowConsec?`<span class="tag-chip" style="cursor:default">连排${s.consecCount}</span>`:""}</td>
@@ -749,106 +798,105 @@ function renderCfg(){
 }
 function setCfg(cid,sid,v){
   v=parseInt(v)||0;
-  if(v<=0) delete db.classConfig[cid][sid]; else db.classConfig[cid][sid]=v;
+  if(v<=0)delete db.classConfig[cid][sid];else db.classConfig[cid][sid]=v;
   save();
 }
 
-/* ============ TAB2: TIME ============ */
+/* ============ TIME ============ */
 function saveTime(){
   const days=Math.max(5,Math.min(7,parseInt(document.getElementById("set-days").value)||5));
   const periods=Math.max(6,Math.min(12,parseInt(document.getElementById("set-periods").value)||8));
-  db.time.days=days; db.time.periods=periods;
-  if(db.time.periodTimes.length>periods) db.time.periodTimes.length=periods;
-  while(db.time.periodTimes.length<periods) db.time.periodTimes.push("");
+  db.time.days=days;db.time.periods=periods;
+  if(db.time.periodTimes.length>periods)db.time.periodTimes.length=periods;
+  while(db.time.periodTimes.length<periods)db.time.periodTimes.push("");
   Object.keys(db.schedules).forEach(cid=>{
     const s=db.schedules[cid];
-    s.cells = s.cells.slice(0,days).map(row=>row.slice(0,periods));
-    while(s.cells.length<days) s.cells.push(Array.from({length:periods},()=>({odd:null,even:null})));
-    s.cells.forEach(row=>{ while(row.length<periods) row.push({odd:null,even:null}); });
+    s.cells=s.cells.slice(0,days).map(row=>row.slice(0,periods));
+    while(s.cells.length<days)s.cells.push(Array.from({length:periods},()=>({odd:null,even:null})));
+    s.cells.forEach(row=>{while(row.length<periods)row.push({odd:null,even:null})});
   });
-  save(); renderAll(); toast("时间设置已保存","ok");
+  save();renderAll();toast("时间设置已保存","ok");
 }
 function savePeriodTimes(){
-  document.querySelectorAll("#period-times input").forEach((inp,i)=>{ db.time.periodTimes[i]=inp.value; });
-  save(); toast("节次时间已保存","ok");
+  document.querySelectorAll("#period-times input").forEach((inp,i)=>{db.time.periodTimes[i]=inp.value});
+  save();toast("节次时间已保存","ok");
 }
 function renderTime(){
   document.getElementById("set-days").value=db.time.days;
   document.getElementById("set-periods").value=db.time.periods;
   if(db.time.periodTimes.length!==db.time.periods){
-    db.time.periodTimes = Array.from({length:db.time.periods},(_,i)=>db.time.periodTimes[i]||"");
+    db.time.periodTimes=Array.from({length:db.time.periods},(_,i)=>db.time.periodTimes[i]||"");
   }
-  document.getElementById("period-times").innerHTML =
-    db.time.periodTimes.map((t,i)=>`<div class="row"><label class="f">第${i+1}节</label>
+  document.getElementById("period-times").innerHTML=
+    db.time.periodTimes.map((t,i)=>`<div class="row"><label class="f" style="width:52px">第${i+1}节</label>
       <input value="${esc(t)}" placeholder="如 8:00-8:45" style="flex:1"></div>`).join("");
 }
 function addHoliday(){
   const v=document.getElementById("holiday-date").value;
-  if(!v){toast("请选择日期","err");return;}
-  if(!db.time.holidays.includes(v)) db.time.holidays.push(v);
-  save(); renderHolidays(); toast("已标记节假日","ok");
+  if(!v){toast("请选择日期","err");return}
+  if(!db.time.holidays.includes(v))db.time.holidays.push(v);
+  save();renderHolidays();toast("已标记节假日","ok");
 }
-function delHoliday(i){ db.time.holidays.splice(i,1); save(); renderHolidays(); }
+function delHoliday(i){db.time.holidays.splice(i,1);save();renderHolidays()}
 function renderHolidays(){
   const el=document.getElementById("holiday-list");
-  el.innerHTML = db.time.holidays.length
-    ? `<table><thead><tr><th>节假日日期</th><th>操作</th></tr></thead><tbody>`+
-      db.time.holidays.map((d,i)=>`<tr><td>${esc(d)}</td><td><button class="btn danger sm" onclick="delHoliday(${i})">删除</button></td></tr>`).join("")+`</tbody></table>`
-    : emptyHTML("暂无节假日");
+  el.innerHTML=db.time.holidays.length
+    ?`<table><thead><tr><th>日期</th><th>操作</th></tr></thead><tbody>`+
+      db.time.holidays.map((d,i)=>`<tr><td>${esc(d)}</td><td><button class="link-btn" onclick="delHoliday(${i})">删除</button></td></tr>`).join("")+`</tbody></table>`
+    :emptyHTML("暂无节假日");
 }
 function addMakeup(){
   const date=document.getElementById("makeup-date").value;
   const weekday=parseInt(document.getElementById("makeup-weekday").value);
-  if(!date){toast("请选择日期","err");return;}
+  if(!date){toast("请选择日期","err");return}
   db.time.makeupDays.push({date,weekday});
-  save(); renderMakeups(); toast("已添加调休","ok");
+  save();renderMakeups();toast("已添加调休","ok");
 }
-function delMakeup(i){ db.time.makeupDays.splice(i,1); save(); renderMakeups(); }
+function delMakeup(i){db.time.makeupDays.splice(i,1);save();renderMakeups()}
 function renderMakeups(){
   const el=document.getElementById("makeup-list");
-  el.innerHTML = db.time.makeupDays.length
-    ? `<table><thead><tr><th>调休日期</th><th>上周几的课</th><th>操作</th></tr></thead><tbody>`+
-      db.time.makeupDays.map((m,i)=>`<tr><td>${esc(m.date)}</td><td>${DAY_NAMES[m.weekday]}</td><td><button class="btn danger sm" onclick="delMakeup(${i})">删除</button></td></tr>`).join("")+`</tbody></table>`
-    : emptyHTML("暂无调休");
+  el.innerHTML=db.time.makeupDays.length
+    ?`<table><thead><tr><th>日期</th><th>上周几的课</th><th>操作</th></tr></thead><tbody>`+
+      db.time.makeupDays.map((m,i)=>`<tr><td>${esc(m.date)}</td><td>${DAY_NAMES[m.weekday]}</td><td><button class="link-btn" onclick="delMakeup(${i})">删除</button></td></tr>`).join("")+`</tbody></table>`
+    :emptyHTML("暂无调休");
 }
 
 /* busy / no-class grids */
-function gridHTML(onSet, isOn){
+function gridHTML(onSet,isOn){
   const d=db.time.days,p=db.time.periods;
   let html=`<div class="sched-wrap"><table class="mini-grid"><thead><tr><th></th>`;
-  for(let i=0;i<d;i++) html+=`<th>${DAY_NAMES[i]}</th>`;
+  for(let i=0;i<d;i++)html+=`<th>${DAY_NAMES[i]}</th>`;
   html+=`</tr></thead><tbody>`;
   for(let j=0;j<p;j++){
     html+=`<tr><th>第${j+1}节</th>`;
-    for(let i=0;i<d;i++) html+=`<td class="${isOn(i,j)?"on":""}" data-day="${i}" data-period="${j}" onclick="toggleCell(this,'${onSet}')"></td>`;
+    for(let i=0;i<d;i++)html+=`<td class="${isOn(i,j)?"on":""}" data-day="${i}" data-period="${j}" onclick="toggleCell(this,'${onSet}')"></td>`;
     html+=`</tr>`;
   }
   html+=`</tbody></table></div>`;
   return html;
 }
 function toggleCell(td,kind){
-  const d=+td.dataset.day, p=+td.dataset.period;
+  const d=+td.dataset.day,p=+td.dataset.period;
   let arr,key;
-  if(kind==="busy"){ key=document.getElementById("busy-tch").value; if(!key) return; arr=db.teacherBusy[key]=db.teacherBusy[key]||[]; }
-  else { key=document.getElementById("nocls-cls").value; if(!key) return; arr=db.classNoClass[key]=db.classNoClass[key]||[]; }
+  if(kind==="busy"){key=document.getElementById("busy-tch").value;if(!key)return;arr=db.teacherBusy[key]=db.teacherBusy[key]||[]}
+  else{key=document.getElementById("nocls-cls").value;if(!key)return;arr=db.classNoClass[key]=db.classNoClass[key]||[]}
   const i=arr.findIndex(x=>x[0]===d&&x[1]===p);
-  if(i>=0) arr.splice(i,1); else arr.push([d,p]);
-  save();
-  td.classList.toggle("on");
+  if(i>=0)arr.splice(i,1);else arr.push([d,p]);
+  save();td.classList.toggle("on");
 }
 function renderBusyGrid(){
   const tid=document.getElementById("busy-tch").value;
   const arr=tid?(db.teacherBusy[tid]||[]):[];
-  document.getElementById("busy-grid").innerHTML = tid
-    ? gridHTML("busy",(d,p)=>arr.some(x=>x[0]===d&&x[1]===p))
-    : emptyHTML("请先选择教师");
+  document.getElementById("busy-grid").innerHTML=tid
+    ?gridHTML("busy",(d,p)=>arr.some(x=>x[0]===d&&x[1]===p))
+    :emptyHTML("请先选择教师");
 }
 function renderNoClsGrid(){
   const cid=document.getElementById("nocls-cls").value;
   const arr=cid?(db.classNoClass[cid]||[]):[];
-  document.getElementById("nocls-grid").innerHTML = cid
-    ? gridHTML("nocls",(d,p)=>arr.some(x=>x[0]===d&&x[1]===p))
-    : emptyHTML("请先选择班级");
+  document.getElementById("nocls-grid").innerHTML=cid
+    ?gridHTML("nocls",(d,p)=>arr.some(x=>x[0]===d&&x[1]===p))
+    :emptyHTML("请先选择班级");
 }
 
 /* ============ SCHEDULE HELPERS ============ */
@@ -856,21 +904,21 @@ function getTeacherForSubject(sid){
   return db.teachers.find(t=>t.subjects.includes(sid))||null;
 }
 function ensureSched(cid){
-  if(!db.schedules[cid]) db.schedules[cid]={cells:[]};
+  if(!db.schedules[cid])db.schedules[cid]={cells:[]};
   const s=db.schedules[cid];
-  while(s.cells.length<db.time.days) s.cells.push(Array.from({length:db.time.periods},()=>({odd:null,even:null})));
-  s.cells.forEach(row=>{ while(row.length<db.time.periods) row.push({odd:null,even:null}); });
+  while(s.cells.length<db.time.days)s.cells.push(Array.from({length:db.time.periods},()=>({odd:null,even:null})));
+  s.cells.forEach(row=>{while(row.length<db.time.periods)row.push({odd:null,even:null})});
   return s;
 }
 function buildConflictMap(){
   const map={};
   db.classes.forEach(c=>{
-    const s=db.schedules[c.id]; if(!s) return;
+    const s=db.schedules[c.id];if(!s)return;
     s.cells.forEach((row,i)=>row.forEach((pos,j)=>{
-      if(!pos) return;
+      if(!pos)return;
       ["odd","even"].forEach(parity=>{
         const slot=pos[parity];
-        if(!slot||!slot.teacherId) return;
+        if(!slot||!slot.teacherId)return;
         const key=slot.teacherId+"_"+i+"_"+j+"_"+parity;
         (map[key]=map[key]||[]).push({classId:c.id,className:c.name,teacherId:slot.teacherId,day:i,period:j,parity,
           teacherName:(db.teachers.find(t=>t.id===slot.teacherId)||{}).name||"?"});
@@ -880,60 +928,54 @@ function buildConflictMap(){
   return map;
 }
 function conflictsForClass(cid){
-  const map=buildConflictMap();
-  const out=[];
-  Object.values(map).forEach(arr=>{
-    if(arr.length>1) arr.forEach(x=>{ if(x.classId===cid) out.push(x); });
-  });
+  const map=buildConflictMap();const out=[];
+  Object.values(map).forEach(arr=>{if(arr.length>1)arr.forEach(x=>{if(x.classId===cid)out.push(x)})});
   return out;
 }
 function teacherWeekLoad(tid){
   let load=0;
   Object.values(db.schedules).forEach(s=>{
     s.cells.forEach(row=>row.forEach(pos=>{
-      if(!pos) return;
-      const o=pos.odd, e=pos.even;
-      if(o&&o.teacherId===tid&&e&&e.teacherId===tid&&o.subjectId===e.subjectId) load+=1;
-      else { if(o&&o.teacherId===tid) load+=0.5; if(e&&e.teacherId===tid) load+=0.5; }
+      if(!pos)return;
+      const o=pos.odd,e=pos.even;
+      if(o&&o.teacherId===tid&&e&&e.teacherId===tid&&o.subjectId===e.subjectId)load+=1;
+      else{if(o&&o.teacherId===tid)load+=0.5;if(e&&e.teacherId===tid)load+=0.5}
     }));
   });
   return load;
 }
 
-/* ============ TAB3: GENERATE ============ */
+/* ============ GENERATE ============ */
 function renderGen(){
   const cid=document.getElementById("gen-cls").value;
   const info=document.getElementById("gen-info");
   const grid=document.getElementById("gen-grid");
-  if(!cid){info.innerHTML=emptyHTML("请先添加并选择班级");grid.innerHTML="";document.getElementById("score-box").innerHTML="";return;}
+  if(!cid){info.innerHTML=emptyHTML("请先添加并选择班级");grid.innerHTML="";document.getElementById("score-box").innerHTML="";return}
   const cfg=db.classConfig[cid]||{};
   const rows=Object.entries(cfg).map(([sid,h])=>{
-    const s=db.subjects.find(x=>x.id===sid); if(!s) return "";
+    const s=db.subjects.find(x=>x.id===sid);if(!s)return"";
     const t=getTeacherForSubject(sid);
     return `<tr><td><span class="color-dot" style="background:${s.color}"></span> ${esc(s.name)}${s.allowConsec?`<span class="tag-chip" style="cursor:default">连排${s.consecCount}</span>`:""}</td><td>${h} 节/周</td><td>${t?esc(t.name):'<span style="color:var(--red)">未指定教师</span>'}</td></tr>`;
   }).join("");
   info.innerHTML=`<div class="table-wrap"><table><thead><tr><th>科目</th><th>课时</th><th>拟排教师</th></tr></thead><tbody>${rows||"<tr><td colspan=3 class='empty'>该班未配置科目</td></tr>"}</tbody></table></div>`;
-  renderScore();
-  renderGenGrid(cid);
+  renderScore();renderGenGrid(cid);
 }
 function posHTML(pos,cid,i,j,clickable){
-  if(!pos) pos={odd:null,even:null};
-  const o=pos.odd, e=pos.even;
-  if(!o&&!e) return `<td class="cell empty" ${clickable?`onclick="openCellModal('${cid}',${i},${j})"`:''}>+</td>`;
-  const same = o&&e&&o.subjectId===e.subjectId&&o.teacherId===e.teacherId;
-  const subColor = (o||e)?(db.subjects.find(x=>x.id===(o||e).subjectId)||{}).color:"#999";
-  const locked = (o&&o.locked)||(e&&e.locked);
+  if(!pos)pos={odd:null,even:null};
+  const o=pos.odd,e=pos.even;
+  if(!o&&!e)return `<td class="cell empty" ${clickable?`onclick="openCellModal('${cid}',${i},${j})"`:''}>+</td>`;
+  const same=o&&e&&o.subjectId===e.subjectId&&o.teacherId===e.teacherId;
+  const subColor=(o||e)?(db.subjects.find(x=>x.id===(o||e).subjectId)||{}).color:"#999";
+  const locked=(o&&o.locked)||(e&&e.locked);
   let inner="";
-  if(weekView==="odd"){
-    inner = o? slotHTML(o,true):`<span class="t-name">—</span>`;
-  } else if(weekView==="even"){
-    inner = e? slotHTML(e,true):`<span class="t-name">—</span>`;
-  } else {
-    if(same){ inner = slotHTML(o,false); }
-    else {
-      inner = (o?`<div class="week-slot">${slotHTML(o,true)}</div>`:"")
-            + ((o&&e)?`<div class="week-div"></div>`:"")
-            + (e?`<div class="week-slot">${slotHTML(e,true)}</div>`:"");
+  if(weekView==="odd"){inner=o?slotHTML(o,true):`<span class="t-name">—</span>`}
+  else if(weekView==="even"){inner=e?slotHTML(e,true):`<span class="t-name">—</span>`}
+  else{
+    if(same){inner=slotHTML(o,false)}
+    else{
+      inner=(o?`<div class="week-slot">${slotHTML(o,true)}</div>`:"")
+            +((o&&e)?`<div class="week-div"></div>`:"")
+            +(e?`<div class="week-slot">${slotHTML(e,true)}</div>`:"");
     }
   }
   return `<td class="cell has-color ${locked?'locked':''}" style="--c:${subColor}" ${clickable?`onclick="openCellModal('${cid}',${i},${j})"`:''}>${inner}</td>`;
@@ -950,16 +992,16 @@ function renderGenGrid(cid){
   const d=db.time.days,p=db.time.periods;
   const conflicts=conflictsForClass(cid);
   let html=`<div class="sched-wrap"><table class="sched"><thead><tr><th class="corner">节次</th>`;
-  for(let i=0;i<d;i++) html+=`<th>${DAY_NAMES[i]}</th>`;
+  for(let i=0;i<d;i++)html+=`<th>${DAY_NAMES[i]}</th>`;
   html+=`</tr></thead><tbody>`;
   for(let j=0;j<p;j++){
     const pt=db.time.periodTimes[j]?"<small>"+esc(db.time.periodTimes[j])+"</small>":"";
     html+=`<tr><td class="period-label">第${j+1}节${pt}</td>`;
     for(let i=0;i<d;i++){
       const pos=s.cells[i][j];
-      const conf = conflicts.some(x=>x.day===i&&x.period===j&&x.classId===cid);
+      const conf=conflicts.some(x=>x.day===i&&x.period===j&&x.classId===cid);
       let td=posHTML(pos,cid,i,j,true);
-      if(conf) td=td.replace('<td class="cell','<td class="cell conflict"');
+      if(conf)td=td.replace('<td class="cell','<td class="cell conflict"');
       html+=td;
     }
     html+=`</tr>`;
@@ -968,196 +1010,166 @@ function renderGenGrid(cid){
   document.getElementById("gen-grid").innerHTML=html;
   const al=document.getElementById("gen-alert");
   if(conflicts.length){
-    al.innerHTML=`<div class="card" style="background:#FEE2E2;border-left:4px solid var(--red);padding:12px 16px;margin:0">
-      <b>检测到 ${conflicts.length} 处教师冲突：</b><ul style="margin:6px 0 0 18px">
+    al.innerHTML=`<div class="card" style="background:#FEE2E2;border-left:4px solid var(--red);padding:10px 14px;margin:0">
+      <b>检测到 ${conflicts.length} 处教师冲突：</b><ul style="margin:5px 0 0 16px;font-size:12px">
       ${conflicts.map(x=>`<li>${DAY_NAMES[x.day]}第${x.period+1}节（${x.parity==='odd'?'单周':'双周'}）：教师 ${esc(x.teacherName)} 同时段冲突</li>`).join("")}
       </ul></div>`;
-  } else al.innerHTML="";
+  }else al.innerHTML="";
 }
 
 /* ===== Auto scheduler ===== */
 function autoGen(){
   const cid=document.getElementById("gen-cls").value;
-  if(!cid){toast("请先选择班级","err");return;}
+  if(!cid){toast("请先选择班级","err");return}
   const cfg=db.classConfig[cid]||{};
   const entries=Object.entries(cfg).filter(([sid,h])=>h>0);
-  if(!entries.length){toast("该班未配置科目课时","err");return;}
-
+  if(!entries.length){toast("该班未配置科目课时","err");return}
   pushVersion("自动排课前");
-
   const s=ensureSched(cid);
   s.cells.forEach(row=>row.forEach((pos,j)=>{
-    row[j]={odd:(pos&&pos.odd&&pos.odd.locked)?pos.odd:null, even:(pos&&pos.even&&pos.even.locked)?pos.even:null};
+    row[j]={odd:(pos&&pos.odd&&pos.odd.locked)?pos.odd:null,even:(pos&&pos.even&&pos.even.locked)?pos.even:null};
   }));
-
   const d=db.time.days,p=db.time.periods;
-  const noCls = db.classNoClass[cid]||[];
+  const noCls=db.classNoClass[cid]||[];
   const isNoCls=(i,j)=>noCls.some(x=>x[0]===i&&x[1]===j);
-  function tchBusyHas(tid,i,j){ return (db.teacherBusy[tid]||[]).some(x=>x[0]===i&&x[1]===j); }
+  function tchBusyHas(tid,i,j){return(db.teacherBusy[tid]||[]).some(x=>x[0]===i&&x[1]===j)}
   function tchTaken(tid,i,j){
     return db.classes.some(c=>{
-      if(c.id===cid) return false;
-      const sc=db.schedules[c.id]; if(!sc) return false;
-      const pos=sc.cells[i]&&sc.cells[i][j];
-      if(!pos) return false;
-      return (pos.odd&&pos.odd.teacherId===tid)||(pos.even&&pos.even.teacherId===tid);
+      if(c.id===cid)return false;
+      const sc=db.schedules[c.id];if(!sc)return false;
+      const pos=sc.cells[i]&&sc.cells[i][j];if(!pos)return false;
+      return(pos.odd&&pos.odd.teacherId===tid)||(pos.even&&pos.even.teacherId===tid);
     });
   }
-  // seed teacher load from OTHER classes' existing schedules (all-week=1, half-week=0.5)
   const loadMap={};
   function classLoad(cid2){
-    const m={};
-    const sc=db.schedules[cid2]; if(!sc) return m;
+    const m={};const sc=db.schedules[cid2];if(!sc)return m;
     sc.cells.forEach(row=>row.forEach(pos=>{
-      if(!pos) return;
+      if(!pos)return;
       const o=pos.odd,e=pos.even;
-      if(o&&o.teacherId&&e&&e.teacherId&&o.subjectId===e.subjectId&&o.teacherId===e.teacherId) m[o.teacherId]=(m[o.teacherId]||0)+1;
-      else { if(o&&o.teacherId) m[o.teacherId]=(m[o.teacherId]||0)+0.5; if(e&&e.teacherId) m[e.teacherId]=(m[e.teacherId]||0)+0.5; }
+      if(o&&o.teacherId&&e&&e.teacherId&&o.subjectId===e.subjectId&&o.teacherId===e.teacherId)m[o.teacherId]=(m[o.teacherId]||0)+1;
+      else{if(o&&o.teacherId)m[o.teacherId]=(m[o.teacherId]||0)+0.5;if(e&&e.teacherId)m[e.teacherId]=(m[e.teacherId]||0)+0.5}
     }));
     return m;
   }
-  db.classes.forEach(c=>{
-    if(c.id===cid) return;
-    Object.entries(classLoad(c.id)).forEach(([tid,w])=>{ loadMap[tid]=(loadMap[tid]||0)+w; });
-  });
-  function curLoad(tid){ return loadMap[tid]||0; }
-
+  db.classes.forEach(c=>{if(c.id===cid)return;Object.entries(classLoad(c.id)).forEach(([tid,w])=>{loadMap[tid]=(loadMap[tid]||0)+w})});
+  function curLoad(tid){return loadMap[tid]||0}
   entries.sort((a,b)=>b[1]-a[1]);
   let failed=[];
-
   entries.forEach(([sid,hours])=>{
     const sub=db.subjects.find(x=>x.id===sid);
     const t=getTeacherForSubject(sid);
-    if(!sub) return;
-    if(!t){ failed.push(sub.name+"（无教师）"); return; }
+    if(!sub)return;
+    if(!t){failed.push(sub.name+"（无教师）");return}
     const limit=t.weeklyLimit||99;
     let placed=0;
-    const consec = sub.allowConsec? sub.consecCount:1;
-
+    const consec=sub.allowConsec?sub.consecCount:1;
     function tryPlace(i,j){
-      if(isNoCls(i,j)) return false;
-      if(tchBusyHas(t.id,i,j)) return false;
-      if(tchTaken(t.id,i,j)) return false;
+      if(isNoCls(i,j))return false;
+      if(tchBusyHas(t.id,i,j))return false;
+      if(tchTaken(t.id,i,j))return false;
       const pos=s.cells[i][j];
-      if(pos.odd||pos.even) return false;
-      if(curLoad(t.id)+1 > limit+1e-9) return false;
+      if(pos.odd||pos.even)return false;
+      if(curLoad(t.id)+1>limit+1e-9)return false;
       return true;
     }
     function commit(i,j){
       const slot={subjectId:sid,teacherId:t.id,locked:false,subId:null};
       s.cells[i][j]={odd:JSON.parse(JSON.stringify(slot)),even:JSON.parse(JSON.stringify(slot))};
-      loadMap[t.id]=curLoad(t.id)+1;
-      placed++;
+      loadMap[t.id]=curLoad(t.id)+1;placed++;
     }
     function placeFrom(i,j){
       if(tryPlace(i,j)){
         commit(i,j);
-        for(let k=1;k<consec && placed<hours;k++){
+        for(let k=1;k<consec&&placed<hours;k++){
           const j2=j+k;
-          if(j2<p && tryPlace(i,j2)) commit(i,j2); else break;
+          if(j2<p&&tryPlace(i,j2))commit(i,j2);else break;
         }
         return true;
       }
       return false;
     }
-
     outer:
-    for(let round=0; round<d && placed<hours; round++){
-      for(let ii=0; ii<d && placed<hours; ii++){
+    for(let round=0;round<d&&placed<hours;round++){
+      for(let ii=0;ii<d&&placed<hours;ii++){
         const i=(ii+round)%d;
-        if(s.cells[i].some(pos=>(pos.odd&&pos.odd.subjectId===sid)||(pos.even&&pos.even.subjectId===sid))) continue;
-        for(let j=0; j<p && placed<hours; j++){
-          if(placeFrom(i,j)) break;
-        }
+        if(s.cells[i].some(pos=>(pos.odd&&pos.odd.subjectId===sid)||(pos.even&&pos.even.subjectId===sid)))continue;
+        for(let j=0;j<p&&placed<hours;j++){if(placeFrom(i,j))break}
       }
     }
-    if(placed<hours){
-      for(let i=0;i<d && placed<hours;i++){
-        for(let j=0;j<p && placed<hours;j++){ placeFrom(i,j); }
-      }
-    }
-    if(placed<hours) failed.push(`${sub.name}（仅排 ${placed}/${hours} 节）`);
+    if(placed<hours){for(let i=0;i<d&&placed<hours;i++){for(let j=0;j<p&&placed<hours;j++){placeFrom(i,j)}}}
+    if(placed<hours)failed.push(`${sub.name}（仅排 ${placed}/${hours} 节）`);
   });
-
-  save();
-  pushVersion("自动排课");
-  renderGen();
-  if(failed.length) toast("部分科目未排满："+failed.join("、"),"err");
+  save();pushVersion("自动排课");renderGen();
+  if(failed.length)toast("部分科目未排满："+failed.join("、"),"err");
   else toast("自动排课完成，版本已保存","ok");
 }
 function clearGen(alsoUnlock){
   const cid=document.getElementById("gen-cls").value;
-  if(!cid) return;
-  if(!confirm("清空该班课表？")) return;
+  if(!cid)return;
+  if(!confirm("清空该班课表？"))return;
   const s=ensureSched(cid);
   s.cells.forEach(row=>row.forEach((pos,j)=>{
-    if(alsoUnlock){ row[j]={odd:null,even:null}; }
-    else {
-      row[j]={odd:(pos&&pos.odd&&pos.odd.locked)?pos.odd:null, even:(pos&&pos.even&&pos.even.locked)?pos.even:null};
-    }
+    if(alsoUnlock){row[j]={odd:null,even:null}}
+    else{row[j]={odd:(pos&&pos.odd&&pos.odd.locked)?pos.odd:null,even:(pos&&pos.even&&pos.even.locked)?pos.even:null}}
   }));
-  save(); renderGen();
+  save();renderGen();
 }
 
 /* ===== Scheduling score ===== */
 function computeScore(){
   const map=buildConflictMap();
   let conflicts=0;
-  Object.values(map).forEach(arr=>{ if(arr.length>1) conflicts+=arr.length; });
-  let unifPenalty=0, totalSub=0;
+  Object.values(map).forEach(arr=>{if(arr.length>1)conflicts+=arr.length});
+  let unifPenalty=0,totalSub=0;
   db.classes.forEach(c=>{
-    const s=db.schedules[c.id]; if(!s) return;
+    const s=db.schedules[c.id];if(!s)return;
     const cfg=db.classConfig[c.id]||{};
     Object.entries(cfg).forEach(([sid,h])=>{
-      if(h<=0) return;
-      totalSub++;
+      if(h<=0)return;totalSub++;
       const counts=new Array(db.time.days).fill(0);
-      s.cells.forEach((row,i)=>row.forEach(pos=>{
-        if(pos.odd&&pos.odd.subjectId===sid) counts[i]++;
-      }));
+      s.cells.forEach((row,i)=>row.forEach(pos=>{if(pos.odd&&pos.odd.subjectId===sid)counts[i]++}));
       const mean=h/db.time.days;
-      counts.forEach(cnt=>{ unifPenalty+=Math.abs(cnt-mean); });
+      counts.forEach(cnt=>{unifPenalty+=Math.abs(cnt-mean)});
     });
   });
   let over=0;
   db.teachers.forEach(t=>{
-    const load=teacherWeekLoad(t.id);
-    const lim=t.weeklyLimit||99;
-    if(load>lim+0.01) over+=Math.round((load-lim)*10);
+    const load=teacherWeekLoad(t.id);const lim=t.weeklyLimit||99;
+    if(load>lim+0.01)over+=Math.round((load-lim)*10);
   });
   let unplaced=0;
   db.classes.forEach(c=>{
-    const s=db.schedules[c.id]; if(!s) return;
+    const s=db.schedules[c.id];if(!s)return;
     const cfg=db.classConfig[c.id]||{};
     Object.entries(cfg).forEach(([sid,h])=>{
       let placed=0;
-      s.cells.forEach(row=>row.forEach(pos=>{ if(pos.odd&&pos.odd.subjectId===sid) placed++; }));
+      s.cells.forEach(row=>row.forEach(pos=>{if(pos.odd&&pos.odd.subjectId===sid)placed++}));
       unplaced+=Math.max(0,h-placed);
     });
   });
-  let score = 100 - conflicts*15 - Math.round(unifPenalty*1.2) - over*3 - unplaced*4;
+  let score=100-conflicts*15-Math.round(unifPenalty*1.2)-over*3-unplaced*4;
   score=Math.max(0,Math.min(100,score));
   const suggestions=[];
-  if(conflicts>0) suggestions.push("存在 "+conflicts+" 处教师同时段冲突，请在排课页红色课格处手动调整。");
-  if(unplaced>0) suggestions.push("有 "+unplaced+" 节课程未排满，可检查课时容量或教师时间。");
-  if(over>0) suggestions.push("部分教师周课时超过上限，请减少其课时或提高上限。");
-  if(unifPenalty>totalSub*1.5) suggestions.push("部分科目过于集中在某几天，可在课表中手动平移到其他天。");
-  if(!suggestions.length) suggestions.push("排课状态良好，无明显冲突与过载。");
-  return {score,conflicts,unifPenalty:Math.round(unifPenalty),over,unplaced,suggestions};
+  if(conflicts>0)suggestions.push("存在 "+conflicts+" 处教师冲突，请在排课页红色课格处手动调整");
+  if(unplaced>0)suggestions.push("有 "+unplaced+" 节课程未排满，可检查课时容量或教师时间");
+  if(over>0)suggestions.push("部分教师周课时超过上限，请减少其课时或提高上限");
+  if(unifPenalty>totalSub*1.5)suggestions.push("部分科目过于集中在某几天，可手动平移到其他天");
+  if(!suggestions.length)suggestions.push("排课状态良好，无明显冲突与过载");
+  return{score,conflicts,unifPenalty:Math.round(unifPenalty),over,unplaced,suggestions};
 }
 function renderScore(){
-  const el=document.getElementById("score-box");
-  if(!Object.keys(db.schedules).length){ el.innerHTML=""; return; }
+  if(!Object.keys(db.schedules).length){document.getElementById("score-box").innerHTML="";return}
   const r=computeScore();
-  el.innerHTML=`<div class="card" style="background:var(--surface-2);margin-bottom:14px">
-    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center">
-      <div><div class="score-big">${r.score}</div><div class="sub" style="margin:0">排课综合评分</div></div>
-      <div class="stat ${r.conflicts?'bad':'good'}"><div class="num">${r.conflicts}</div><div class="lbl">冲突数</div></div>
-      <div class="stat ${r.unplaced?'warn':'good'}"><div class="num">${r.unplaced}</div><div class="lbl">未排满节数</div></div>
+  document.getElementById("score-box").innerHTML=`<div class="card" style="background:var(--surface-2);margin-bottom:10px;padding:12px 14px">
+    <div class="score-box">
+      <div><div class="score-big">${r.score}</div><div class="sub" style="margin:0">综合评分</div></div>
+      <div class="stat ${r.conflicts?'bad':'good'}"><div class="num">${r.conflicts}</div><div class="lbl">冲突</div></div>
+      <div class="stat ${r.unplaced?'warn':'good'}"><div class="num">${r.unplaced}</div><div class="lbl">未排满</div></div>
       <div class="stat"><div class="num">${r.unifPenalty}</div><div class="lbl">分布偏差</div></div>
-      <div class="stat ${r.over?'bad':'good'}"><div class="num">${r.over}</div><div class="lbl">过载分</div></div>
+      <div class="stat ${r.over?'bad':'good'}"><div class="num">${r.over}</div><div class="lbl">过载</div></div>
     </div>
-    <div class="sub" style="margin:10px 0 4px"><b>改进建议：</b></div>
+    <div class="sub" style="margin:8px 0 2px"><b>改进建议：</b></div>
     <ul class="suggest">${r.suggestions.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
   </div>`;
 }
@@ -1169,79 +1181,74 @@ function openCellModal(cid,day,period){
   const s=ensureSched(cid);
   const pos=s.cells[day][period]||{odd:null,even:null};
   document.getElementById("cell-modal-title").textContent=`修改 ${DAY_NAMES[day]} 第${period+1}节`;
-  document.getElementById("cell-subject").innerHTML = `<option value="">（空）</option>`+db.subjects.map(x=>`<option value="${x.id}">${esc(x.name)}（${esc(x.short)}）</option>`).join("");
-  document.getElementById("cell-teacher").innerHTML = `<option value="">（无）</option>`+db.teachers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
-  document.getElementById("cell-sub").innerHTML = `<option value="">（无）</option>`+db.teachers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
-  let curW="all", curSlot=null;
-  if(pos.odd&&pos.even&&pos.odd.subjectId===pos.even.subjectId&&pos.odd.teacherId===pos.even.teacherId){ curW="all"; curSlot=pos.odd; }
-  else if(pos.odd&&!pos.even){ curW="odd"; curSlot=pos.odd; }
-  else if(pos.even&&!pos.odd){ curW="even"; curSlot=pos.even; }
-  else if(pos.odd){ curW="all"; curSlot=pos.odd; }
+  document.getElementById("cell-subject").innerHTML=`<option value="">（空）</option>`+db.subjects.map(x=>`<option value="${x.id}">${esc(x.name)}（${esc(x.short)}）</option>`).join("");
+  document.getElementById("cell-teacher").innerHTML=`<option value="">（无）</option>`+db.teachers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
+  document.getElementById("cell-sub").innerHTML=`<option value="">（无）</option>`+db.teachers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
+  let curW="all",curSlot=null;
+  if(pos.odd&&pos.even&&pos.odd.subjectId===pos.even.subjectId&&pos.odd.teacherId===pos.even.teacherId){curW="all";curSlot=pos.odd}
+  else if(pos.odd&&!pos.even){curW="odd";curSlot=pos.odd}
+  else if(pos.even&&!pos.odd){curW="even";curSlot=pos.even}
+  else if(pos.odd){curW="all";curSlot=pos.odd}
   setCellWeekRadio(curW);
   if(curSlot){
     document.getElementById("cell-subject").value=curSlot.subjectId||"";
     document.getElementById("cell-teacher").value=curSlot.teacherId||"";
     document.getElementById("cell-sub").value=curSlot.subId||"";
     document.getElementById("cell-lock").checked=!!curSlot.locked;
-  } else {
-    document.getElementById("cell-subject").value="";
-    document.getElementById("cell-teacher").value="";
-    document.getElementById("cell-sub").value="";
-    document.getElementById("cell-lock").checked=false;
+  }else{
+    document.getElementById("cell-subject").value="";document.getElementById("cell-teacher").value="";
+    document.getElementById("cell-sub").value="";document.getElementById("cell-lock").checked=false;
   }
   document.getElementById("cell-modal").classList.add("show");
 }
 function setCellWeekRadio(w){
   document.querySelectorAll("#cell-week label").forEach(l=>l.classList.toggle("on",l.dataset.w===w));
-  const r=document.querySelector(`#cell-week input[value="${w}"]`); if(r) r.checked=true;
+  const r=document.querySelector(`#cell-week input[value="${w}"]`);if(r)r.checked=true;
 }
-document.querySelectorAll("#cell-week label").forEach(l=>{
-  l.addEventListener("click",()=>setCellWeekRadio(l.dataset.w));
-});
-function closeCellModal(){document.getElementById("cell-modal").classList.remove("show");cellCtx=null;}
+document.querySelectorAll("#cell-week label").forEach(l=>{l.addEventListener("click",()=>setCellWeekRadio(l.dataset.w))});
+function closeCellModal(){document.getElementById("cell-modal").classList.remove("show");cellCtx=null}
 function cellLabel(slot){
-  if(!slot) return "（空）";
+  if(!slot)return"（空）";
   const sub=db.subjects.find(x=>x.id===slot.subjectId);
   const t=db.teachers.find(x=>x.id===slot.teacherId);
-  return (sub?sub.name:"?")+" / "+(t?t.name:"无教师");
+  return(sub?sub.name:"?")+" / "+(t?t.name:"无教师");
 }
 function logAdj(cid,day,period,oldLabel,newLabel){
   db.adjustments.unshift({id:uid(),time:new Date().toLocaleString("zh-CN"),classId:cid,day,period,oldLabel,newLabel,operator:"当前用户"});
-  if(db.adjustments.length>200) db.adjustments.length=200;
+  if(db.adjustments.length>200)db.adjustments.length=200;
 }
 function saveCell(){
-  if(!cellCtx) return;
-  const {cid,day,period}=cellCtx;
+  if(!cellCtx)return;
+  const{cid,day,period}=cellCtx;
   const sid=document.getElementById("cell-subject").value;
   const tid=document.getElementById("cell-teacher").value;
   const subId=document.getElementById("cell-sub").value;
   const locked=document.getElementById("cell-lock").checked;
   const w=document.querySelector('#cell-week input[name="cw"]:checked').value;
   const s=ensureSched(cid);
-  if(!s.cells[day][period]) s.cells[day][period]={odd:null,even:null};
+  if(!s.cells[day][period])s.cells[day][period]={odd:null,even:null};
   const pos=s.cells[day][period];
-  const oldLabel = w==="even"? cellLabel(pos.even):cellLabel(pos.odd);
-  const newslot = sid? {subjectId:sid,teacherId:tid||null,locked:!!(locked&&sid),subId:subId||null}:null;
-  if(w==="all"){ pos.odd=JSON.parse(JSON.stringify(newslot)); pos.even=JSON.parse(JSON.stringify(newslot)); }
-  else if(w==="odd"){ pos.odd=newslot; }
-  else { pos.even=newslot; }
+  const oldLabel=w==="even"?cellLabel(pos.even):cellLabel(pos.odd);
+  const newslot=sid?{subjectId:sid,teacherId:tid||null,locked:!!(locked&&sid),subId:subId||null}:null;
+  if(w==="all"){pos.odd=JSON.parse(JSON.stringify(newslot));pos.even=JSON.parse(JSON.stringify(newslot))}
+  else if(w==="odd"){pos.odd=newslot}
+  else{pos.even=newslot}
   logAdj(cid,day,period,oldLabel,cellLabel(newslot));
-  save(); closeCellModal(); renderGen(); renderAdjs();
+  save();closeCellModal();renderGen();renderAdjs();
 }
 function clearCell(){
-  if(!cellCtx) return;
-  const {cid,day,period}=cellCtx;
+  if(!cellCtx)return;
+  const{cid,day,period}=cellCtx;
   const w=document.querySelector('#cell-week input[name="cw"]:checked').value;
-  const pos=db.schedules[cid].cells[day][period];
-  if(!pos) return;
-  const oldLabel = w==="even"?cellLabel(pos.even):cellLabel(pos.odd);
-  if(w==="all"){ pos.odd=null; pos.even=null; }
+  const pos=db.schedules[cid].cells[day][period];if(!pos)return;
+  const oldLabel=w==="even"?cellLabel(pos.even):cellLabel(pos.odd);
+  if(w==="all"){pos.odd=null;pos.even=null}
   else pos[w]=null;
   logAdj(cid,day,period,oldLabel,"（清空）");
-  save(); closeCellModal(); renderGen(); renderAdjs();
+  save();closeCellModal();renderGen();renderAdjs();
 }
 
-/* ============ TAB4: VIEW ============ */
+/* ============ VIEW ============ */
 function setWeekView(w){
   weekView=w;
   document.querySelectorAll("#week-seg button").forEach(b=>b.classList.toggle("on",b.dataset.w===w));
@@ -1250,21 +1257,21 @@ function setWeekView(w){
 function renderView(){
   const vm=document.getElementById("view-mode").value;
   const tid=document.getElementById("view-target");
-  const opts = vm==="class"
-    ? db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")
-    : db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+  const opts=vm==="class"
+    ?db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")
+    :db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
   tid.innerHTML=opts;
   const target=tid.value;
   const el=document.getElementById("view-grid");
-  if(!target){el.innerHTML=emptyHTML("请先添加数据");return;}
-  if(vm==="class") renderViewClass(target,el); else renderViewTeacher(target,el);
+  if(!target){el.innerHTML=emptyHTML("请先添加数据");return}
+  if(vm==="class")renderViewClass(target,el);else renderViewTeacher(target,el);
 }
 function renderViewClass(cid,el){
   const s=db.schedules[cid];
-  if(!s||!s.cells.length){el.innerHTML=emptyHTML("该班尚未排课");return;}
+  if(!s||!s.cells.length){el.innerHTML=emptyHTML("该班尚未排课");return}
   const d=db.time.days,p=db.time.periods;
   let html=`<div class="sched-wrap"><table class="sched"><thead><tr><th class="corner">节次</th>`;
-  for(let i=0;i<d;i++) html+=`<th>${DAY_NAMES[i]}</th>`;
+  for(let i=0;i<d;i++)html+=`<th>${DAY_NAMES[i]}</th>`;
   html+=`</tr></thead><tbody>`;
   for(let j=0;j<p;j++){
     const pt=db.time.periodTimes[j]?"<small>"+esc(db.time.periodTimes[j])+"</small>":"";
@@ -1282,20 +1289,20 @@ function renderViewClass(cid,el){
 }
 function renderViewTeacher(tid,el){
   const t=db.teachers.find(x=>x.id===tid);
-  if(!t){el.innerHTML=emptyHTML("教师不存在");return;}
+  if(!t){el.innerHTML=emptyHTML("教师不存在");return}
   const d=db.time.days,p=db.time.periods;
   const cells=Array.from({length:d},()=>Array(p).fill().map(()=>({odd:null,even:null})));
   db.classes.forEach(c=>{
-    const s=db.schedules[c.id]; if(!s) return;
+    const s=db.schedules[c.id];if(!s)return;
     s.cells.forEach((row,i)=>row.forEach((pos,j)=>{
       ["odd","even"].forEach(parity=>{
         const slot=pos[parity];
-        if(slot&&slot.teacherId===tid) cells[i][j][parity]={classId:c.id,className:c.name,subjectId:slot.subjectId,subId:slot.subId};
+        if(slot&&slot.teacherId===tid)cells[i][j][parity]={classId:c.id,className:c.name,subjectId:slot.subjectId,subId:slot.subId};
       });
     }));
   });
   let html=`<div class="sched-wrap"><table class="sched"><thead><tr><th class="corner">节次</th>`;
-  for(let i=0;i<d;i++) html+=`<th>${DAY_NAMES[i]}</th>`;
+  for(let i=0;i<d;i++)html+=`<th>${DAY_NAMES[i]}</th>`;
   html+=`</tr></thead><tbody>`;
   for(let j=0;j<p;j++){
     const pt=db.time.periodTimes[j]?"<small>"+esc(db.time.periodTimes[j])+"</small>":"";
@@ -1304,11 +1311,11 @@ function renderViewTeacher(tid,el){
       const pos=cells[i][j];
       const subOf=(slot)=>slot?db.subjects.find(x=>x.id===slot.subjectId):null;
       let inner="";
-      if(weekView==="odd") inner = pos.odd?tchSlotHTML(pos.odd,true):`<span class="t-name">—</span>`;
-      else if(weekView==="even") inner = pos.even?tchSlotHTML(pos.even,true):`<span class="t-name">—</span>`;
-      else {
+      if(weekView==="odd")inner=pos.odd?tchSlotHTML(pos.odd,true):`<span class="t-name">—</span>`;
+      else if(weekView==="even")inner=pos.even?tchSlotHTML(pos.even,true):`<span class="t-name">—</span>`;
+      else{
         const same=pos.odd&&pos.even&&pos.odd.subjectId===pos.even.subjectId;
-        if(same) inner=tchSlotHTML(pos.odd,false);
+        if(same)inner=tchSlotHTML(pos.odd,false);
         else inner=(pos.odd?`<div class="week-slot">${tchSlotHTML(pos.odd,true)}</div>`:"")+((pos.odd&&pos.even)?`<div class="week-div"></div>`:"")+(pos.even?`<div class="week-slot">${tchSlotHTML(pos.even,true)}</div>`:"");
       }
       const sub=subOf(pos.odd||pos.even);
@@ -1326,53 +1333,46 @@ function tchSlotHTML(slot,showTag){
     <span class="t-name">${esc(slot.className)}</span>`;
 }
 
-/* ============ TAB5: RECORDS ============ */
+/* ============ RECORDS ============ */
 function addRecord(){
   const tid=document.getElementById("rec-tch").value;
   const sid=document.getElementById("rec-subject").value;
   const cid=document.getElementById("rec-cls").value;
   const date=document.getElementById("rec-date").value;
   const period=parseInt(document.getElementById("rec-period").value);
-  if(!tid||!sid||!cid||!date){toast("请完整选择教师/科目/班级/日期","err");return;}
+  if(!tid||!sid||!cid||!date){toast("请完整选择教师/科目/班级/日期","err");return}
   db.records.push({id:uid(),teacherId:tid,subjectId:sid,classId:cid,date,period});
-  save(); renderRecords(); toast("课时已记录","ok");
+  save();renderRecords();toast("课时已记录","ok");
 }
-function delRecord(id){
-  db.records=db.records.filter(r=>r.id!==id);
-  save(); renderRecords();
-}
+function delRecord(id){db.records=db.records.filter(r=>r.id!==id);save();renderRecords()}
 function renderRecords(){
-  document.getElementById("rec-tch").innerHTML = db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
-  document.getElementById("rec-subject").innerHTML = db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
-  document.getElementById("rec-cls").innerHTML = db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
-  document.getElementById("rec-period").innerHTML = Array.from({length:db.time.periods},(_,i)=>`<option value="${i}">第${i+1}节</option>`).join("");
-  if(!document.getElementById("rec-date").value) document.getElementById("rec-date").value=new Date().toISOString().slice(0,10);
-
-  document.getElementById("rec-stats").innerHTML = `
-    <div class="stat"><div class="num">${db.records.length}</div><div class="lbl">总课时</div></div>
-    <div class="stat"><div class="num">${db.teachers.length}</div><div class="lbl">教师数</div></div>
-    <div class="stat"><div class="num">${db.classes.length}</div><div class="lbl">班级数</div></div>
-    <div class="stat"><div class="num">${db.subjects.length}</div><div class="lbl">科目数</div></div>`;
-
+  document.getElementById("rec-tch").innerHTML=db.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+  document.getElementById("rec-subject").innerHTML=db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+  document.getElementById("rec-cls").innerHTML=db.classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  document.getElementById("rec-period").innerHTML=Array.from({length:db.time.periods},(_,i)=>`<option value="${i}">第${i+1}节</option>`).join("");
+  if(!document.getElementById("rec-date").value)document.getElementById("rec-date").value=new Date().toISOString().slice(0,10);
+  document.getElementById("rec-stats").innerHTML=`
+    <div class="stat-card" style="padding:8px 10px"><div class="icon" style="width:28px;height:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="num" style="font-size:18px">${db.records.length}</div><div class="label">总课时</div></div></div>
+    <div class="stat-card" style="padding:8px 10px"><div class="icon" style="width:28px;height:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="num" style="font-size:18px">${db.teachers.length}</div><div class="label">教师</div></div></div>
+    <div class="stat-card" style="padding:8px 10px"><div class="icon" style="width:28px;height:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div><div><div class="num" style="font-size:18px">${db.classes.length}</div><div class="label">班级</div></div></div>
+    <div class="stat-card" style="padding:8px 10px"><div class="icon" style="width:28px;height:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div><div class="num" style="font-size:18px">${db.subjects.length}</div><div class="label">科目</div></div></div>`;
   const tchMap={};
-  db.records.forEach(r=>{ tchMap[r.teacherId]=(tchMap[r.teacherId]||0)+1; });
-  document.getElementById("stat-tch").innerHTML = `<table><thead><tr><th>教师</th><th>周负载(排课)</th><th>周上限</th><th>已上课时</th></tr></thead><tbody>`+
+  db.records.forEach(r=>{tchMap[r.teacherId]=(tchMap[r.teacherId]||0)+1});
+  document.getElementById("stat-tch").innerHTML=`<table><thead><tr><th>教师</th><th>周负载</th><th>周上限</th><th>已上课时</th></tr></thead><tbody>`+
     db.teachers.map(t=>{
       const load=Math.round(teacherWeekLoad(t.id)*10)/10;
       const n=tchMap[t.id]||0;
       return `<tr><td>${esc(t.name)}</td><td>${load}</td><td>${t.weeklyLimit||20}</td><td>${n}</td></tr>`;
     }).join("")+`</tbody></table>`;
-
   const subMap={};
-  db.records.forEach(r=>{ subMap[r.subjectId]=(subMap[r.subjectId]||0)+1; });
-  document.getElementById("stat-sub").innerHTML = `<table><thead><tr><th>科目</th><th>已上课时</th></tr></thead><tbody>`+
+  db.records.forEach(r=>{subMap[r.subjectId]=(subMap[r.subjectId]||0)+1});
+  document.getElementById("stat-sub").innerHTML=`<table><thead><tr><th>科目</th><th>已上课时</th></tr></thead><tbody>`+
     (Object.entries(subMap).map(([sid,n])=>{
       const s=db.subjects.find(x=>x.id===sid);
       return `<tr><td>${s?esc(s.name):"(已删除)"}</td><td>${n}</td></tr>`;
     }).join("")||`<tr><td colspan=2 class="empty">暂无记录</td></tr>`)+`</tbody></table>`;
-
   const el=document.getElementById("rec-list");
-  if(!db.records.length){el.innerHTML=emptyHTML("暂无课时记录");return;}
+  if(!db.records.length){el.innerHTML=emptyHTML("暂无课时记录");return}
   el.innerHTML=`<table><thead><tr><th>日期</th><th>节次</th><th>教师</th><th>科目</th><th>班级</th><th>操作</th></tr></thead><tbody>`+
     [...db.records].reverse().map(r=>{
       const t=db.teachers.find(x=>x.id===r.teacherId);
@@ -1380,52 +1380,52 @@ function renderRecords(){
       const c=db.classes.find(x=>x.id===r.classId);
       return `<tr><td>${esc(r.date)}</td><td>第${r.period+1}节</td>
         <td>${t?esc(t.name):"-"}</td><td>${s?esc(s.name):"-"}</td><td>${c?esc(c.name):"-"}</td>
-        <td><button class="btn danger sm" onclick="delRecord('${r.id}')">删除</button></td></tr>`;
+        <td><button class="link-btn" onclick="delRecord('${r.id}')">删除</button></td></tr>`;
     }).join("")+`</tbody></table>`;
 }
 
-/* ============ HISTORY / VERSIONS ============ */
+/* ============ HISTORY ============ */
 function pushVersion(label){
   db.versions.unshift({id:uid(),time:new Date().toLocaleString("zh-CN"),label:label||"",schedules:JSON.parse(JSON.stringify(db.schedules))});
-  if(db.versions.length>10) db.versions.length=10;
+  if(db.versions.length>10)db.versions.length=10;
 }
 function renderVersions(){
   const el=document.getElementById("ver-list");
-  if(!db.versions.length){ el.innerHTML=emptyHTML("暂无历史版本（每次自动排课后自动生成）"); return; }
-  el.innerHTML = db.versions.map((v,i)=>{
+  if(!db.versions.length){el.innerHTML=emptyHTML("暂无历史版本（每次自动排课后自动生成）");return}
+  el.innerHTML=db.versions.map((v,i)=>{
     const clsCount=Object.keys(v.schedules||{}).length;
     return `<div class="ver-item">
-      <div><div class="vtime">${esc(v.time)} <span class="tag">${esc(v.label||"版本")}</span></div>
-      <div class="vmeta">覆盖 ${clsCount} 个班级的课表</div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn sm ghost" onclick="diffVersion('${v.id}')">与当前差异</button>
-        <button class="btn sm" onclick="rollbackVersion('${v.id}')">回退到此版本</button>
+      <div><div class="vtime">${esc(v.time)} <span class="tag" style="background:var(--accent-soft);color:var(--accent)">${esc(v.label||"版本")}</span></div>
+      <div class="vmeta">覆盖 ${clsCount} 个班级</div></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn ghost sm" onclick="diffVersion('${v.id}')">差异</button>
+        <button class="btn sm" onclick="rollbackVersion('${v.id}')">回退</button>
       </div></div>`;
   }).join("");
 }
 function rollbackVersion(vid){
-  const v=db.versions.find(x=>x.id===vid); if(!v) return;
-  if(!confirm("回退将用该版本快照覆盖当前所有班级课表（配置/教师/科目不变），继续？")) return;
+  const v=db.versions.find(x=>x.id===vid);if(!v)return;
+  if(!confirm("回退将用该版本覆盖当前所有班级课表，继续？"))return;
   pushVersion("回退前");
   db.schedules=JSON.parse(JSON.stringify(v.schedules));
-  save(); renderAll(); toast("已回退到该版本","ok");
+  save();renderAll();toast("已回退到该版本","ok");
 }
 function diffVersion(vid){
-  const v=db.versions.find(x=>x.id===vid); if(!v) return;
+  const v=db.versions.find(x=>x.id===vid);if(!v)return;
   let diff=0;
   db.classes.forEach(c=>{
-    const cur=db.schedules[c.id]; const old=v.schedules[c.id];
-    if(!cur||!old){ diff++; return; }
+    const cur=db.schedules[c.id];const old=v.schedules[c.id];
+    if(!cur||!old){diff++;return}
     cur.cells.forEach((row,i)=>row.forEach((pos,j)=>{
       const o=old.cells[i]&&old.cells[i][j];
-      if(JSON.stringify(pos)!==JSON.stringify(o)) diff++;
+      if(JSON.stringify(pos)!==JSON.stringify(o))diff++;
     }));
   });
   toast(`与当前课表相差 ${diff} 个课格`,"ok");
 }
 function renderAdjs(){
   const el=document.getElementById("adj-list");
-  if(!db.adjustments.length){ el.innerHTML=emptyHTML("暂无调课记录"); return; }
+  if(!db.adjustments.length){el.innerHTML=emptyHTML("暂无调课记录");return}
   el.innerHTML=`<table><thead><tr><th>时间</th><th>班级</th><th>位置</th><th>原课程</th><th>新课程</th><th>操作人</th></tr></thead><tbody>`+
     db.adjustments.slice(0,100).map(a=>{
       const c=db.classes.find(x=>x.id===a.classId);
@@ -1441,21 +1441,18 @@ function exportJSON(){
   const a=document.createElement("a");
   const d=new Date();
   const ds=""+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
-  a.href=URL.createObjectURL(blob);
-  a.download="排课数据_"+ds+".json";
-  a.click();
-  toast("已导出 JSON（含单双周/代课/历史/调课记录）","ok");
+  a.href=URL.createObjectURL(blob);a.download="排课数据_"+ds+".json";a.click();
+  toast("已导出 JSON（含全部数据）","ok");
 }
 function importJSON(ev){
-  const f=ev.target.files[0]; if(!f) return;
+  const f=ev.target.files[0];if(!f)return;
   const rd=new FileReader();
   rd.onload=()=>{
     try{
       const data=JSON.parse(rd.result);
-      if(!data||!Array.isArray(data.classes)) throw 0;
-      pendingImport=data;
-      showImportConflict();
-    }catch(e){toast("导入失败：文件格式错误","err");}
+      if(!data||!Array.isArray(data.classes))throw 0;
+      pendingImport=data;showImportConflict();
+    }catch(e){toast("导入失败：文件格式错误","err")}
     ev.target.value="";
   };
   rd.readAsText(f);
@@ -1466,61 +1463,45 @@ function showImportConflict(){
   const tchConflict=d.teachers.filter(t=>db.teachers.some(x=>x.name===t.name||x.id===t.id)).length;
   const subConflict=d.subjects.filter(s=>db.subjects.some(x=>x.name===s.name)).length;
   const total=clsConflict+tchConflict+subConflict;
-  if(total===0){ applyImport("merge"); return; }
+  if(total===0){applyImport("merge");return}
   document.getElementById("import-conflict-info").innerHTML=
-    `检测到冲突项：同名班级 <b>${clsConflict}</b> 个、同名/同ID教师 <b>${tchConflict}</b> 个、同名科目 <b>${subConflict}</b> 个。请选择处理方式：`;
+    `检测到冲突：同名班级 <b>${clsConflict}</b>、教师 <b>${tchConflict}</b>、科目 <b>${subConflict}</b>，请选择处理方式：`;
   document.getElementById("import-modal").classList.add("show");
 }
-function cancelImport(){ document.getElementById("import-modal").classList.remove("show"); pendingImport=null; }
-function resolveImport(mode){
-  if(!pendingImport) return;
-  applyImport(mode);
-  document.getElementById("import-modal").classList.remove("show");
-}
+function cancelImport(){document.getElementById("import-modal").classList.remove("show");pendingImport=null}
+function resolveImport(mode){if(!pendingImport)return;applyImport(mode);document.getElementById("import-modal").classList.remove("show")}
 function applyImport(mode){
-  const d=pendingImport; pendingImport=null;
+  const d=pendingImport;pendingImport=null;
   d.teachers.forEach(t=>{
     const exist=db.teachers.find(x=>x.name===t.name||x.id===t.id);
-    if(exist){ if(mode==="overwrite"){ exist.name=t.name; exist.subjects=t.subjects||exist.subjects; exist.weeklyLimit=t.weeklyLimit||exist.weeklyLimit; } }
+    if(exist){if(mode==="overwrite"){exist.name=t.name;exist.subjects=t.subjects||exist.subjects;exist.weeklyLimit=t.weeklyLimit||exist.weeklyLimit}}
     else db.teachers.push(t);
   });
   d.subjects.forEach(s=>{
     const exist=db.subjects.find(x=>x.name===s.name);
-    if(exist){ if(mode==="overwrite"){ exist.allowConsec=s.allowConsec; exist.consecCount=s.consecCount; exist.color=s.color; } }
+    if(exist){if(mode==="overwrite"){exist.allowConsec=s.allowConsec;exist.consecCount=s.consecCount;exist.color=s.color}}
     else db.subjects.push(s);
   });
   d.classes.forEach(c=>{
     const exist=db.classes.find(x=>x.name===c.name);
-    if(exist){ if(mode==="overwrite"){ exist.name=c.name; exist.grade=c.grade; exist.count=c.count; } }
+    if(exist){if(mode==="overwrite"){exist.name=c.name;exist.grade=c.grade;exist.count=c.count}}
     else db.classes.push(c);
   });
   if(mode==="overwrite"){
     db.classConfig=d.classConfig||{};
     db.time=Object.assign({days:5,periods:8,periodTimes:[],holidays:[],makeupDays:[]},d.time);
-    db.teacherBusy=d.teacherBusy||{};
-    db.classNoClass=d.classNoClass||{};
+    db.teacherBusy=d.teacherBusy||{};db.classNoClass=d.classNoClass||{};
     db.schedules=migrateAll(d.schedules||{});
-    db.records=d.records||[];
-    db.versions=d.versions||[];
-    db.adjustments=d.adjustments||[];
-  } else {
-    Object.entries(d.classConfig||{}).forEach(([cid,cfg])=>{
-      if(!db.classConfig[cid]) db.classConfig[cid]=cfg;
-    });
-    Object.entries(d.schedules||{}).forEach(([cid,sch])=>{
-      if(!db.schedules[cid]) db.schedules[cid]=migrateScheduleOne(sch);
-    });
+    db.records=d.records||[];db.versions=d.versions||[];db.adjustments=d.adjustments||[];
+  }else{
+    Object.entries(d.classConfig||{}).forEach(([cid,cfg])=>{if(!db.classConfig[cid])db.classConfig[cid]=cfg});
+    Object.entries(d.schedules||{}).forEach(([cid,sch])=>{if(!db.schedules[cid])db.schedules[cid]=migrateScheduleOne(sch)});
     db.records=(d.records||[]).concat(db.records);
   }
-  save(); renderAll();
-  toast("导入成功（"+mode+"）","ok");
+  save();renderAll();toast("导入成功（"+mode+"）","ok");
 }
-function migrateAll(schs){
-  const out={};
-  Object.entries(schs).forEach(([cid,s])=>{ out[cid]={cells:migrateSchedule(s.cells)}; });
-  return out;
-}
-function migrateScheduleOne(sch){ return {cells:migrateSchedule(sch.cells)}; }
+function migrateAll(schs){const out={};Object.entries(schs).forEach(([cid,s])=>{out[cid]={cells:migrateSchedule(s.cells)}});return out}
+function migrateScheduleOne(sch){return{cells:migrateSchedule(sch.cells)}}
 
 function exportCSV(){
   const rows=[["日期","节次","教师","科目","班级"]];
@@ -1533,26 +1514,21 @@ function exportCSV(){
   const csv="\uFEFF"+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="课时记录_"+new Date().toISOString().slice(0,10)+".csv";
-  a.click();
+  a.href=URL.createObjectURL(blob);a.download="课时记录_"+new Date().toISOString().slice(0,10)+".csv";a.click();
 }
 function exportClassXLS(){
   const cid=(document.getElementById("gen-cls")&&document.getElementById("gen-cls").value)||(document.getElementById("view-target")&&document.getElementById("view-target").value);
-  if(!cid){toast("请先选择班级","err");return;}
+  if(!cid){toast("请先选择班级","err");return}
   const c=db.classes.find(x=>x.id===cid);
   const s=db.schedules[cid];
-  if(!s){toast("该班尚未排课","err");return;}
+  if(!s){toast("该班尚未排课","err");return}
   const d=db.time.days,p=db.time.periods;
   function cellText(pos,parity){
-    const slot=pos[parity];
-    if(!slot) return "";
+    const slot=pos[parity];if(!slot)return"";
     const sub=db.subjects.find(x=>x.id===slot.subjectId);
     const t=db.teachers.find(x=>x.id===slot.teacherId);
     const subT=db.teachers.find(x=>x.id===slot.subId);
-    let txt=sub?sub.short:"";
-    if(t) txt+="/"+t.name;
-    if(subT) txt+="(代:"+subT.name+")";
+    let txt=sub?sub.short:"";if(t)txt+="/"+t.name;if(subT)txt+="(代:"+subT.name+")";
     return txt;
   }
   let html=`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>
@@ -1562,11 +1538,9 @@ function exportClassXLS(){
     html+=`<tr><td>第${j+1}节${db.time.periodTimes[j]?" ("+db.time.periodTimes[j]+")":""}</td>`;
     for(let i=0;i<d;i++){
       const pos=s.cells[i][j]||{odd:null,even:null};
-      const o=cellText(pos,"odd"), e=cellText(pos,"even");
+      const o=cellText(pos,"odd"),e=cellText(pos,"even");
       let txt="";
-      if(o&&e&&o===e) txt=o;
-      else if(o&&e) txt="[单]"+o+"\n[双]"+e;
-      else txt=o||e;
+      if(o&&e&&o===e)txt=o;else if(o&&e)txt="[单]"+o+"\n[双]"+e;else txt=o||e;
       html+=`<td>${esc(txt).replace(/\n/g,"<br>")}</td>`;
     }
     html+="</tr>";
@@ -1574,107 +1548,87 @@ function exportClassXLS(){
   html+=`</table></body></html>`;
   const blob=new Blob(["\uFEFF"+html],{type:"application/vnd.ms-excel"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=(c?c.name:"班级")+"课表.xls";
-  a.click();
+  a.href=URL.createObjectURL(blob);a.download=(c?c.name:"班级")+"课表.xls";a.click();
 }
 
 /* ============ Excel 批量导入导出 ============ */
 function exportExcel(){
-  if(typeof XLSX==="undefined"){ toast("Excel库加载失败，请检查网络","err"); return; }
+  if(typeof XLSX==="undefined"){toast("Excel库加载失败","err");return}
   const wb=XLSX.utils.book_new();
-  // 班级
-  const clsData=[["班级名称","年级","人数"]].concat(
-    db.classes.map(c=>[c.name,c.grade||"",c.count||0]));
+  const clsData=[["班级名称","年级","人数"]].concat(db.classes.map(c=>[c.name,c.grade||"",c.count||0]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(clsData),"班级");
-  // 教师
-  const tchData=[["姓名","所带科目(多个用分号分隔)","周课时上限"]].concat(
-    db.teachers.map(t=>{
-      const subs=t.subjects.map(sid=>(db.subjects.find(s=>s.id===sid)||{}).name||"?").join(";");
-      return [t.name,subs,t.weeklyLimit||""];
-    }));
+  const tchData=[["姓名","所带科目(分号分隔)","周课时上限"]].concat(
+    db.teachers.map(t=>{const subs=t.subjects.map(sid=>(db.subjects.find(s=>s.id===sid)||{}).name||"?").join(";");return[t.name,subs,t.weeklyLimit||""]}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tchData),"教师");
-  // 科目
-  const subData=[["科目名称","简称","颜色(十六进制)"]].concat(
-    db.subjects.map(s=>[s.name,s.short,s.color]));
+  const subData=[["科目名称","简称","颜色"]].concat(db.subjects.map(s=>[s.name,s.short,s.color]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(subData),"科目");
-  // 班级科目配置
   const cfgData=[["班级名称","科目名称","每周课时数"]];
   db.classes.forEach(c=>{
     const cfg=db.classConfig[c.id]||{};
-    Object.entries(cfg).forEach(([sid,h])=>{
-      if(h>0){ const s=db.subjects.find(x=>x.id===sid); cfgData.push([c.name,s?s.name:"?",h]); }
-    });
+    Object.entries(cfg).forEach(([sid,h])=>{if(h>0){const s=db.subjects.find(x=>x.id===sid);cfgData.push([c.name,s?s.name:"?",h])}});
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cfgData),"班级科目配置");
   XLSX.writeFile(wb,"排课数据导出_"+new Date().toISOString().slice(0,10)+".xlsx");
-  toast("已导出Excel（班级/教师/科目/配置4个sheet）","ok");
+  toast("已导出Excel（4个sheet）","ok");
 }
-
 function importExcel(ev){
-  if(typeof XLSX==="undefined"){ toast("Excel库加载失败，请检查网络","err"); return; }
-  const file=ev.target.files[0]; if(!file) return;
+  if(typeof XLSX==="undefined"){toast("Excel库加载失败","err");return}
+  const file=ev.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
       const wb=XLSX.read(e.target.result,{type:"array"});
       let clsCount=0,tchCount=0,subCount=0,cfgCount=0;
-      // 科目
       const subSheet=wb.Sheets["科目"];
       if(subSheet){
         const rows=XLSX.utils.sheet_to_json(subSheet,{header:1});
         rows.slice(1).forEach(r=>{
-          if(!r[0]) return;
+          if(!r[0])return;
           const name=String(r[0]).trim();
-          if(db.subjects.find(s=>s.name===name)) return;
+          if(db.subjects.find(s=>s.name===name))return;
           db.subjects.push({id:uid(),name,short:String(r[1]||name.slice(0,1)).trim(),color:String(r[2]||"#4F6BFF").trim(),allowConsec:false,consecCount:1});
           subCount++;
         });
       }
-      // 班级
       const clsSheet=wb.Sheets["班级"];
       if(clsSheet){
         const rows=XLSX.utils.sheet_to_json(clsSheet,{header:1});
         rows.slice(1).forEach(r=>{
-          if(!r[0]) return;
+          if(!r[0])return;
           const name=String(r[0]).trim();
-          if(db.classes.find(c=>c.name===name)) return;
+          if(db.classes.find(c=>c.name===name))return;
           const c={id:uid(),name,grade:String(r[1]||"").trim(),count:parseInt(r[2])||45};
-          db.classes.push(c); db.classConfig[c.id]={};
-          clsCount++;
+          db.classes.push(c);db.classConfig[c.id]={};clsCount++;
         });
       }
-      // 教师
       const tchSheet=wb.Sheets["教师"];
       if(tchSheet){
         const rows=XLSX.utils.sheet_to_json(tchSheet,{header:1});
         rows.slice(1).forEach(r=>{
-          if(!r[0]) return;
+          if(!r[0])return;
           const name=String(r[0]).trim();
-          if(db.teachers.find(t=>t.name===name)) return;
+          if(db.teachers.find(t=>t.name===name))return;
           const subNames=String(r[1]||"").split(/[;；,，]/).map(s=>s.trim()).filter(Boolean);
-          const subIds=subNames.map(n=>{const s=db.subjects.find(x=>x.name===n);return s?s.id:null;}).filter(Boolean);
+          const subIds=subNames.map(n=>{const s=db.subjects.find(x=>x.name===n);return s?s.id:null}).filter(Boolean);
           db.teachers.push({id:uid(),name,subjects:subIds,weeklyLimit:parseInt(r[2])||20});
           tchCount++;
         });
       }
-      // 班级科目配置
       const cfgSheet=wb.Sheets["班级科目配置"];
       if(cfgSheet){
         const rows=XLSX.utils.sheet_to_json(cfgSheet,{header:1});
         rows.slice(1).forEach(r=>{
-          if(!r[0]||!r[1]) return;
+          if(!r[0]||!r[1])return;
           const c=db.classes.find(x=>x.name===String(r[0]).trim());
           const s=db.subjects.find(x=>x.name===String(r[1]).trim());
-          if(!c||!s) return;
-          if(!db.classConfig[c.id]) db.classConfig[c.id]={};
-          db.classConfig[c.id][s.id]=parseInt(r[2])||0;
-          cfgCount++;
+          if(!c||!s)return;
+          if(!db.classConfig[c.id])db.classConfig[c.id]={};
+          db.classConfig[c.id][s.id]=parseInt(r[2])||0;cfgCount++;
         });
       }
-      save(); renderAll();
+      save();renderAll();
       toast(`Excel导入成功：班级${clsCount}、教师${tchCount}、科目${subCount}、配置${cfgCount}条`,"ok");
-    }catch(err){ toast("Excel解析失败："+err.message,"err"); }
+    }catch(err){toast("Excel解析失败："+err.message,"err")}
     ev.target.value="";
   };
   reader.readAsArrayBuffer(file);
