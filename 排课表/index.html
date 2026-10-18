@@ -38,60 +38,68 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .hero p{color:var(--text-3);font-size:12.5px}
 
 /* Stats bar */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-card);
-  display:flex;align-items:center;gap:10px}
-.stat-card .icon{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
-.stat-card .icon svg{width:18px;height:18px}
-.stat-card .num{font-size:22px;font-weight:800;color:var(--accent);line-height:1.1}
-.stat-card .label{font-size:11.5px;color:var(--text-3)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:9px 12px;box-shadow:var(--shadow-card);
+  display:flex;align-items:center;gap:9px}
+.stat-card .icon{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.stat-card .icon svg{width:16px;height:16px}
+.stat-card .num{font-size:20px;font-weight:800;color:var(--accent);line-height:1.1}
+.stat-card .label{font-size:11px;color:var(--text-3)}
 
 /* Tabs */
-.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;background:rgba(255,255,255,.7);padding:5px;border-radius:999px;box-shadow:var(--shadow-card)}
-.tab-btn{border:0;background:transparent;color:var(--text-3);padding:7px 15px;border-radius:999px;cursor:pointer;
-  font-size:13px;font-weight:600;transition:all .18s;font-family:var(--font);white-space:nowrap}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;background:rgba(255,255,255,.7);padding:4px;border-radius:999px;box-shadow:var(--shadow-card)}
+.tab-btn{border:0;background:transparent;color:var(--text-3);padding:6px 13px;border-radius:999px;cursor:pointer;
+  font-size:12.5px;font-weight:600;transition:all .18s;font-family:var(--font);white-space:nowrap}
 .tab-btn.active{background:linear-gradient(90deg,var(--accent),#6B85FF);color:#fff;box-shadow:0 3px 12px rgba(79,107,255,.3)}
 .tab-btn:not(.active):hover{background:var(--accent-soft);color:var(--accent)}
 
 /* Cards */
-.card{background:var(--surface);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-card);margin-bottom:12px}
-.card h2{font-size:15.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.card h2::before{content:"";width:3.5px;height:15px;border-radius:2px;background:var(--grad-text)}
-.card h2 .sub{font-size:11.5px;color:var(--text-3);font-weight:400;margin-left:4px}
-.card h3{font-size:13.5px;font-weight:700;margin:10px 0 7px;color:var(--text)}
-.sub{color:var(--text-3);font-size:11.5px;margin-bottom:8px;line-height:1.5}
+.card{background:var(--surface);border-radius:var(--radius-lg);padding:11px 13px;box-shadow:var(--shadow-card);margin-bottom:10px}
+.card h2{font-size:14.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.card h2::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grad-text)}
+.card h2 .sub{font-size:11px;color:var(--text-3);font-weight:400;margin-left:3px}
+.card h3{font-size:13px;font-weight:700;margin:8px 0 5px;color:var(--text)}
+.sub{color:var(--text-3);font-size:11px;margin-bottom:6px;line-height:1.5}
 
-/* Two-col layout */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.two-col .card{margin-bottom:0}
+/* Multi-col layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three-col{display:grid;grid-template-columns:1.1fr 1.3fr 1fr;gap:10px}
+.two-col .card,.three-col .card{margin-bottom:0}
+.flex-row{display:flex;gap:10px;align-items:flex-start}
+.flex-row>.card{flex:1;margin-bottom:0}
+
+/* Time input 2-col grid */
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-bottom:6px}
+.time-grid .row{margin-bottom:0}
+.time-grid label.f{width:44px;flex-shrink:0}
 
 /* Forms */
-.row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:7px}
-input,select,textarea{font-family:var(--font);font-size:13px;padding:7px 10px;border:1px solid var(--border);
-  border-radius:9px;background:#fff;color:var(--text);outline:none;transition:all .15s;min-height:34px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:5px}
+input,select,textarea{font-family:var(--font);font-size:12.5px;padding:5px 9px;border:1px solid var(--border);
+  border-radius:8px;background:#fff;color:var(--text);outline:none;transition:all .15s;min-height:30px}
 input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,107,255,.1)}
-input[type=number]{width:72px}
-input[type=color]{width:42px;height:34px;padding:3px;cursor:pointer}
-label.f{font-size:12px;color:var(--text-2);font-weight:600}
-.btn{border:0;background:var(--accent);color:#fff;padding:7px 14px;border-radius:9px;cursor:pointer;
-  font-size:13px;font-weight:600;transition:all .15s;font-family:var(--font);min-height:34px;
+input[type=number]{width:64px}
+input[type=color]{width:36px;height:30px;padding:2px;cursor:pointer}
+label.f{font-size:11.5px;color:var(--text-2);font-weight:600}
+.btn{border:0;background:var(--accent);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;
+  font-size:12.5px;font-weight:600;transition:all .15s;font-family:var(--font);min-height:30px;
   display:inline-flex;align-items:center;gap:5px}
 .btn:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,107,255,.25)}
 .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
 .btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
 .btn.danger{background:var(--red)}
 .btn.danger:hover{background:#DC2626}
-.btn.sm{padding:5px 10px;font-size:11.5px;min-height:28px;border-radius:7px}
+.btn.sm{padding:4px 9px;font-size:11px;min-height:26px;border-radius:6px}
 .btn.green{background:var(--green)}
 .btn.green:hover{background:#16A34A}
-.link-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;
-  padding:3px 6px;border-radius:5px;font-family:var(--font);transition:background .15s}
+.link-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:11.5px;font-weight:600;
+  padding:2px 5px;border-radius:4px;font-family:var(--font);transition:background .15s}
 .link-btn:hover{background:rgba(239,68,68,.08)}
 
 /* Tables */
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
-th{background:var(--surface-2);font-weight:700;color:var(--text);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:4px 7px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--surface-2);font-weight:700;color:var(--text);font-size:11.5px}
 tr:hover td{background:var(--surface-2)}
 .table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
 
@@ -111,10 +119,10 @@ tr:hover td{background:var(--surface-2)}
 .sched thead th.corner{min-width:52px}
 .sched .period-label{background:var(--surface-2);font-weight:700;color:var(--text-2);padding:5px 4px;font-size:11.5px;min-width:52px}
 .sched .period-label small{display:block;color:var(--text-3);font-weight:400;font-size:10px}
-.cell{height:50px;padding:4px;cursor:pointer;position:relative;background:#fff;transition:background .12s;font-size:11.5px}
+.cell{height:44px;padding:3px;cursor:pointer;position:relative;background:#fff;transition:background .12s;font-size:11px}
 .cell:hover{background:var(--accent-soft)}
-.cell .sub-name{font-weight:700;display:block;line-height:1.2}
-.cell .t-name{color:var(--text-3);font-size:10.5px;display:block;margin-top:1px}
+.cell .sub-name{font-weight:700;display:block;line-height:1.15}
+.cell .t-name{color:var(--text-3);font-size:10px;display:block;margin-top:1px}
 .cell.empty{color:var(--text-3);font-style:italic;font-size:11px;cursor:default}
 .cell.locked{background:#FFFBEB}
 .cell.locked::after{content:"";position:absolute;top:3px;right:3px;width:11px;height:11px;
@@ -141,22 +149,22 @@ tr:hover td{background:var(--surface-2)}
 .seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
 /* Score box */
-.score-big{font-size:32px;font-weight:800;color:var(--accent);line-height:1}
-.score-box{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.score-box .stat{background:var(--surface-2);border-radius:10px;padding:8px 14px;text-align:center;min-width:70px}
-.score-box .stat .num{font-size:18px;font-weight:800}
-.score-box .stat .lbl{font-size:10.5px;color:var(--text-3)}
+.score-big{font-size:26px;font-weight:800;color:var(--accent);line-height:1}
+.score-box{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.score-box .stat{background:var(--surface-2);border-radius:9px;padding:6px 10px;text-align:center;min-width:56px}
+.score-box .stat .num{font-size:15px;font-weight:800}
+.score-box .stat .lbl{font-size:10px;color:var(--text-3)}
 .score-box .stat.good .num{color:var(--green)}
 .score-box .stat.warn .num{color:var(--orange)}
 .score-box .stat.bad .num{color:var(--red)}
-.suggest{margin:6px 0 0 18px;font-size:12px;color:var(--text-2)}
-.suggest li{margin:2px 0}
+.suggest{margin:4px 0 0 16px;font-size:11.5px;color:var(--text-2)}
+.suggest li{margin:1px 0}
 
 /* Version items */
-.ver-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.ver-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap}
 .ver-item:last-child{border-bottom:none}
-.ver-item .vtime{font-size:12.5px;font-weight:600;color:var(--text)}
-.ver-item .vmeta{font-size:11px;color:var(--text-3);margin-top:2px}
+.ver-item .vtime{font-size:12px;font-weight:600;color:var(--text)}
+.ver-item .vmeta{font-size:10.5px;color:var(--text-3);margin-top:1px}
 
 /* Modal */
 .mask{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);display:none;
@@ -181,8 +189,14 @@ tr:hover td{background:var(--surface-2)}
 #toast.err{background:var(--red)}
 
 /* Empty */
-.empty{text-align:center;padding:22px 12px;color:var(--text-3);font-size:12.5px}
-.empty svg{width:34px;height:34px;margin-bottom:6px;opacity:.4}
+.empty{text-align:center;padding:14px 10px;color:var(--text-3);font-size:12px}
+.empty svg{width:28px;height:28px;margin-bottom:4px;opacity:.4}
+
+/* Modal */
+.modal{background:#fff;border-radius:var(--radius-lg);padding:14px;width:100%;max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:88vh;overflow-y:auto}
+.modal h3{font-size:14.5px;margin-bottom:10px}
+.modal .row input,.modal .row select{flex:1;min-width:100px}
 
 /* Print */
 @media print{
@@ -192,24 +206,31 @@ tr:hover td{background:var(--surface-2)}
   .hero h1{font-size:18px}
   .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;page-break-inside:avoid;margin-bottom:8px}
   .sched-wrap{border:1px solid #ccc}
-  .two-col{grid-template-columns:1fr}
+  .two-col,.three-col{grid-template-columns:1fr}
 }
 
 /* Responsive */
+@media(max-width:1100px){
+  .three-col{grid-template-columns:1fr 1fr}
+}
 @media(max-width:900px){
-  .two-col{grid-template-columns:1fr}
+  .two-col,.three-col{grid-template-columns:1fr}
   .stats{grid-template-columns:repeat(2,1fr)}
+  .time-grid{grid-template-columns:1fr}
+  .flex-row{flex-direction:column}
+  .flex-row>#score-box{flex:none!important;width:100%}
 }
 @media(max-width:600px){
-  body{padding:12px 8px 24px}
-  .hero h1{font-size:20px}
-  .stats{grid-template-columns:repeat(2,1fr);gap:7px}
-  .stat-card{padding:9px 10px}
-  .stat-card .num{font-size:18px}
-  .card{padding:12px}
-  .tab-btn{padding:6px 11px;font-size:12px}
-  input,select{font-size:15px}
-  .cell{height:44px}
+  body{padding:10px 7px 20px}
+  .hero h1{font-size:19px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:6px}
+  .stat-card{padding:7px 9px}
+  .stat-card .num{font-size:17px}
+  .card{padding:10px}
+  .tab-btn{padding:5px 10px;font-size:11.5px}
+  input,select{font-size:14px}
+  .cell{height:40px}
+  .score-big{font-size:22px}
 }
 </style>
 </head>
@@ -254,59 +275,60 @@ tr:hover td{background:var(--surface-2)}
 
   <!-- TAB 1: DATA -->
   <section id="tab-data" class="tab-pane">
-    <div class="two-col">
-      <!-- 左列 -->
+    <div class="three-col">
+      <!-- 左列：班级+教师 -->
       <div>
         <div class="card">
-          <h2>班级管理 <span class="sub">添加 / 删除班级</span></h2>
+          <h2>班级管理 <span class="sub">添加 / 删除</span></h2>
           <div class="row">
-            <input id="cls-name" placeholder="班级名称，如 高一1班" style="flex:1;min-width:120px">
-            <input id="cls-grade" placeholder="年级" style="width:80px">
-            <input id="cls-count" type="number" placeholder="人数" min="0" style="width:64px">
-            <button class="btn" onclick="addClass()">添加</button>
+            <input id="cls-name" placeholder="班级名称" style="flex:1;min-width:90px">
+            <input id="cls-grade" placeholder="年级" style="width:64px">
+            <input id="cls-count" type="number" placeholder="人数" min="0" style="width:56px">
+            <button class="btn sm" onclick="addClass()">添加</button>
           </div>
           <div class="table-wrap" id="cls-list"></div>
         </div>
-
-        <div class="card" style="margin-top:12px">
-          <h2>教师管理 <span class="sub">设置所带科目与周课时上限</span></h2>
+        <div class="card" style="margin-top:10px">
+          <h2>教师管理 <span class="sub">所带科目/周上限</span></h2>
           <div class="row">
-            <input id="tch-name" placeholder="教师姓名" style="flex:1;min-width:100px">
-            <input id="tch-limit" type="number" placeholder="周上限" min="0" style="width:72px" value="20">
-            <button class="btn" onclick="addTeacher()">添加</button>
+            <input id="tch-name" placeholder="教师姓名" style="flex:1;min-width:80px">
+            <input id="tch-limit" type="number" placeholder="上限" min="0" style="width:56px" value="20">
+            <button class="btn sm" onclick="addTeacher()">添加</button>
           </div>
-          <div class="sub">点击下方科目标签选择该教师所带科目（可多选）</div>
-          <div id="tch-subject-picker" style="margin-bottom:8px"></div>
+          <div class="sub" style="margin-bottom:4px">点标签选科目（可多选）</div>
+          <div id="tch-subject-picker" style="margin-bottom:6px"></div>
           <div class="table-wrap" id="tch-list"></div>
         </div>
       </div>
 
-      <!-- 右列 -->
+      <!-- 中列：科目 -->
       <div>
         <div class="card">
-          <h2>科目管理 <span class="sub">颜色 / 简称 / 连排设置</span></h2>
+          <h2>科目管理 <span class="sub">颜色/简称/连排</span></h2>
           <div class="row">
-            <input id="sub-name" placeholder="科目名称" style="flex:1;min-width:80px">
-            <input id="sub-short" placeholder="简称" style="width:60px">
+            <input id="sub-name" placeholder="科目名" style="flex:1;min-width:70px">
+            <input id="sub-short" placeholder="简称" style="width:52px">
             <input type="color" id="sub-color" value="#8B5CF6">
-            <label class="f" style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="sub-consec" style="min-height:auto;width:auto"> 连排</label>
-            <input id="sub-consec-n" type="number" value="2" min="2" style="width:50px" title="连排节数">
-            <button class="btn" onclick="addSubject()">添加</button>
+            <label class="f" style="display:flex;align-items:center;gap:3px;font-size:11px"><input type="checkbox" id="sub-consec" style="min-height:auto;width:auto"> 连排</label>
+            <input id="sub-consec-n" type="number" value="2" min="2" style="width:44px">
+            <button class="btn sm" onclick="addSubject()">添加</button>
           </div>
           <div class="table-wrap" id="sub-list"></div>
         </div>
+      </div>
 
-        <div class="card" style="margin-top:12px">
-          <h2>班级科目配置 <span class="sub">每周课时数</span></h2>
+      <!-- 右列：配置+导入 -->
+      <div>
+        <div class="card">
+          <h2>班级科目配置 <span class="sub">每周课时</span></h2>
           <div class="row">
-            <label class="f">选择班级</label>
+            <label class="f">班级</label>
             <select id="cfg-cls" onchange="renderCfg()" style="flex:1"></select>
           </div>
           <div id="cfg-body"></div>
         </div>
-
-        <div class="card" style="margin-top:12px">
-          <h2>导入 / 导出 <span class="sub">数据备份与批量操作</span></h2>
+        <div class="card" style="margin-top:10px">
+          <h2>导入 / 导出 <span class="sub">数据备份</span></h2>
           <div class="row" style="flex-wrap:wrap">
             <button class="btn ghost sm" onclick="exportJSON()">导出JSON</button>
             <button class="btn ghost sm" onclick="document.getElementById('import-file').click()">导入JSON</button>
@@ -314,10 +336,10 @@ tr:hover td{background:var(--surface-2)}
             <button class="btn ghost sm" onclick="exportExcel()">导出Excel</button>
             <button class="btn ghost sm" onclick="document.getElementById('excel-file').click()">导入Excel</button>
             <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
-            <button class="btn ghost sm" onclick="loadDemoData()">载入测试数据</button>
-            <button class="btn danger sm" onclick="wipeAll()">清空全部</button>
+            <button class="btn ghost sm" onclick="loadDemoData()">测试数据</button>
+            <button class="btn danger sm" onclick="wipeAll()">清空</button>
           </div>
-          <div class="sub" style="margin-top:6px">JSON含全部数据（课表/课时/历史）；Excel含班级/教师/科目/配置4个sheet，模板见「排课系统导入模板.xlsx」</div>
+          <div class="sub" style="margin-top:4px">模板见「排课系统导入模板.xlsx」</div>
         </div>
       </div>
     </div>
@@ -328,40 +350,36 @@ tr:hover td{background:var(--surface-2)}
     <div class="two-col">
       <div>
         <div class="card">
-          <h2>课表容量</h2>
+          <h2>课表容量 + 节假日 <span class="sub">天数/节数/调休</span></h2>
           <div class="row">
-            <label class="f">每周天数</label>
-            <input type="number" id="set-days" min="5" max="7" value="5" onchange="saveTime()">
-            <label class="f">每天节数</label>
-            <input type="number" id="set-periods" min="6" max="12" value="8" onchange="saveTime()">
+            <label class="f">每周</label>
+            <input type="number" id="set-days" min="5" max="7" value="5" onchange="saveTime()" style="width:56px">
+            <label class="f">天，每天</label>
+            <input type="number" id="set-periods" min="6" max="12" value="8" onchange="saveTime()" style="width:56px">
+            <label class="f">节</label>
             <button class="btn sm" onclick="saveTime()">保存</button>
           </div>
-          <div class="sub">天数 5–7，节数 6–12。修改后已有课表按新尺寸调整</div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h2>每节上下课时间 <span class="sub">可选</span></h2>
-          <div id="period-times"></div>
-          <button class="btn sm" onclick="savePeriodTimes()">保存时间</button>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h2>节假日 / 调休</h2>
-          <div class="row">
-            <input type="date" id="holiday-date">
-            <button class="btn sm" onclick="addHoliday()">标记节假日</button>
+          <div class="row" style="margin-top:6px">
+            <input type="date" id="holiday-date" style="flex:1;min-width:120px">
+            <button class="btn sm ghost" onclick="addHoliday()">标记节假日</button>
           </div>
-          <div class="table-wrap" id="holiday-list" style="margin-bottom:8px"></div>
+          <div class="table-wrap" id="holiday-list" style="margin-bottom:6px"></div>
           <div class="row">
-            <input type="date" id="makeup-date">
+            <input type="date" id="makeup-date" style="flex:1;min-width:120px">
             <label class="f">上</label>
-            <select id="makeup-weekday">
+            <select id="makeup-weekday" style="width:72px">
               <option value="0">周一</option><option value="1">周二</option><option value="2">周三</option>
               <option value="3">周四</option><option value="4">周五</option><option value="5">周六</option><option value="6">周日</option>
             </select>
-            <button class="btn sm" onclick="addMakeup()">添加调休</button>
+            <button class="btn sm ghost" onclick="addMakeup()">调休</button>
           </div>
           <div class="table-wrap" id="makeup-list"></div>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h2>每节上下课时间 <span class="sub">可选，2列紧凑</span></h2>
+          <div class="time-grid" id="period-times"></div>
+          <button class="btn sm" onclick="savePeriodTimes()">保存时间</button>
         </div>
       </div>
 
@@ -369,21 +387,21 @@ tr:hover td{background:var(--surface-2)}
         <div class="card">
           <h2>教师不排课时间</h2>
           <div class="row">
-            <label class="f">选择教师</label>
+            <label class="f">教师</label>
             <select id="busy-tch" onchange="renderBusyGrid()" style="flex:1"></select>
           </div>
           <div id="busy-grid"></div>
-          <div class="sub">点击格子标记该教师此节不可排课（如教研会议）</div>
+          <div class="sub">点格子标记不可排课（如教研）</div>
         </div>
 
-        <div class="card" style="margin-top:12px">
+        <div class="card" style="margin-top:10px">
           <h2>班级固定无课时间</h2>
           <div class="row">
-            <label class="f">选择班级</label>
+            <label class="f">班级</label>
             <select id="nocls-cls" onchange="renderNoClsGrid()" style="flex:1"></select>
           </div>
           <div id="nocls-grid"></div>
-          <div class="sub">点击格子标记该班级此节固定无课（如班会、自习）</div>
+          <div class="sub">点格子标记固定无课（如班会）</div>
         </div>
       </div>
     </div>
@@ -397,14 +415,16 @@ tr:hover td{background:var(--surface-2)}
         <label class="f">班级</label>
         <select id="gen-cls" onchange="renderGen()"></select>
         <button class="btn green" onclick="autoGen()">⚡ 快速排课</button>
-        <button class="btn ghost sm" onclick="clearGen()">清空课表</button>
-        <button class="btn ghost sm" onclick="clearGen(true)">清空并解锁</button>
-        <button class="btn ghost sm" onclick="exportClassXLS()">导出本班XLS</button>
+        <button class="btn ghost sm" onclick="clearGen()">清空</button>
+        <button class="btn ghost sm" onclick="clearGen(true)">清空解锁</button>
+        <button class="btn ghost sm" onclick="exportClassXLS()">导出XLS</button>
       </div>
-      <div id="score-box" style="margin:10px 0"></div>
-      <div id="gen-info" style="margin-bottom:10px"></div>
-      <div id="gen-alert" style="margin:8px 0"></div>
-      <div class="sub">点击课格可修改科目/教师/周次/代课/锁定；自动排课默认全周，手动调整可设单双周</div>
+      <div class="flex-row" style="margin:8px 0;align-items:stretch">
+        <div id="score-box" style="flex:0 0 280px"></div>
+        <div id="gen-info" style="flex:1;min-width:0"></div>
+      </div>
+      <div id="gen-alert" style="margin:6px 0"></div>
+      <div class="sub">点课格改科目/教师/周次/代课/锁定；自动排课默认全周，手动可设单双周</div>
       <div id="gen-grid"></div>
     </div>
   </section>
@@ -1161,16 +1181,16 @@ function computeScore(){
 function renderScore(){
   if(!Object.keys(db.schedules).length){document.getElementById("score-box").innerHTML="";return}
   const r=computeScore();
-  document.getElementById("score-box").innerHTML=`<div class="card" style="background:var(--surface-2);margin-bottom:10px;padding:12px 14px">
-    <div class="score-box">
-      <div><div class="score-big">${r.score}</div><div class="sub" style="margin:0">综合评分</div></div>
+  document.getElementById("score-box").innerHTML=`<div class="card" style="background:var(--surface-2);margin:0;padding:10px 12px;height:100%">
+    <div class="score-box" style="justify-content:center">
+      <div style="text-align:center"><div class="score-big">${r.score}</div><div class="sub" style="margin:0">综合评分</div></div>
       <div class="stat ${r.conflicts?'bad':'good'}"><div class="num">${r.conflicts}</div><div class="lbl">冲突</div></div>
       <div class="stat ${r.unplaced?'warn':'good'}"><div class="num">${r.unplaced}</div><div class="lbl">未排满</div></div>
-      <div class="stat"><div class="num">${r.unifPenalty}</div><div class="lbl">分布偏差</div></div>
+      <div class="stat"><div class="num">${r.unifPenalty}</div><div class="lbl">偏差</div></div>
       <div class="stat ${r.over?'bad':'good'}"><div class="num">${r.over}</div><div class="lbl">过载</div></div>
     </div>
-    <div class="sub" style="margin:8px 0 2px"><b>改进建议：</b></div>
-    <ul class="suggest">${r.suggestions.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
+    <div class="sub" style="margin:6px 0 2px"><b>建议：</b></div>
+    <ul class="suggest" style="margin-left:14px">${r.suggestions.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
   </div>`;
 }
 
