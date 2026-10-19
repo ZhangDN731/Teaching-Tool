@@ -293,6 +293,24 @@ footer .power{font-weight:600;color:var(--text-2)}
       </span>
     </div>
 
+    <!-- 单招信息汇总 -->
+    <div class="card" data-type="ext" onclick="showInfoTip()" style="cursor:pointer">
+      <span class="tag">待上线</span>
+      <div class="top">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        </div>
+        <div class="title-area">
+          <h3>单招信息汇总</h3>
+          <div class="type">政策 · 院校 · 专业 · 数据</div>
+        </div>
+      </div>
+      <p>河北省单招考试政策、院校信息、专业介绍、历年分数线等汇总查询。</p>
+      <span class="enter">即将上线
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </div>
+
   </div>
 
   <footer>
@@ -356,6 +374,11 @@ function verifyQuiz(){
     document.getElementById('quizCode').value='';
     document.getElementById('quizCode').focus();
   }
+}
+
+// 单招信息汇总提示
+function showInfoTip(){
+  alert('单招信息汇总模块正在建设中，链接待补充，敬请期待！');
 }
 document.getElementById('quizModal').addEventListener('click',function(e){
   if(e.target===this) closeQuizModal();
