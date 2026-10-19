@@ -551,7 +551,8 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
   margin-top:10px;
 }
-@media(min-width:600px){.chess-players{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:600px){.chess-players{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1000px){.chess-players{grid-template-columns:repeat(6,1fr)}}
 .cs-player-chip{
   display:flex;align-items:center;gap:8px;
   background:var(--surface-2);border:1.5px solid var(--border);
@@ -705,6 +706,8 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .modal-box h2.accent{color:var(--accent)}
 .modal-box h2.warn{color:var(--orange)}
 .modal-box h2.boom{color:var(--red);font-size:30px;letter-spacing:2px}
+.modal-box h2.truth{color:#0284C7}
+.modal-box h2.dare{color:#B45309}
 .modal-box .m-desc{font-size:14px;line-height:1.55;margin-bottom:16px;color:var(--text)}
 
 /* ============ Toast ============ */
@@ -891,7 +894,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
       <div style="text-align:center;margin-bottom:10px">
         <span class="capsule">CLASSROOM FLIGHT CHESS · 多人桌游</span>
         <h2 style="margin-top:8px">课堂飞行棋</h2>
-        <p class="desc">2-4人从四角出发顺时针走一圈；知识问答 / 真心话 / 大冒险 / 试卷挑战 / 进监狱 / 幸运格，先走完一圈回到自己起点获胜</p>
+        <p class="desc">2-6人从各自起点出发顺时针走一圈；知识问答 / 真心话 / 大冒险 / 试卷挑战 / 进监狱 / 幸运格，先走完一圈回到自己起点获胜</p>
       </div>
 
       <!-- 玩家设置区 -->
@@ -902,6 +905,8 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
             <button type="button" class="cs-count-btn active" data-count="2">2 人</button>
             <button type="button" class="cs-count-btn" data-count="3">3 人</button>
             <button type="button" class="cs-count-btn" data-count="4">4 人</button>
+            <button type="button" class="cs-count-btn" data-count="5">5 人</button>
+            <button type="button" class="cs-count-btn" data-count="6">6 人</button>
           </div>
         </div>
         <div class="cs-setup-block">
@@ -1178,7 +1183,22 @@ const BANK = {
     '你最近学到的最有用的知识是什么？',
     '你觉得自己三年后会在做什么？',
     '你最喜欢的节日是哪个？怎么过？',
-    '如果给你一天当老师，你会带同学们做什么？'
+    '如果给你一天当老师，你会带同学们做什么？',
+    '你最尴尬的一次课堂经历是什么？',
+    '你觉得自己最像哪种动物？为什么？',
+    '如果可以穿越到任何时代，你想去哪里？',
+    '你最近一次帮助别人是什么时候？',
+    '你觉得班里谁最幽默？举个例子',
+    '你最害怕的东西是什么？',
+    '如果中了一百万，你会怎么花？',
+    '你最想学会的一项技能是什么？',
+    '你觉得自己性格里最需要改进的是什么？',
+    '你最难忘的一次生日是怎么过的？',
+    '如果可以和一位名人做同学，你选谁？',
+    '你最近一次哭是因为什么？',
+    '你觉得青春最应该做的一件事是什么？',
+    '你最想对十年后的自己说什么？',
+    '如果只能保留三样东西，你留什么？'
   ],
   dare: [
     '用三种语气说"老师好"',
@@ -1200,7 +1220,22 @@ const BANK = {
     '做一个鬼脸保持5秒',
     '说出今天学的一个知识点',
     '用方言说一句自我介绍',
-    '原地转3圈后走直线'
+    '原地转3圈后走直线',
+    '学模特走台步从教室一头走到另一头',
+    '用鼻子哼出一首歌的旋律让大家猜',
+    '连续做10个开合跳',
+    '模仿你最喜欢的动漫人物说一句台词',
+    '用最夸张的表情说"我太难了"',
+    '说出5个国家的首都名称',
+    '表演一个"突然被老师点名"的反应',
+    '用左手写出自己的名字',
+    '学三种不同的笑声',
+    '说出10个不同的水果名称',
+    '模仿电视广告里的一句话',
+    '做一个后空翻的假动作（不用真翻）',
+    '用最快的速度说10遍"红凤凰黄凤凰"',
+    '表演一个"上课偷吃零食被发现"的场景',
+    '闭上眼睛转三圈后指出黑板的方向'
   ]
 };
 
@@ -1570,30 +1605,18 @@ function finishSpin(){
 $('wheelWrap').addEventListener('click', ()=>spinWheel());
 
 function drawResultCard(type){
-  const card = $('wheelResult');
   const meta = TYPE_META[type];
-  let html = '';
+  let text = '';
   let summary = '';
-
   if(type === 'truth'){
-    const t = BANK.truth[Math.floor(Math.random() * BANK.truth.length)];
-    summary = t.length > 18 ? t.substring(0,18) + '…' : t;
-    html =
-      '<div class="rc-head"><span class="rc-badge truth">'+meta.label+'</span></div>' +
-      '<div class="rc-plain"></div>';
-    card.innerHTML = html;
-    card.querySelector('.rc-plain').textContent = t;
+    text = BANK.truth[Math.floor(Math.random() * BANK.truth.length)];
+    summary = text.length > 18 ? text.substring(0,18) + '…' : text;
+    showModal('💬 ' + meta.label, text, 'truth');
   } else if(type === 'dare'){
-    const d = BANK.dare[Math.floor(Math.random() * BANK.dare.length)];
-    summary = d.length > 18 ? d.substring(0,18) + '…' : d;
-    html =
-      '<div class="rc-head"><span class="rc-badge dare">'+meta.label+'</span></div>' +
-      '<div class="rc-plain"></div>';
-    card.innerHTML = html;
-    card.querySelector('.rc-plain').textContent = d;
+    text = BANK.dare[Math.floor(Math.random() * BANK.dare.length)];
+    summary = text.length > 18 ? text.substring(0,18) + '…' : text;
+    showModal('🔥 ' + meta.label, text, 'dare');
   }
-
-  card.style.display = 'block';
   return {summary: summary};
 }
 
@@ -1702,16 +1725,16 @@ function renderHistory(){
 /* ============================================================
  * 课堂飞行棋 —— 50格环形
  * ============================================================ */
-const CS_COLORS = ['#4F6BFF', '#38BDF8', '#F59E0B', '#22C55E'];
+const CS_COLORS = ['#4F6BFF', '#38BDF8', '#F59E0B', '#22C55E', '#EF4444', '#A855F7'];
 const CS_TOTAL = 50;
-const CS_HOME = [0, 16, 25, 41]; // 左上/右上/右下/左下
+const CS_HOME = [0, 8, 16, 25, 33, 41]; // 6个起点均匀分布在环路上
 
-/* 格子类型分布（50格）：4角home + 16quiz + 11truth + 11dare + 3paper + 2jail + 1lucky + 2normal */
+/* 格子类型分布（50格）：6个home + 14quiz + 11truth + 11dare + 3paper + 2jail + 1lucky + 2normal */
 const CS_CELL_TYPE = {
-  0:'home', 16:'home', 25:'home', 41:'home',
-  2:'quiz', 5:'quiz', 8:'quiz', 11:'quiz', 14:'quiz', 18:'quiz',
-  21:'quiz', 27:'quiz', 30:'quiz', 33:'quiz', 36:'quiz', 39:'quiz',
-  43:'quiz', 46:'quiz', 48:'quiz', 23:'quiz',
+  0:'home', 8:'home', 16:'home', 25:'home', 33:'home', 41:'home',
+  2:'quiz', 5:'quiz', 11:'quiz', 14:'quiz', 18:'quiz',
+  21:'quiz', 27:'quiz', 30:'quiz', 36:'quiz', 39:'quiz',
+  43:'quiz', 46:'quiz', 48:'quiz', 23:'quiz', 1:'quiz',
   3:'truth', 7:'truth', 12:'truth', 19:'truth', 28:'truth', 32:'truth',
   37:'truth', 44:'truth', 47:'truth', 9:'truth', 22:'truth',
   4:'dare', 10:'dare', 13:'dare', 17:'dare', 20:'dare', 29:'dare',
@@ -1719,7 +1742,7 @@ const CS_CELL_TYPE = {
   31:'paper', 35:'paper', 24:'paper',
   40:'jail', 49:'jail',
   15:'lucky',
-  1:'normal', 26:'normal'
+  26:'normal'
 };
 
 /* 17列×10行矩形环，顺时针：返回 grid row/col (1-indexed) */
@@ -1758,7 +1781,7 @@ $('csCountRow').addEventListener('click', e=>{
 function csRenderNames(){
   const grid = $('csNameGrid');
   let html = '';
-  for(let i=0;i<4;i++){
+  for(let i=0;i<6;i++){
     const visible = i < csPlayerCount;
     html += '<div class="cs-name-item" style="'+(visible?'':'display:none')+'">' +
       '<span class="cs-color-dot" style="background:'+CS_COLORS[i]+'"></span>' +
