@@ -253,6 +253,201 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 .history p + p{margin-top:6px}
 
 /* ================================================================
+ * 进制转化：设置区（居中布局，参考飞行棋）
+ * ================================================================ */
+.bc-setup-block{margin-bottom:14px;text-align:center}
+.bc-setup-label{font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:8px}
+.bc-count-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.bc-count-btn{
+  padding:8px 18px;border-radius:999px;
+  border:1px solid var(--border);background:#fff;
+  font-size:14px;font-weight:600;color:var(--text-2);
+  cursor:pointer;min-height:40px;transition:all .15s ease;
+}
+.bc-count-btn:hover{border-color:var(--accent);color:var(--accent)}
+.bc-count-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 12px rgba(79,107,255,0.28)}
+.bc-name-grid{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+  max-width:680px;margin:0 auto;
+}
+.bc-name-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface-2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;
+  flex:0 0 calc(50% - 5px);min-width:240px;max-width:320px;
+}
+.bc-name-item .bc-color-dot{
+  flex:none;width:16px;height:16px;border-radius:50%;
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,0.15);
+}
+.bc-name-item input{
+  flex:1;min-width:0;border:none;background:transparent;outline:none;
+  font-size:16px;color:var(--text);font-family:inherit;text-align:left;min-height:32px;
+}
+.bc-upload-row{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px}
+.bc-upload-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.bc-upload-info{font-size:12px;color:var(--text-3)}
+.bc-upload-info strong{color:var(--accent)}
+.bc-range-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.bc-label{font-size:13px;color:var(--text-2);font-weight:600;flex:none}
+.bc-range-input{width:100px;text-align:center;min-height:40px}
+
+/* ================================================================
+ * 进制转化：题目区（中列内）
+ * ================================================================ */
+.bc-question{
+  text-align:center;width:100%;
+  background:var(--surface-2);border-radius:var(--radius);
+  padding:12px 16px;border:1px solid var(--border);
+}
+.bc-q-label{font-size:13px;color:var(--text-3);font-weight:500;margin-bottom:6px}
+.bc-base-tag{
+  display:inline-block;padding:2px 10px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);
+  font-weight:700;font-size:12px;margin:0 2px;
+}
+.bc-q-num{
+  font-size:clamp(32px,5vw,44px);font-weight:800;
+  letter-spacing:3px;color:var(--text);
+  font-family:"Consolas","Courier New",monospace;
+  line-height:1.2;
+}
+
+/* ================================================================
+ * 进制转化：位显示区（中列内）
+ * ================================================================ */
+.bc-bits-wrap{
+  display:flex;justify-content:center;width:100%;
+  overflow-x:auto;padding:4px 0;
+}
+.bc-bits{
+  display:flex;gap:6px;align-items:flex-end;
+}
+.bc-bit{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  min-width:56px;
+}
+.bc-bit-index{
+  font-size:11px;color:var(--text-3);font-weight:600;
+  background:var(--surface-2);border-radius:6px;padding:1px 7px;
+}
+.bc-bit-box{
+  width:56px;height:60px;border-radius:11px;
+  border:2px solid var(--border);background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:var(--text);
+  font-family:"Consolas","Courier New",monospace;
+  transition:all .2s ease;position:relative;
+}
+.bc-bit.pending .bc-bit-box{border-style:dashed;color:var(--text-3)}
+.bc-bit.pending .bc-bit-box::after{content:'?';font-size:24px;color:var(--text-3);opacity:.5}
+.bc-bit.current .bc-bit-box{
+  border-color:var(--accent);border-style:solid;
+  box-shadow:0 0 0 3px var(--accent-soft), 0 4px 12px rgba(79,107,255,0.2);
+  animation:bcPulse 1.2s ease-in-out infinite;
+}
+.bc-bit.current .bc-bit-box::after{content:''}
+.bc-bit.correct .bc-bit-box{
+  border-color:var(--green);background:rgba(34,197,94,0.08);color:var(--green);
+}
+.bc-bit.correct .bc-bit-box::after{content:''}
+.bc-bit.wrong .bc-bit-box{
+  border-color:var(--red);background:rgba(239,68,68,0.08);color:var(--red);
+}
+.bc-bit.wrong .bc-bit-box::after{content:''}
+.bc-bit-player{
+  font-size:12px;font-weight:600;color:var(--text-2);
+  max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-align:center;
+}
+.bc-bit.current .bc-bit-player{color:var(--accent)}
+@keyframes bcPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+}
+
+/* ================================================================
+ * 进制转化：当前玩家提示（中列内）
+ * ================================================================ */
+.bc-turn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:14px;font-weight:600;color:var(--text);
+  min-height:24px;
+}
+.bc-turn-dot{
+  width:11px;height:11px;border-radius:50%;
+  background:var(--accent);flex:none;
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+/* ================================================================
+ * 进制转化：三列布局（参考数字炸弹）
+ * ================================================================ */
+.bc-layout{
+  display:flex;flex-direction:column;
+  gap:14px;width:100%;margin-top:6px;align-items:stretch;
+}
+.bc-col-mid{
+  order:1;display:flex;flex-direction:column;
+  align-items:center;gap:10px;width:100%;
+}
+.bc-col-right{order:2;width:100%;max-width:280px;margin:0 auto}
+.bc-col-left{order:3;width:100%}
+
+/* ================================================================
+ * 进制转化：输入显示 & 消息（中列内）
+ * ================================================================ */
+.bc-readout{
+  font-size:30px;font-weight:700;color:var(--text);
+  background:var(--surface-2);
+  border:1.5px dashed var(--border);
+  border-radius:12px;
+  min-height:56px;width:100%;max-width:220px;
+  display:flex;align-items:center;justify-content:center;
+  letter-spacing:4px;padding:0 14px;
+  font-family:"Consolas","Courier New",monospace;
+}
+.bc-readout .placeholder{
+  color:var(--text-3);font-size:13px;letter-spacing:0;font-weight:500;font-family:var(--font);
+}
+.bc-msg{font-size:13px;font-weight:600;min-height:20px;color:var(--text-3)}
+.bc-msg.correct{color:var(--green)}
+.bc-msg.wrong{color:var(--red)}
+
+/* ================================================================
+ * 进制转化：16进制键盘 4列×5行
+ * ================================================================ */
+.bc-keypad{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
+  width:100%;
+}
+.bc-keypad button{
+  height:46px;border-radius:10px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-size:18px;font-weight:700;color:var(--text);
+  cursor:pointer;transition:all .15s ease;min-width:0;
+  font-family:"Consolas","Courier New",monospace;
+}
+.bc-keypad button:hover{
+  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
+}
+.bc-keypad button:active{
+  transform:scale(.93);
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.bc-keypad .key-util{
+  font-size:14px;font-weight:600;
+  background:var(--surface-2);color:var(--text-2);font-family:var(--font);
+}
+.bc-keypad .key-confirm{
+  background:linear-gradient(135deg,#4F6BFF,#38BDF8);
+  color:#fff;border:none;font-size:14px;font-weight:700;font-family:var(--font);
+}
+.bc-keypad .key-confirm:hover{color:#fff;box-shadow:var(--shadow-hover)}
+.bc-keypad button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ================================================================
  * 大冒险转盘：三列布局
  * ================================================================ */
 .wheel-layout{
@@ -399,13 +594,14 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   box-shadow:0 4px 12px rgba(79,107,255,0.28);
 }
 .cs-name-grid{
-  display:grid;grid-template-columns:1fr;gap:10px;max-width:420px;margin:0 auto;
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+  max-width:640px;margin:0 auto;
 }
-@media(min-width:520px){.cs-name-grid{grid-template-columns:1fr 1fr}}
 .cs-name-item{
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:10px;
   background:var(--surface-2);border:1px solid var(--border);
-  border-radius:10px;padding:8px 10px;
+  border-radius:12px;padding:10px 14px;
+  flex:0 0 calc(50% - 5px);min-width:240px;max-width:300px;
 }
 .cs-name-item .cs-color-dot{
   flex:none;width:18px;height:18px;border-radius:50%;
@@ -413,7 +609,7 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
 }
 .cs-name-item input{
   flex:1;min-width:0;border:none;background:transparent;outline:none;
-  font-size:15px;color:var(--text);font-family:inherit;min-height:36px;
+  font-size:16px;color:var(--text);font-family:inherit;min-height:36px;
 }
 
 /* ================================================================
@@ -738,6 +934,15 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
   .wl-col-right{order:3;flex:0 0 220px;max-width:220px;margin:0}
   .wl-history{max-height:360px}
   .wheel-wrap{width:min(36vw,420px)}
+  .bc-layout{flex-direction:row;align-items:flex-start;gap:20px}
+  .bc-col-left{order:1;flex:0 0 200px;max-width:210px}
+  .bc-col-mid{order:2;flex:1;min-width:0}
+  .bc-col-right{order:3;flex:0 0 240px;max-width:260px;margin:0}
+  .bc-col-left .history{max-height:380px}
+  .cs-name-grid{max-width:900px}
+  .cs-name-item{flex:0 0 calc(25% - 8px);min-width:180px;max-width:260px}
+  .bc-name-grid{max-width:960px}
+  .bc-name-item{flex:0 0 calc(25% - 8px);min-width:180px;max-width:280px}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -768,6 +973,10 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
     <button class="tab-btn" data-tab="chess" role="tab">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg>
       课堂飞行棋
+    </button>
+    <button class="tab-btn" data-tab="baseconv" role="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 14l3 3-3 3"/></svg>
+      我是1还是0
     </button>
   </div>
 
@@ -923,9 +1132,137 @@ h2{font-size:17px;font-weight:700;color:var(--text)}
       </div>
     </div>
   </div>
-</div>
 
-<!-- ==================== 飞行棋全屏层 ==================== -->
+  <!-- ============ Tab 面板：进制转化 ============ -->
+  <div class="tab-panel" id="tab-baseconv">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:10px">
+        <span class="capsule">BINARY GUESS · 2 / 8 / 10 / 16</span>
+        <h2 style="margin-top:8px">我是1还是0</h2>
+        <p class="desc">系统随机出题，每位玩家代表一个"位"，按高位到低位依次猜数字，猜错接受真心话/大冒险惩罚</p>
+      </div>
+
+      <!-- 设置区 -->
+      <div id="bcSetup">
+        <div class="bc-setup-block">
+          <div class="bc-setup-label">参与人数</div>
+          <div class="bc-count-row" id="bcCountRow">
+            <button type="button" class="bc-count-btn active" data-count="2">2人</button>
+            <button type="button" class="bc-count-btn" data-count="3">3人</button>
+            <button type="button" class="bc-count-btn" data-count="4">4人</button>
+            <button type="button" class="bc-count-btn" data-count="5">5人</button>
+            <button type="button" class="bc-count-btn" data-count="6">6人</button>
+            <button type="button" class="bc-count-btn" data-count="7">7人</button>
+            <button type="button" class="bc-count-btn" data-count="8">8人</button>
+          </div>
+        </div>
+        <div class="bc-setup-block">
+          <div class="bc-setup-label">玩家名字（可手动输入，或上传TXT名单后随机抽取）</div>
+          <div class="bc-name-grid" id="bcNameGrid"></div>
+          <div class="bc-upload-row">
+            <input type="file" id="bcFileInput" accept=".txt" style="display:none" onchange="bcHandleFile(event)">
+            <div class="bc-upload-btns">
+              <button type="button" class="btn btn-secondary btn-tight" onclick="$('bcFileInput').click()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                导入名单
+              </button>
+              <button type="button" class="btn btn-secondary btn-tight" onclick="bcRandomNames()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                随机抽取
+              </button>
+            </div>
+            <span class="bc-upload-info" id="bcUploadInfo">未导入名单，随机抽取需先导入TXT</span>
+          </div>
+        </div>
+        <div class="bc-setup-block">
+          <div class="bc-setup-label">题目数值范围（十进制）</div>
+          <div class="bc-range-row">
+            <label class="bc-label">最小值</label>
+            <input type="number" class="input-num bc-range-input" id="bc-min" value="1" min="1" max="65535">
+            <label class="bc-label">最大值</label>
+            <input type="number" class="input-num bc-range-input" id="bc-max" value="255" min="2" max="65535">
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn btn-primary" onclick="bcStartGame()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor" stroke="none"/></svg>
+            开始游戏
+          </button>
+        </div>
+      </div>
+
+      <!-- 游戏区 -->
+      <div id="bcGame" style="display:none">
+        <div class="bc-layout">
+          <!-- 左列：历史记录 -->
+          <div class="bc-col-left">
+            <div class="history" id="bc-history">
+              <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M21 12a9 9 0 11-9-9"/></svg>
+                作答记录
+              </h3>
+              <div class="history-empty">暂无记录</div>
+            </div>
+          </div>
+
+          <!-- 中列：题目 + 位显示 + 输入 -->
+          <div class="bc-col-mid">
+            <!-- 题目区 -->
+            <div class="bc-question">
+              <div class="bc-q-label">将下列 <span id="bcSrcBase" class="bc-base-tag">十进制</span> 数转换为 <span id="bcDstBase" class="bc-base-tag">二进制</span></div>
+              <div class="bc-q-num" id="bcSrcNum">—</div>
+            </div>
+
+            <!-- 位显示区 -->
+            <div class="bc-bits-wrap">
+              <div class="bc-bits" id="bcBits"></div>
+            </div>
+
+            <!-- 当前玩家提示 -->
+            <div class="bc-turn" id="bcTurn">
+              <span class="bc-turn-dot" id="bcTurnDot"></span>
+              <span id="bcTurnText">等待开始</span>
+            </div>
+
+            <!-- 输入显示 -->
+            <div class="bc-readout" id="bcReadout"><span class="placeholder">点击键盘输入</span></div>
+            <div class="bc-msg" id="bcMsg">请当前玩家作答</div>
+
+            <!-- 底部操作 -->
+            <div class="btn-row" style="margin-top:6px">
+              <button class="btn btn-secondary btn-tight" onclick="bcNextRound()">下一题</button>
+              <button class="btn btn-secondary btn-tight" style="color:var(--red);border-color:var(--red)" onclick="bcEndGame()">结束游戏</button>
+            </div>
+          </div>
+
+          <!-- 右列：键盘 -->
+          <div class="bc-col-right">
+            <div class="bc-keypad" id="bcKeypad">
+              <button type="button" data-digit="0">0</button>
+              <button type="button" data-digit="1">1</button>
+              <button type="button" data-digit="2">2</button>
+              <button type="button" data-digit="3">3</button>
+              <button type="button" data-digit="4">4</button>
+              <button type="button" data-digit="5">5</button>
+              <button type="button" data-digit="6">6</button>
+              <button type="button" data-digit="7">7</button>
+              <button type="button" data-digit="8">8</button>
+              <button type="button" data-digit="9">9</button>
+              <button type="button" data-digit="A">A</button>
+              <button type="button" data-digit="B">B</button>
+              <button type="button" data-digit="C">C</button>
+              <button type="button" data-digit="D">D</button>
+              <button type="button" data-digit="E">E</button>
+              <button type="button" data-digit="F">F</button>
+              <button type="button" class="key-util" data-act="back">&#9003;</button>
+              <button type="button" class="key-confirm" data-act="enter">确定</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="csFullscreen">
   <div class="cs-fs-inner">
     <div class="cs-fs-topbar">
@@ -1044,14 +1381,19 @@ function showToast(msg){
 }
 
 /* ============ 通用弹窗 ============ */
-function showModal(title, desc, cls){
+let modalOnClose = null;
+function showModal(title, desc, cls, onClose){
   $('modal-title').textContent = title;
   $('modal-desc').textContent = desc;
   $('modal-title').className = cls || 'accent';
   $('modal').classList.add('show');
+  modalOnClose = onClose || null;
   if(navigator.vibrate) navigator.vibrate(200);
 }
-function closeModal(){ $('modal').classList.remove('show'); }
+function closeModal(){
+  $('modal').classList.remove('show');
+  if(modalOnClose){ const cb = modalOnClose; modalOnClose = null; cb(); }
+}
 
 /* ============================================================
  * 数字炸弹（完全保留）
@@ -1195,6 +1537,373 @@ document.addEventListener('keydown', e=>{
   else if(e.key === 'Enter'){ e.preventDefault(); nbConfirm(); }
 });
 $('nb-max').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); numBombStart(); } });
+
+/* ============================================================
+ * 进制转化大挑战
+ * ============================================================ */
+const BC_COLORS = [
+  '#4F6BFF','#38BDF8','#22C55E','#F59E0B',
+  '#EF4444','#8B5CF6','#EC4899','#14B8A6'
+];
+const BC_BASE_NAMES = {2:'二进制',8:'八进制',10:'十进制',16:'十六进制'};
+
+let bcCount = 2;
+let bcPlayers = [];
+let bcPlaying = false;
+let bcDecimal = 0;
+let bcSrcBase = 10;
+let bcDstBase = 2;
+let bcSrcStr = '';
+let bcDstStr = '';
+let bcBits = [];
+let bcCurrentBit = 0;
+let bcInputStr = '';
+let bcRound = 0;
+let bcUploadedNames = [];
+
+/* 初始化设置区 */
+function bcInit(){
+  bcRenderNameGrid();
+  bcUpdateUploadInfo();
+  document.querySelectorAll('#bcCountRow .bc-count-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#bcCountRow .bc-count-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      bcCount = parseInt(btn.dataset.count, 10);
+      bcRenderNameGrid();
+    });
+  });
+}
+
+function bcRenderNameGrid(){
+  const grid = $('bcNameGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<bcCount;i++){
+    const item = document.createElement('div');
+    item.className = 'bc-name-item';
+    const dot = document.createElement('span');
+    dot.className = 'bc-color-dot';
+    dot.style.background = BC_COLORS[i % BC_COLORS.length];
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = '玩家' + (i+1);
+    input.value = '玩家' + (i+1);
+    input.maxLength = 8;
+    item.appendChild(dot);
+    item.appendChild(input);
+    grid.appendChild(item);
+  }
+}
+
+/* 更新上传状态显示 */
+function bcUpdateUploadInfo(){
+  const el = $('bcUploadInfo');
+  if(!el) return;
+  if(bcUploadedNames.length > 0){
+    el.innerHTML = '已导入 <strong>' + bcUploadedNames.length + '</strong> 人名单';
+  } else {
+    el.textContent = '未导入名单，随机抽取需先导入TXT';
+  }
+}
+
+/* 处理TXT文件上传 */
+function bcHandleFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const text = e.target.result;
+    const names = text.split(/\r?\n/).map(s=>s.trim()).filter(s=>s.length > 0);
+    if(names.length === 0){
+      showToast('名单文件为空，请检查');
+      return;
+    }
+    bcUploadedNames = names;
+    bcUpdateUploadInfo();
+    showToast('成功导入 ' + names.length + ' 人名单');
+  };
+  reader.onerror = function(){
+    showToast('文件读取失败，请重试');
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+/* 随机抽取名字（从已导入的名单中） */
+function bcRandomNames(){
+  if(bcUploadedNames.length === 0){
+    showToast('请先导入TXT名单文件');
+    return;
+  }
+  if(bcUploadedNames.length < bcCount){
+    showToast('名单仅 ' + bcUploadedNames.length + ' 人，不足 ' + bcCount + ' 人，请补充名单');
+    return;
+  }
+  const inputs = $('bcNameGrid').querySelectorAll('input');
+  const pool = [...bcUploadedNames];
+  inputs.forEach(inp=>{
+    if(pool.length === 0) return;
+    const idx = Math.floor(Math.random() * pool.length);
+    inp.value = pool.splice(idx, 1)[0];
+  });
+  showToast('已从名单随机抽取 ' + bcCount + ' 位玩家');
+}
+
+/* 开始游戏 */
+function bcStartGame(){
+  const inputs = $('bcNameGrid').querySelectorAll('input');
+  bcPlayers = [];
+  for(let i=0;i<inputs.length;i++){
+    const name = inputs[i].value.trim() || ('玩家' + (i+1));
+    bcPlayers.push({name, color: BC_COLORS[i % BC_COLORS.length]});
+  }
+
+  const minV = parseInt($('bc-min').value, 10);
+  const maxV = parseInt($('bc-max').value, 10);
+  if(isNaN(minV) || isNaN(maxV) || minV < 1 || maxV > 65535 || minV >= maxV){
+    showToast('请输入有效的数值范围（1 ~ 65535，最小值 < 最大值）');
+    return;
+  }
+
+  bcPlaying = true;
+  bcRound = 0;
+  $('bcSetup').style.display = 'none';
+  $('bcGame').style.display = 'block';
+  bcGenQuestion();
+}
+
+/* 生成题目 */
+function bcGenQuestion(){
+  bcRound++;
+  const minV = parseInt($('bc-min').value, 10);
+  const maxV = parseInt($('bc-max').value, 10);
+  bcDecimal = Math.floor(Math.random() * (maxV - minV + 1)) + minV;
+
+  /* 随机选择源进制和目标进制（不能相同） */
+  const bases = [2, 8, 10, 16];
+  bcSrcBase = bases[Math.floor(Math.random() * bases.length)];
+  do {
+    bcDstBase = bases[Math.floor(Math.random() * bases.length)];
+  } while(bcDstBase === bcSrcBase);
+
+  bcSrcStr = bcDecimal.toString(bcSrcBase).toUpperCase();
+  bcDstStr = bcDecimal.toString(bcDstBase).toUpperCase();
+
+  $('bcSrcBase').textContent = BC_BASE_NAMES[bcSrcBase];
+  $('bcDstBase').textContent = BC_BASE_NAMES[bcDstBase];
+  $('bcSrcNum').textContent = bcSrcStr;
+
+  /* 初始化每一位 */
+  bcBits = [];
+  for(let i=0;i<bcDstStr.length;i++){
+    bcBits.push({
+      digit: bcDstStr[i],
+      playerIndex: i % bcPlayers.length,
+      status: 'pending',
+      guess: ''
+    });
+  }
+  bcCurrentBit = 0;
+  bcInputStr = '';
+  if(bcBits.length > 0) bcBits[0].status = 'current';
+
+  bcRenderBits();
+  bcRenderReadout();
+  bcUpdateTurn();
+  $('bcMsg').textContent = '第 ' + bcRound + ' 题：请当前玩家作答';
+  $('bcMsg').className = 'bc-msg';
+
+  /* 清空历史记录的旧内容，保留标题 */
+  $('bc-history').innerHTML =
+    '<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M21 12a9 9 0 11-9-9"/></svg>作答记录</h3>' +
+    '<div class="history-empty">暂无记录</div>';
+}
+
+/* 渲染位显示 */
+function bcRenderBits(){
+  const wrap = $('bcBits');
+  wrap.innerHTML = '';
+  bcBits.forEach((bit, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'bc-bit ' + bit.status;
+    const player = bcPlayers[bit.playerIndex];
+    div.innerHTML =
+      '<div class="bc-bit-index">第' + (idx+1) + '位</div>' +
+      '<div class="bc-bit-box" style="border-color:' + (bit.status==='pending'?'':(bit.status==='current'?player.color:'')) + '">' +
+        (bit.status === 'correct' || bit.status === 'wrong' ? bit.digit : '') +
+      '</div>' +
+      '<div class="bc-bit-player" style="color:' + (bit.status==='current'?player.color:'') + '">' + player.name + '</div>';
+    if(bit.status === 'current'){
+      div.querySelector('.bc-bit-box').style.borderColor = player.color;
+      div.querySelector('.bc-bit-box').style.boxShadow = '0 0 0 3px ' + player.color + '22, 0 4px 12px ' + player.color + '33';
+    }
+    wrap.appendChild(div);
+  });
+}
+
+/* 更新当前玩家提示 */
+function bcUpdateTurn(){
+  if(bcCurrentBit >= bcBits.length){
+    $('bcTurnText').textContent = '本题完成！';
+    $('bcTurnDot').style.background = 'var(--green)';
+    $('bcTurnDot').style.boxShadow = '0 0 0 3px rgba(34,197,94,0.2)';
+    return;
+  }
+  const bit = bcBits[bcCurrentBit];
+  const player = bcPlayers[bit.playerIndex];
+  $('bcTurnText').textContent = player.name + ' 请猜第 ' + (bcCurrentBit+1) + ' 位的数字';
+  $('bcTurnDot').style.background = player.color;
+  $('bcTurnDot').style.boxShadow = '0 0 0 3px ' + player.color + '33';
+}
+
+/* 渲染输入显示 */
+function bcRenderReadout(){
+  const el = $('bcReadout');
+  if(bcInputStr === ''){
+    el.innerHTML = '<span class="placeholder">点击键盘输入</span>';
+  } else {
+    el.textContent = bcInputStr;
+  }
+}
+
+/* 按键 */
+function bcPressDigit(d){
+  if(!bcPlaying || bcCurrentBit >= bcBits.length) return;
+  if(bcInputStr.length >= 2){ showToast('每位只能输入一个字符'); return; }
+  bcInputStr = d;
+  bcRenderReadout();
+}
+function bcBackspace(){
+  if(!bcPlaying) return;
+  bcInputStr = '';
+  bcRenderReadout();
+}
+
+/* 确定作答 */
+function bcConfirm(){
+  if(!bcPlaying || bcCurrentBit >= bcBits.length) return;
+  if(bcInputStr === ''){ showToast('请先输入数字'); return; }
+
+  const bit = bcBits[bcCurrentBit];
+  const player = bcPlayers[bit.playerIndex];
+  const guess = bcInputStr.toUpperCase();
+
+  if(guess === bit.digit){
+    /* 猜对 */
+    bit.status = 'correct';
+    bit.guess = guess;
+    $('bcMsg').textContent = player.name + ' 猜对了！是 ' + bit.digit;
+    $('bcMsg').className = 'bc-msg correct';
+    bcAddHistory('第' + (bcCurrentBit+1) + '位 ' + player.name + ' 猜 ' + guess + ' ✓ 正确', false);
+    bcRenderBits();
+    bcInputStr = '';
+    bcRenderReadout();
+    bcCurrentBit++;
+    if(bcCurrentBit < bcBits.length){
+      bcBits[bcCurrentBit].status = 'current';
+      bcRenderBits();
+      bcUpdateTurn();
+    } else {
+      bcUpdateTurn();
+      bcRoundComplete();
+    }
+  } else {
+    /* 猜错 */
+    bit.status = 'wrong';
+    bit.guess = guess;
+    $('bcMsg').textContent = player.name + ' 猜错了！正确答案是 ' + bit.digit;
+    $('bcMsg').className = 'bc-msg wrong';
+    bcAddHistory('第' + (bcCurrentBit+1) + '位 ' + player.name + ' 猜 ' + guess + ' ✗ 错误（正确：' + bit.digit + '）', true);
+    bcRenderBits();
+    bcInputStr = '';
+    bcRenderReadout();
+    /* 弹出惩罚，关闭后进入下一位 */
+    const isLast = bcCurrentBit >= bcBits.length - 1;
+    bcShowPunishment(player, ()=>{
+      bcCurrentBit++;
+      if(bcCurrentBit < bcBits.length){
+        bcBits[bcCurrentBit].status = 'current';
+        bcRenderBits();
+        bcUpdateTurn();
+        $('bcMsg').textContent = '请当前玩家作答';
+        $('bcMsg').className = 'bc-msg';
+      } else {
+        bcUpdateTurn();
+        bcRoundComplete();
+      }
+    });
+  }
+}
+
+/* 显示惩罚弹窗 */
+function bcShowPunishment(player, onClose){
+  const isTruth = Math.random() < 0.5;
+  const bank = isTruth ? BANK.truth : BANK.dare;
+  const text = bank[Math.floor(Math.random() * bank.length)];
+  const title = (isTruth ? '真心话' : '大冒险') + ' · ' + player.name;
+  const cls = isTruth ? 'truth' : 'dare';
+  showModal(title, text, cls, onClose);
+}
+
+/* 本题完成 */
+function bcRoundComplete(){
+  bcPlaying = false;
+  const correctCount = bcBits.filter(b=>b.status==='correct').length;
+  const wrongCount = bcBits.filter(b=>b.status==='wrong').length;
+  bcAddHistory('─── 本题完成：正确 ' + correctCount + ' 位，错误 ' + wrongCount + ' 位 ───', false);
+  setTimeout(()=>{
+    showModal('转换完成！',
+      bcSrcStr + '（' + BC_BASE_NAMES[bcSrcBase] + '）= ' + bcDstStr + '（' + BC_BASE_NAMES[bcDstBase] + '），十进制值：' + bcDecimal + '。正确 ' + correctCount + ' 位，错误 ' + wrongCount + ' 位。点击"下一题"继续。',
+      'accent');
+  }, 300);
+}
+
+/* 下一题 */
+function bcNextRound(){
+  if(!bcPlayers.length){ showToast('请先开始游戏'); return; }
+  bcPlaying = true;
+  bcGenQuestion();
+}
+
+/* 结束游戏 */
+function bcEndGame(){
+  bcPlaying = false;
+  $('bcSetup').style.display = 'block';
+  $('bcGame').style.display = 'none';
+}
+
+/* 添加历史记录 */
+function bcAddHistory(text, isWrong){
+  const box = $('bc-history');
+  const empty = box.querySelector('.history-empty');
+  if(empty) empty.remove();
+  const p = document.createElement('p');
+  p.textContent = text;
+  if(isWrong) p.style.color = 'var(--red)';
+  box.prepend(p);
+}
+
+/* 键盘事件 */
+$('bcKeypad').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const d = btn.dataset.digit;
+  if(d !== undefined){ bcPressDigit(d); return; }
+  if(btn.dataset.act === 'back'){ bcBackspace(); return; }
+  if(btn.dataset.act === 'enter'){ bcConfirm(); return; }
+});
+
+document.addEventListener('keydown', e=>{
+  if(!bcPlaying) return;
+  if(!$('tab-baseconv').classList.contains('active')) return;
+  if(document.activeElement.tagName === 'INPUT') return;
+  if(/^[0-9a-fA-F]$/.test(e.key)){ e.preventDefault(); bcPressDigit(e.key.toUpperCase()); }
+  else if(e.key === 'Backspace'){ e.preventDefault(); bcBackspace(); }
+  else if(e.key === 'Enter'){ e.preventDefault(); bcConfirm(); }
+});
+
+/* 启动初始化 */
+bcInit();
 
 /* ============================================================
  * 共享题库：真心话 / 大冒险（飞行棋与转盘共用）
