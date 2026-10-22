@@ -30,30 +30,29 @@ MOD.enc = {
   settingsHTML(){
     const sub=this.currentSub;
     if(sub==='ascii'){
-      const cur=$('#e-ascii')?$('#e-ascii').value:'upper';
-      return `<div class="inline-setting"><div class="setting"><label>字符类型</label>
+      const curChar=$('#e-ascii-custom')?$('#e-ascii-custom').value:(this._customChar||'');
+      return `<div class="inline-setting"><div class="setting"><label>输入字符</label>
+        <input type="text" id="e-ascii-custom" value="${esc(curChar)}" placeholder="如 A、a、5、?" maxlength="1" style="width:clamp(60px,10vw,80px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>或随机类型</label>
         <select id="e-ascii">
-          <option value="upper" ${cur==='upper'?'selected':''}>大写字母</option>
-          <option value="lower" ${cur==='lower'?'selected':''}>小写字母</option>
-          <option value="digit" ${cur==='digit'?'selected':''}>数字</option>
-          <option value="symbol" ${cur==='symbol'?'selected':''}>符号</option>
+          <option value="upper">大写字母</option>
+          <option value="lower">小写字母</option>
+          <option value="digit">数字</option>
+          <option value="symbol">符号</option>
         </select></div></div>`;
     }
     if(sub==='bcd'){
-      const cur=$('#e-bcd-len')?$('#e-bcd-len').value:'3';
-      return `<div class="inline-setting"><div class="setting"><label>数字位数</label>
-        <select id="e-bcd-len">
-          <option value="2" ${cur==='2'?'selected':''}>2 位</option>
-          <option value="3" ${cur==='3'?'selected':''}>3 位</option>
-        </select></div></div>`;
+      const curNum=$('#e-bcd-custom')?$('#e-bcd-custom').value:(this._customNum||'');
+      return `<div class="inline-setting"><div class="setting"><label>输入十进制数</label>
+        <input type="text" id="e-bcd-custom" value="${esc(curNum)}" placeholder="如 256" maxlength="4" style="width:clamp(70px,12vw,90px)"></div></div>`;
     }
     if(sub==='hanzi'){
-      const cur=$('#e-hanzi-level')?$('#e-hanzi-level').value:'common';
-      return `<div class="inline-setting"><div class="setting"><label>区位范围</label>
-        <select id="e-hanzi-level">
-          <option value="common" ${cur==='common'?'selected':''}>常用字（区号 16~55）</option>
-          <option value="rare" ${cur==='rare'?'selected':''}>次常用字（区号 56~87）</option>
-        </select></div></div>`;
+      const curQ=$('#e-hanzi-q')?$('#e-hanzi-q').value:(this._customQ||'');
+      const curW=$('#e-hanzi-w')?$('#e-hanzi-w').value:(this._customW||'');
+      return `<div class="inline-setting"><div class="setting"><label>区号</label>
+        <input type="text" id="e-hanzi-q" value="${esc(curQ)}" placeholder="16~87" maxlength="2" style="width:clamp(50px,8vw,65px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>位号</label>
+        <input type="text" id="e-hanzi-w" value="${esc(curW)}" placeholder="1~94" maxlength="2" style="width:clamp(50px,8vw,65px)"></div></div>`;
     }
     if(sub==='font'){
       const curS=$('#e-font-size')?$('#e-font-size').value:'16';
@@ -65,17 +64,15 @@ MOD.enc = {
           <option value="32" ${curS==='32'?'selected':''}>32 × 32</option>
         </select></div></div>
       <div class="inline-setting"><div class="setting"><label>汉字数量</label>
-        <select id="e-font-count">
-          <option value="500" ${curC==='500'?'selected':''}>500 字</option>
-          <option value="1000" ${curC==='1000'?'selected':''}>1000 字</option>
-          <option value="2000" ${curC==='2000'?'selected':''}>2000 字</option>
-        </select></div></div>`;
+        <input type="text" id="e-font-count" value="${esc(curC)}" placeholder="如 1000" maxlength="5" style="width:clamp(60px,10vw,80px)"></div></div>`;
     }
     return '';
   },
   afterSettings(){
     const bind=id=>{ const el=$('#'+id); if(el) el.onchange=()=>Engine.reload(); };
-    ['e-ascii','e-bcd-len','e-hanzi-level','e-font-size','e-font-count'].forEach(bind);
+    const bindInput=id=>{ const el=$('#'+id); if(el) el.onchange=()=>Engine.reload(); };
+    ['e-ascii','e-font-size'].forEach(bind);
+    ['e-ascii-custom','e-bcd-custom','e-hanzi-q','e-hanzi-w','e-font-count'].forEach(bindInput);
   },
   /* 逐字出现动画辅助 */
   typeChars(text){
@@ -83,16 +80,19 @@ MOD.enc = {
   },
   /* ========== ASCII 码值：字符 → 十进制 → 二进制 → 十六进制 ========== */
   genAscii(){
-    const el=$('#e-ascii');
-    const group=el?el.value:'upper';
-    const pools={
-      upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      lower:'abcdefghijklmnopqrstuvwxyz',
-      digit:'0123456789',
-      symbol:'!?#@%&*()/-'
-    };
-    const pool=pools[group]||pools.upper;
-    const ch=pick([...pool]);
+    const customEl=$('#e-ascii-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let ch;
+    if(custom && custom.length>0){
+      ch=custom[0];
+      this._customChar=ch;
+    }else{
+      const el=$('#e-ascii');
+      const group=el?el.value:'upper';
+      const pools={upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',lower:'abcdefghijklmnopqrstuvwxyz',digit:'0123456789',symbol:'!?#@%&*()/-'};
+      const pool=pools[group]||pools.upper;
+      ch=pick([...pool]);
+    }
     const code=ch.charCodeAt(0);
     const bin=code.toString(2).padStart(8,'0');
     const hex=code.toString(16).toUpperCase().padStart(2,'0');
@@ -104,6 +104,13 @@ MOD.enc = {
     while(temp>0){
       const q=Math.floor(temp/2), r=temp%2;
       rows.push({n:temp,q,r}); temp=q;
+    }
+    /* 生成 ASCII 码表片段（当前字符前后各3个） */
+    const tableStart=Math.max(32, code-3);
+    const tableEnd=Math.min(126, code+3);
+    const tableRows=[];
+    for(let c=tableStart;c<=tableEnd;c++){
+      tableRows.push({ch:String.fromCharCode(c), code:c, isCur:c===code});
     }
     const steps=[];
     /* 步骤1：写出字符 */
@@ -117,18 +124,17 @@ MOD.enc = {
             <span class="caret pen"></span>
           </div>`;
       }});
-    /* 步骤2：查表得十进制码值 */
+    /* 步骤2：查表得十进制码值（带码表片段） */
     steps.push({desc:`查 ASCII 码表：字符 <b class="c-op">${ch}</b> 对应的十进制码值 = <b class="c-op">${code}</b>。`,
       draw:()=>{
+        const tableHtml=`<table class="exp-table" style="margin:10px auto;max-width:500px">
+          <tr><th>字符</th>${tableRows.map(r=>`<th class="${r.isCur?'cur':''}">${r.ch===' '?'␣':esc(r.ch)}</th>`).join('')}</tr>
+          <tr><th>十进制</th>${tableRows.map(r=>`<td class="${r.isCur?'cur':''}">${r.code}</td>`).join('')}</tr>
+        </table>`;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">查码表</span></div>
-          <div class="step-title"><span class="st-dot"></span>对照 ASCII 码表</div>
-          <div class="exp-inline" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px">
-            <span class="term cur" style="font-size:clamp(15px,2.2vw,19px)">"${esc(ch)}"</span>
-            <span class="op">→</span>
-            <span class="term write-in" style="animation-delay:.25s;color:#22C55E;font-weight:700;font-size:clamp(15px,2.2vw,19px)">${code}<sub style="font-size:.55em;color:#94A3B8">十进制</sub></span>
-            <span class="caret pen" style="margin-left:6px"></span>
-          </div>
-          <div class="annot" style="margin-top:10px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
+          <div class="step-title"><span class="st-dot"></span>对照 ASCII 码表（当前字符高亮）</div>
+          ${tableHtml}
+          <div class="annot" style="margin-top:6px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
             常见对照：A=65，a=97，0=48；本字符查表得 <b>${code}</b>。
           </div>`;
       }});
@@ -141,10 +147,12 @@ MOD.enc = {
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">除 2 取余</span></div>
           <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
           <div class="div-vertical" style="margin-bottom:10px">${rowsHtml}</div>
-          <div class="annot" style="padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
-            <b>余数收集</b>（从下往上读）：
-            ${rows.slice().reverse().map(rd=>`<span class="chip g" style="margin:0 2px;font-size:clamp(12px,1.6vw,15px)">${rd.r}</span>`).join('')}
-            <span class="up-arrow" style="margin-left:8px">↑ 逆序 = ${bin}</span>
+          <div class="calc-process">
+            <div class="cp-label">余数逆序收集</div>
+            <div class="cp-sum-line">
+              余数从下往上：${rows.slice().reverse().map(rd=>`<span style="color:var(--accent);font-weight:700">${rd.r}</span>`).join(' ')}
+              <span class="eq">=</span> <span class="sum">${bin}</span>
+            </div>
           </div>`;
       }});
     /* 步骤4：十六进制 + 最终结果 */
@@ -164,16 +172,23 @@ MOD.enc = {
   },
   /* ========== BCD 编码：十进制数逐位转 4 位二进制 ========== */
   genBcd(){
-    const el=$('#e-bcd-len');
-    const len=el?+el.value:3;
-    const num=randInt(Math.pow(10,len-1),Math.pow(10,len)-1);
+    const customEl=$('#e-bcd-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let num;
+    if(custom && /^\d{1,4}$/.test(custom)){
+      num=parseInt(custom);
+      this._customNum=custom;
+    }else{
+      num=randInt(10,999);
+    }
     const digits=String(num).split('');
     const bits=digits.map(d=>parseInt(d).toString(2).padStart(4,'0'));
     const bcd=bits.join('');
     const label='BCD 编码';
+    const weights=[8,4,2,1];
     const steps=[];
     /* 步骤1：写出十进制数 */
-    steps.push({desc:`写出十进制数 <b class="c-op">${num}</b>；BCD 编码规定：每位十进制数用 <b>4 位二进制</b>表示。`,
+    steps.push({desc:`写出十进制数 <b class="c-op">${num}</b>；BCD 编码规定：每位十进制数用 <b>4 位二进制</b>表示（8421 码）。`,
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${num}</span></div>
           <div class="step-title"><span class="st-dot"></span>待编码的十进制数</div>
@@ -181,35 +196,50 @@ MOD.enc = {
             <div class="group-box">
               ${digits.map((d,i)=>`<span class="grp write-in" style="animation-delay:${i*0.1}s">${d}</span>`).join('')}
             </div>
-            <div style="margin-top:10px;font-size:clamp(11px,1.4vw,12.5px);color:#94A3B8">每位 → 4 位二进制</div>
+            <div style="margin-top:10px;font-size:clamp(11px,1.4vw,12.5px);color:#94A3B8">每位 → 4 位二进制（8421 权）</div>
           </div>`;
       }});
     /* 步骤2：列出数位对照表 */
-    steps.push({desc:`列出每一位十进制数码，逐位转换为 4 位二进制（0→0000，9→1001）。`,
+    steps.push({desc:`列出每一位十进制数码，逐位按 8421 权展开转换为 4 位二进制（0→0000，9→1001）。`,
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">列出数位</span></div>
-          <div class="step-title"><span class="st-dot"></span>数位对照</div>
+          <div class="step-title"><span class="st-dot"></span>数位对照（8421 BCD 码）</div>
           <table class="exp-table">
             <tr><th>十进制位</th>${digits.map((d,i)=>`<th class="write-in" style="animation-delay:${i*0.08}s">${d}</th>`).join('')}</tr>
             <tr><th>BCD(4位)</th>${digits.map(()=>`<td class="empty">?</td>`).join('')}</tr>
           </table>
           <div class="annot" style="margin-top:8px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
-            参考对照：0→0000，1→0001，…，9→1001
+            8421 权：8+4+2+1，每位十进制数 = 各位权值之和
           </div>`;
       }});
-    /* 步骤3~N：逐位转换 */
+    /* 步骤3~N：逐位转换（带8421权展开） */
     let bcdSnap='';
     digits.forEach((d,i)=>{
       bcdSnap+=bits[i];
       const snap=bcdSnap, idx=i;
-      steps.push({desc:`第 ${i+1} 位 <b class="c-op">${d}</b> → 4 位二进制 <b class="c-op">${bits[i]}</b>；当前已拼接 BCD 码 = <b class="c-op">${snap}</b>${i<digits.length-1?' …':''}。`,
+      const dv=parseInt(d);
+      const activeWeights=weights.filter(w=>(dv & w)!==0);
+      const calcHTML=`<div class="calc-process">
+        <div class="cp-label">第 ${idx+1} 位「${d}」的 8421 权展开</div>
+        <div class="cp-sum-line" style="margin-bottom:5px">
+          位权：<span style="color:var(--accent)">8</span> <span style="color:var(--accent)">4</span> <span style="color:var(--accent)">2</span> <span style="color:var(--accent)">1</span>
+        </div>
+        <div class="cp-sum-line" style="margin-bottom:5px">
+          二进制：${bits[idx].split('').map((b,k)=>`<span style="color:${b==='1'?'var(--orange)':'#CBD5E1'};font-weight:700">${b}</span>`).join(' ')}
+        </div>
+        <div class="cp-sum-line" style="background:#FFF4DB">
+          ${activeWeights.length?activeWeights.join(' + ')+' = ':'0 = '}<span class="sum">${d}</span>
+        </div>
+      </div>`;
+      steps.push({desc:`第 ${i+1} 位 <b class="c-op">${d}</b>：8421 权展开 ${activeWeights.join('+')||'0'} = ${d} → 4 位二进制 <b class="c-op">${bits[i]}</b>；已拼接 = <b class="c-op">${snap}</b>。`,
         draw:()=>{
           $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">第 ${idx+1}/${digits.length} 位</span></div>
-            <div class="step-title"><span class="st-dot"></span>逐位编码</div>
+            <div class="step-title"><span class="st-dot"></span>逐位编码（8421 权展开）</div>
             <table class="exp-table">
               <tr><th>十进制位</th>${digits.map(x=>`<th>${x}</th>`).join('')}</tr>
               <tr><th>BCD(4位)</th>${digits.map((x,j)=>`<td class="${j<idx?'done':j===idx?'cur':'empty'}">${j<=idx?bits[j]:'?'}</td>`).join('')}</tr>
             </table>
+            ${calcHTML}
             <div class="exp-inline" style="display:inline-block;margin-top:8px">
               <span class="term cur">${d}</span><span class="op">=</span><span class="term cur">${bits[idx]}</span>
               <span class="op">→</span><span class="term">BCD = <b style="color:#4F6BFF">${snap}</b>${idx<digits.length-1?' …':''}</span>
@@ -234,10 +264,20 @@ MOD.enc = {
   },
   /* ========== 区位码 → 国标码 → 机内码 ========== */
   genHanzi(){
-    const el=$('#e-hanzi-level');
-    const lv=el?el.value:'common';
-    const qh=lv==='rare'?randInt(56,87):randInt(16,55);
-    const wh=randInt(1,94);
+    const qEl=$('#e-hanzi-q'), wEl=$('#e-hanzi-w');
+    const qCustom=qEl?qEl.value.trim():'';
+    const wCustom=wEl?wEl.value.trim():'';
+    let qh, wh;
+    if(qCustom && /^\d+$/.test(qCustom) && +qCustom>=1 && +qCustom<=94){
+      qh=+qCustom; this._customQ=qCustom;
+    }else{
+      qh=randInt(16,55);
+    }
+    if(wCustom && /^\d+$/.test(wCustom) && +wCustom>=1 && +wCustom<=94){
+      wh=+wCustom; this._customW=wCustom;
+    }else{
+      wh=randInt(1,94);
+    }
     const qhHex=qh.toString(16).toUpperCase().padStart(2,'0');
     const whHex=wh.toString(16).toUpperCase().padStart(2,'0');
     const gbQ=(qh+0x20).toString(16).toUpperCase().padStart(2,'0');
@@ -245,6 +285,15 @@ MOD.enc = {
     const neiQ=(qh+0xA0).toString(16).toUpperCase().padStart(2,'0');
     const neiW=(wh+0xA0).toString(16).toUpperCase().padStart(2,'0');
     const label='区位码 → 国标码 → 机内码';
+    /* 除16取余竖式 */
+    const div16=(n)=>{
+      const rows=[];
+      let t=n;
+      if(t===0) rows.push({n:0,q:0,r:'0'});
+      while(t>0){ const q=Math.floor(t/16),r=t%16; rows.push({n:t,q,r:r.toString(16).toUpperCase()}); t=q; }
+      return rows;
+    };
+    const qRows=div16(qh), wRows=div16(wh);
     const steps=[];
     /* 步骤1：写出区位号 */
     steps.push({desc:`某汉字的区位码：区号 <b class="c-op">${qh}</b>，位号 <b class="c-op">${wh}</b>（均为十进制）。`,
@@ -258,19 +307,23 @@ MOD.enc = {
             </div>
           </div>`;
       }});
-    /* 步骤2：区、位分别转十六进制 */
-    steps.push({desc:`区号、位号分别换算为十六进制：<b class="c-op">${qh}</b> → ${qhHex}H，<b class="c-op">${wh}</b> → ${whHex}H。`,
+    /* 步骤2：区、位分别转十六进制（除16取余） */
+    steps.push({desc:`区号、位号分别<b>除以 16 取余</b>换算为十六进制：<b class="c-op">${qh}</b> → ${qhHex}H，<b class="c-op">${wh}</b> → ${whHex}H。`,
       draw:()=>{
+        const renderDiv=(rows,title)=>`<div style="flex:1;min-width:0">
+          <div style="font-size:clamp(10px,1.2vw,12px);font-weight:700;color:var(--text-3);margin-bottom:4px;text-align:center">${title}</div>
+          <div class="div-vertical" style="margin-bottom:6px">
+            ${rows.map((rd,i)=>`<div class="dv-row write-in ${i===rows.length-1?'cur':''}" style="animation-delay:${i*0.08}s">
+              <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">16</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>
+            </div>`).join('')}
+          </div>
+          <div style="text-align:center;font-size:clamp(11px,1.4vw,12.5px);color:#22C55E;font-weight:700">余数逆序 = ${rows.slice().reverse().map(r=>r.r).join('')}H</div>
+        </div>`;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">转十六进制</span></div>
-          <div class="step-title"><span class="st-dot"></span>区位码（十进制 → 十六进制）</div>
-          <table class="exp-table" style="max-width:420px;margin:0 auto">
-            <tr><th>项</th><th>十进制</th><th>十六进制</th></tr>
-            <tr><th>区号</th><td>${qh}</td><td class="cur write-in" style="animation-delay:.2s">${qhHex}H</td></tr>
-            <tr><th>位号</th><td>${wh}</td><td class="cur write-in" style="animation-delay:.35s">${whHex}H</td></tr>
-          </table>
-          <div class="exp-inline" style="display:inline-block;margin-top:10px">
-            <span class="term done">${qh} → ${qhHex}H</span><span class="op">，</span>
-            <span class="term done">${wh} → ${whHex}H</span>
+          <div class="step-title"><span class="st-dot"></span>区位码（十进制 → 十六进制）· 除16取余</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            ${renderDiv(qRows,`区号 ${qh} ÷16`)}
+            ${renderDiv(wRows,`位号 ${wh} ÷16`)}
           </div>`;
       }});
     /* 步骤3：+2020H 得国标码 */
@@ -278,13 +331,10 @@ MOD.enc = {
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+2020H</span></div>
           <div class="step-title"><span class="st-dot"></span>求国标码（区位码 + 2020H）</div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${qhHex}H</span><span class="op">+ 20H =</span>
-            <span class="term cur write-in" style="animation-delay:.2s">${gbQ}H</span>
-          </div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${whHex}H</span><span class="op">+ 20H =</span>
-            <span class="term cur write-in" style="animation-delay:.4s">${gbW}H</span>
+          <div class="calc-process">
+            <div class="cp-label">十六进制加法（区、位分别 +20H）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">${qhHex}H <span class="op">+ 20H</span> <span class="eq">=</span> <span class="sum">${gbQ}H</span></div>
+            <div class="cp-sum-line">${whHex}H <span class="op">+ 20H</span> <span class="eq">=</span> <span class="sum">${gbW}H</span></div>
           </div>
           <div class="write-result">国标码 = ${gbQ} ${gbW}H</div>`;
       }});
@@ -293,13 +343,10 @@ MOD.enc = {
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+8080H</span></div>
           <div class="step-title"><span class="st-dot"></span>求机内码（国标码 + 8080H）</div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${gbQ}H</span><span class="op">+ 80H =</span>
-            <span class="term cur write-in" style="animation-delay:.2s">${neiQ}H</span>
-          </div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${gbW}H</span><span class="op">+ 80H =</span>
-            <span class="term cur write-in" style="animation-delay:.4s">${neiW}H</span>
+          <div class="calc-process">
+            <div class="cp-label">十六进制加法（区、位分别 +80H）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">${gbQ}H <span class="op">+ 80H</span> <span class="eq">=</span> <span class="sum">${neiQ}H</span></div>
+            <div class="cp-sum-line">${gbW}H <span class="op">+ 80H</span> <span class="eq">=</span> <span class="sum">${neiW}H</span></div>
           </div>
           <div class="write-result">区位 ${qh} ${wh} → 国标 ${gbQ}${gbW}H → 机内 ${neiQ}${neiW}H（2 字节）</div>`;
       }});

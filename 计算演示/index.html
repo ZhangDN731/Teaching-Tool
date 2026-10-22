@@ -1013,23 +1013,23 @@ MOD.base = {
     const isDivide = sub.startsWith('dec2');
     const isGroup = sub==='bin2oct'||sub==='bin2hex';
     const isExpandBin = sub==='oct2bin'||sub==='hex2bin';
-    let lenOptions = '';
-    if(isExpand){
-      const max = sub==='hex2dec'?3:4;
-      for(let i=2;i<=max;i++) lenOptions+=`<option value="${i}" ${i===3?'selected':''}>${i} 位</option>`;
-    }else if(isDivide){
-      lenOptions = `<option value="small" selected>较小数</option><option value="medium">中等数</option><option value="large">较大数</option>`;
-    }else if(isGroup){
-      const gs = sub==='bin2oct'?3:4;
-      lenOptions = `<option value="${gs+1}" selected>${gs+1} 位</option><option value="${gs*2}">${gs*2} 位</option><option value="${gs*3}">${gs*3} 位</option>`;
-    }else{
-      lenOptions = `<option value="2" selected>2 位</option><option value="3">3 位</option>`;
-    }
-    return `<div class="setting"><label>${isDivide?'数字大小':'数字位数'}</label>
-      <select id="b-len">${lenOptions}</select></div>`;
+    const customVal = this._customInput || '';
+    const placeholder = isDivide?'如 256':(sub==='hex2dec'?'如 1A3':(sub==='bin2dec'?'如 1011':(sub==='oct2dec'?'如 37':'如 10110')));
+    return `<div class="setting"><label>输入数值</label>
+      <input type="text" id="b-custom" value="${esc(customVal)}" placeholder="${placeholder}" maxlength="6" style="width:clamp(70px,12vw,90px)"></div>
+      <div class="setting"><label>或随机位数</label>
+      <select id="b-len">
+        ${isExpand?`<option value="2">2 位</option><option value="3" selected>3 位</option><option value="4">4 位</option>`:''}
+        ${isDivide?`<option value="small" selected>较小数</option><option value="medium">中等数</option><option value="large">较大数</option>`:''}
+        ${isGroup?`<option value="${(sub==='bin2oct'?3:4)+1}" selected>${(sub==='bin2oct'?3:4)+1} 位</option><option value="${(sub==='bin2oct'?3:4)*2}">${(sub==='bin2oct'?3:4)*2} 位</option>`:''}
+        ${isExpandBin?`<option value="2" selected>2 位</option><option value="3">3 位</option>`:''}
+      </select></div>`;
   },
   afterSettings(){
-    $('#b-len').onchange=()=>Engine.regenerate();
+    const el=$('#b-custom');
+    if(el) el.onchange=()=>{ this._customInput=el.value; Engine.regenerate(); };
+    const sel=$('#b-len');
+    if(sel) sel.onchange=()=>{ this._customInput=''; Engine.regenerate(); };
   },
   /* 逐字出现动画辅助 */
   typeChars(text){
@@ -1047,9 +1047,19 @@ MOD.base = {
   },
   /* ========== 按权展开法（其他进制 → 十进制） ========== */
   genExpand(srcB){
-    const len=+$('#b-len').value || 3;
-    let digits=randDigits(srcB,len);
-    if(digits[0]==='0') digits=DIGITS[randInt(1,srcB-1)]+digits.slice(1);
+    const customEl=$('#b-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let digits;
+    const validChars = DIGITS.slice(0,srcB).join('');
+    const re = new RegExp('^['+validChars+']+$','i');
+    if(custom && re.test(custom) && custom.length<=6){
+      digits=custom.toUpperCase();
+      this._customInput=custom;
+    }else{
+      const len=+$('#b-len').value || 3;
+      digits=randDigits(srcB,len);
+      if(digits[0]==='0') digits=DIGITS[randInt(1,srcB-1)]+digits.slice(1);
+    }
     const dec=fromBase(digits,srcB);
     const steps=[];
     const label=`${B[srcB]} → 十进制`;
@@ -1116,9 +1126,17 @@ MOD.base = {
   },
   /* ========== 除基取余法（十进制 → 其他进制） ========== */
   genDivide(dstB){
-    const size=$('#b-len').value || 'small';
-    const range={small:[10,99],medium:[100,499],large:[500,999]}[size]||[10,99];
-    const dec=randInt(range[0],range[1]);
+    const customEl=$('#b-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let dec;
+    if(custom && /^\d{1,4}$/.test(custom) && +custom>0){
+      dec=+custom;
+      this._customInput=custom;
+    }else{
+      const size=$('#b-len').value || 'small';
+      const range={small:[10,99],medium:[100,499],large:[500,999]}[size]||[10,99];
+      dec=randInt(range[0],range[1]);
+    }
     const steps=[];
     const label=`十进制 → ${B[dstB]}`;
     // 预计算所有行
@@ -1180,9 +1198,17 @@ MOD.base = {
   },
   /* ========== 二进制分组转换（二 → 八/十六） ========== */
   genBinGroup(groupSize,dstB){
-    const len=+$('#b-len').value || (groupSize+1);
-    let digits=randDigits(2,len);
-    if(digits[0]==='0') digits='1'+digits.slice(1);
+    const customEl=$('#b-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let digits;
+    if(custom && /^[01]+$/.test(custom) && custom.length<=12){
+      digits=custom;
+      this._customInput=custom;
+    }else{
+      const len=+$('#b-len').value || (groupSize+1);
+      digits=randDigits(2,len);
+      if(digits[0]==='0') digits='1'+digits.slice(1);
+    }
     const dec=fromBase(digits,2);
     const ans=toBase(dec,dstB);
     const padded=digits.padStart(Math.ceil(digits.length/groupSize)*groupSize,'0');
@@ -1247,9 +1273,19 @@ MOD.base = {
   /* ========== 逐位展开（八/十六 → 二） ========== */
   genToBin(srcB){
     const groupSize=srcB===8?3:4;
-    const len=+$('#b-len').value || 2;
-    let digits=randDigits(srcB,len);
-    if(digits[0]==='0') digits=DIGITS[randInt(1,srcB-1)]+digits.slice(1);
+    const customEl=$('#b-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let digits;
+    const validChars = DIGITS.slice(0,srcB).join('');
+    const re = new RegExp('^['+validChars+']+$','i');
+    if(custom && re.test(custom) && custom.length<=4){
+      digits=custom.toUpperCase();
+      this._customInput=custom;
+    }else{
+      const len=+$('#b-len').value || 2;
+      digits=randDigits(srcB,len);
+      if(digits[0]==='0') digits=DIGITS[randInt(1,srcB-1)]+digits.slice(1);
+    }
     const dec=fromBase(digits,srcB);
     const ans=toBase(dec,2);
     const bitGroups=[...digits].map(d=>{
@@ -1392,30 +1428,29 @@ MOD.enc = {
   settingsHTML(){
     const sub=this.currentSub;
     if(sub==='ascii'){
-      const cur=$('#e-ascii')?$('#e-ascii').value:'upper';
-      return `<div class="inline-setting"><div class="setting"><label>字符类型</label>
+      const curChar=$('#e-ascii-custom')?$('#e-ascii-custom').value:(this._customChar||'');
+      return `<div class="inline-setting"><div class="setting"><label>输入字符</label>
+        <input type="text" id="e-ascii-custom" value="${esc(curChar)}" placeholder="如 A、a、5、?" maxlength="1" style="width:clamp(60px,10vw,80px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>或随机类型</label>
         <select id="e-ascii">
-          <option value="upper" ${cur==='upper'?'selected':''}>大写字母</option>
-          <option value="lower" ${cur==='lower'?'selected':''}>小写字母</option>
-          <option value="digit" ${cur==='digit'?'selected':''}>数字</option>
-          <option value="symbol" ${cur==='symbol'?'selected':''}>符号</option>
+          <option value="upper">大写字母</option>
+          <option value="lower">小写字母</option>
+          <option value="digit">数字</option>
+          <option value="symbol">符号</option>
         </select></div></div>`;
     }
     if(sub==='bcd'){
-      const cur=$('#e-bcd-len')?$('#e-bcd-len').value:'3';
-      return `<div class="inline-setting"><div class="setting"><label>数字位数</label>
-        <select id="e-bcd-len">
-          <option value="2" ${cur==='2'?'selected':''}>2 位</option>
-          <option value="3" ${cur==='3'?'selected':''}>3 位</option>
-        </select></div></div>`;
+      const curNum=$('#e-bcd-custom')?$('#e-bcd-custom').value:(this._customNum||'');
+      return `<div class="inline-setting"><div class="setting"><label>输入十进制数</label>
+        <input type="text" id="e-bcd-custom" value="${esc(curNum)}" placeholder="如 256" maxlength="4" style="width:clamp(70px,12vw,90px)"></div></div>`;
     }
     if(sub==='hanzi'){
-      const cur=$('#e-hanzi-level')?$('#e-hanzi-level').value:'common';
-      return `<div class="inline-setting"><div class="setting"><label>区位范围</label>
-        <select id="e-hanzi-level">
-          <option value="common" ${cur==='common'?'selected':''}>常用字（区号 16~55）</option>
-          <option value="rare" ${cur==='rare'?'selected':''}>次常用字（区号 56~87）</option>
-        </select></div></div>`;
+      const curQ=$('#e-hanzi-q')?$('#e-hanzi-q').value:(this._customQ||'');
+      const curW=$('#e-hanzi-w')?$('#e-hanzi-w').value:(this._customW||'');
+      return `<div class="inline-setting"><div class="setting"><label>区号</label>
+        <input type="text" id="e-hanzi-q" value="${esc(curQ)}" placeholder="16~87" maxlength="2" style="width:clamp(50px,8vw,65px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>位号</label>
+        <input type="text" id="e-hanzi-w" value="${esc(curW)}" placeholder="1~94" maxlength="2" style="width:clamp(50px,8vw,65px)"></div></div>`;
     }
     if(sub==='font'){
       const curS=$('#e-font-size')?$('#e-font-size').value:'16';
@@ -1427,17 +1462,15 @@ MOD.enc = {
           <option value="32" ${curS==='32'?'selected':''}>32 × 32</option>
         </select></div></div>
       <div class="inline-setting"><div class="setting"><label>汉字数量</label>
-        <select id="e-font-count">
-          <option value="500" ${curC==='500'?'selected':''}>500 字</option>
-          <option value="1000" ${curC==='1000'?'selected':''}>1000 字</option>
-          <option value="2000" ${curC==='2000'?'selected':''}>2000 字</option>
-        </select></div></div>`;
+        <input type="text" id="e-font-count" value="${esc(curC)}" placeholder="如 1000" maxlength="5" style="width:clamp(60px,10vw,80px)"></div></div>`;
     }
     return '';
   },
   afterSettings(){
     const bind=id=>{ const el=$('#'+id); if(el) el.onchange=()=>Engine.reload(); };
-    ['e-ascii','e-bcd-len','e-hanzi-level','e-font-size','e-font-count'].forEach(bind);
+    const bindInput=id=>{ const el=$('#'+id); if(el) el.onchange=()=>Engine.reload(); };
+    ['e-ascii','e-font-size'].forEach(bind);
+    ['e-ascii-custom','e-bcd-custom','e-hanzi-q','e-hanzi-w','e-font-count'].forEach(bindInput);
   },
   /* 逐字出现动画辅助 */
   typeChars(text){
@@ -1445,16 +1478,19 @@ MOD.enc = {
   },
   /* ========== ASCII 码值：字符 → 十进制 → 二进制 → 十六进制 ========== */
   genAscii(){
-    const el=$('#e-ascii');
-    const group=el?el.value:'upper';
-    const pools={
-      upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      lower:'abcdefghijklmnopqrstuvwxyz',
-      digit:'0123456789',
-      symbol:'!?#@%&*()/-'
-    };
-    const pool=pools[group]||pools.upper;
-    const ch=pick([...pool]);
+    const customEl=$('#e-ascii-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let ch;
+    if(custom && custom.length>0){
+      ch=custom[0];
+      this._customChar=ch;
+    }else{
+      const el=$('#e-ascii');
+      const group=el?el.value:'upper';
+      const pools={upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',lower:'abcdefghijklmnopqrstuvwxyz',digit:'0123456789',symbol:'!?#@%&*()/-'};
+      const pool=pools[group]||pools.upper;
+      ch=pick([...pool]);
+    }
     const code=ch.charCodeAt(0);
     const bin=code.toString(2).padStart(8,'0');
     const hex=code.toString(16).toUpperCase().padStart(2,'0');
@@ -1466,6 +1502,13 @@ MOD.enc = {
     while(temp>0){
       const q=Math.floor(temp/2), r=temp%2;
       rows.push({n:temp,q,r}); temp=q;
+    }
+    /* 生成 ASCII 码表片段（当前字符前后各3个） */
+    const tableStart=Math.max(32, code-3);
+    const tableEnd=Math.min(126, code+3);
+    const tableRows=[];
+    for(let c=tableStart;c<=tableEnd;c++){
+      tableRows.push({ch:String.fromCharCode(c), code:c, isCur:c===code});
     }
     const steps=[];
     /* 步骤1：写出字符 */
@@ -1479,18 +1522,17 @@ MOD.enc = {
             <span class="caret pen"></span>
           </div>`;
       }});
-    /* 步骤2：查表得十进制码值 */
+    /* 步骤2：查表得十进制码值（带码表片段） */
     steps.push({desc:`查 ASCII 码表：字符 <b class="c-op">${ch}</b> 对应的十进制码值 = <b class="c-op">${code}</b>。`,
       draw:()=>{
+        const tableHtml=`<table class="exp-table" style="margin:10px auto;max-width:500px">
+          <tr><th>字符</th>${tableRows.map(r=>`<th class="${r.isCur?'cur':''}">${r.ch===' '?'␣':esc(r.ch)}</th>`).join('')}</tr>
+          <tr><th>十进制</th>${tableRows.map(r=>`<td class="${r.isCur?'cur':''}">${r.code}</td>`).join('')}</tr>
+        </table>`;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">查码表</span></div>
-          <div class="step-title"><span class="st-dot"></span>对照 ASCII 码表</div>
-          <div class="exp-inline" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px">
-            <span class="term cur" style="font-size:clamp(15px,2.2vw,19px)">"${esc(ch)}"</span>
-            <span class="op">→</span>
-            <span class="term write-in" style="animation-delay:.25s;color:#22C55E;font-weight:700;font-size:clamp(15px,2.2vw,19px)">${code}<sub style="font-size:.55em;color:#94A3B8">十进制</sub></span>
-            <span class="caret pen" style="margin-left:6px"></span>
-          </div>
-          <div class="annot" style="margin-top:10px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
+          <div class="step-title"><span class="st-dot"></span>对照 ASCII 码表（当前字符高亮）</div>
+          ${tableHtml}
+          <div class="annot" style="margin-top:6px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
             常见对照：A=65，a=97，0=48；本字符查表得 <b>${code}</b>。
           </div>`;
       }});
@@ -1503,10 +1545,12 @@ MOD.enc = {
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">除 2 取余</span></div>
           <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
           <div class="div-vertical" style="margin-bottom:10px">${rowsHtml}</div>
-          <div class="annot" style="padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
-            <b>余数收集</b>（从下往上读）：
-            ${rows.slice().reverse().map(rd=>`<span class="chip g" style="margin:0 2px;font-size:clamp(12px,1.6vw,15px)">${rd.r}</span>`).join('')}
-            <span class="up-arrow" style="margin-left:8px">↑ 逆序 = ${bin}</span>
+          <div class="calc-process">
+            <div class="cp-label">余数逆序收集</div>
+            <div class="cp-sum-line">
+              余数从下往上：${rows.slice().reverse().map(rd=>`<span style="color:var(--accent);font-weight:700">${rd.r}</span>`).join(' ')}
+              <span class="eq">=</span> <span class="sum">${bin}</span>
+            </div>
           </div>`;
       }});
     /* 步骤4：十六进制 + 最终结果 */
@@ -1526,16 +1570,23 @@ MOD.enc = {
   },
   /* ========== BCD 编码：十进制数逐位转 4 位二进制 ========== */
   genBcd(){
-    const el=$('#e-bcd-len');
-    const len=el?+el.value:3;
-    const num=randInt(Math.pow(10,len-1),Math.pow(10,len)-1);
+    const customEl=$('#e-bcd-custom');
+    const custom=customEl?customEl.value.trim():'';
+    let num;
+    if(custom && /^\d{1,4}$/.test(custom)){
+      num=parseInt(custom);
+      this._customNum=custom;
+    }else{
+      num=randInt(10,999);
+    }
     const digits=String(num).split('');
     const bits=digits.map(d=>parseInt(d).toString(2).padStart(4,'0'));
     const bcd=bits.join('');
     const label='BCD 编码';
+    const weights=[8,4,2,1];
     const steps=[];
     /* 步骤1：写出十进制数 */
-    steps.push({desc:`写出十进制数 <b class="c-op">${num}</b>；BCD 编码规定：每位十进制数用 <b>4 位二进制</b>表示。`,
+    steps.push({desc:`写出十进制数 <b class="c-op">${num}</b>；BCD 编码规定：每位十进制数用 <b>4 位二进制</b>表示（8421 码）。`,
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${num}</span></div>
           <div class="step-title"><span class="st-dot"></span>待编码的十进制数</div>
@@ -1543,35 +1594,50 @@ MOD.enc = {
             <div class="group-box">
               ${digits.map((d,i)=>`<span class="grp write-in" style="animation-delay:${i*0.1}s">${d}</span>`).join('')}
             </div>
-            <div style="margin-top:10px;font-size:clamp(11px,1.4vw,12.5px);color:#94A3B8">每位 → 4 位二进制</div>
+            <div style="margin-top:10px;font-size:clamp(11px,1.4vw,12.5px);color:#94A3B8">每位 → 4 位二进制（8421 权）</div>
           </div>`;
       }});
     /* 步骤2：列出数位对照表 */
-    steps.push({desc:`列出每一位十进制数码，逐位转换为 4 位二进制（0→0000，9→1001）。`,
+    steps.push({desc:`列出每一位十进制数码，逐位按 8421 权展开转换为 4 位二进制（0→0000，9→1001）。`,
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">列出数位</span></div>
-          <div class="step-title"><span class="st-dot"></span>数位对照</div>
+          <div class="step-title"><span class="st-dot"></span>数位对照（8421 BCD 码）</div>
           <table class="exp-table">
             <tr><th>十进制位</th>${digits.map((d,i)=>`<th class="write-in" style="animation-delay:${i*0.08}s">${d}</th>`).join('')}</tr>
             <tr><th>BCD(4位)</th>${digits.map(()=>`<td class="empty">?</td>`).join('')}</tr>
           </table>
           <div class="annot" style="margin-top:8px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
-            参考对照：0→0000，1→0001，…，9→1001
+            8421 权：8+4+2+1，每位十进制数 = 各位权值之和
           </div>`;
       }});
-    /* 步骤3~N：逐位转换 */
+    /* 步骤3~N：逐位转换（带8421权展开） */
     let bcdSnap='';
     digits.forEach((d,i)=>{
       bcdSnap+=bits[i];
       const snap=bcdSnap, idx=i;
-      steps.push({desc:`第 ${i+1} 位 <b class="c-op">${d}</b> → 4 位二进制 <b class="c-op">${bits[i]}</b>；当前已拼接 BCD 码 = <b class="c-op">${snap}</b>${i<digits.length-1?' …':''}。`,
+      const dv=parseInt(d);
+      const activeWeights=weights.filter(w=>(dv & w)!==0);
+      const calcHTML=`<div class="calc-process">
+        <div class="cp-label">第 ${idx+1} 位「${d}」的 8421 权展开</div>
+        <div class="cp-sum-line" style="margin-bottom:5px">
+          位权：<span style="color:var(--accent)">8</span> <span style="color:var(--accent)">4</span> <span style="color:var(--accent)">2</span> <span style="color:var(--accent)">1</span>
+        </div>
+        <div class="cp-sum-line" style="margin-bottom:5px">
+          二进制：${bits[idx].split('').map((b,k)=>`<span style="color:${b==='1'?'var(--orange)':'#CBD5E1'};font-weight:700">${b}</span>`).join(' ')}
+        </div>
+        <div class="cp-sum-line" style="background:#FFF4DB">
+          ${activeWeights.length?activeWeights.join(' + ')+' = ':'0 = '}<span class="sum">${d}</span>
+        </div>
+      </div>`;
+      steps.push({desc:`第 ${i+1} 位 <b class="c-op">${d}</b>：8421 权展开 ${activeWeights.join('+')||'0'} = ${d} → 4 位二进制 <b class="c-op">${bits[i]}</b>；已拼接 = <b class="c-op">${snap}</b>。`,
         draw:()=>{
           $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">第 ${idx+1}/${digits.length} 位</span></div>
-            <div class="step-title"><span class="st-dot"></span>逐位编码</div>
+            <div class="step-title"><span class="st-dot"></span>逐位编码（8421 权展开）</div>
             <table class="exp-table">
               <tr><th>十进制位</th>${digits.map(x=>`<th>${x}</th>`).join('')}</tr>
               <tr><th>BCD(4位)</th>${digits.map((x,j)=>`<td class="${j<idx?'done':j===idx?'cur':'empty'}">${j<=idx?bits[j]:'?'}</td>`).join('')}</tr>
             </table>
+            ${calcHTML}
             <div class="exp-inline" style="display:inline-block;margin-top:8px">
               <span class="term cur">${d}</span><span class="op">=</span><span class="term cur">${bits[idx]}</span>
               <span class="op">→</span><span class="term">BCD = <b style="color:#4F6BFF">${snap}</b>${idx<digits.length-1?' …':''}</span>
@@ -1596,10 +1662,20 @@ MOD.enc = {
   },
   /* ========== 区位码 → 国标码 → 机内码 ========== */
   genHanzi(){
-    const el=$('#e-hanzi-level');
-    const lv=el?el.value:'common';
-    const qh=lv==='rare'?randInt(56,87):randInt(16,55);
-    const wh=randInt(1,94);
+    const qEl=$('#e-hanzi-q'), wEl=$('#e-hanzi-w');
+    const qCustom=qEl?qEl.value.trim():'';
+    const wCustom=wEl?wEl.value.trim():'';
+    let qh, wh;
+    if(qCustom && /^\d+$/.test(qCustom) && +qCustom>=1 && +qCustom<=94){
+      qh=+qCustom; this._customQ=qCustom;
+    }else{
+      qh=randInt(16,55);
+    }
+    if(wCustom && /^\d+$/.test(wCustom) && +wCustom>=1 && +wCustom<=94){
+      wh=+wCustom; this._customW=wCustom;
+    }else{
+      wh=randInt(1,94);
+    }
     const qhHex=qh.toString(16).toUpperCase().padStart(2,'0');
     const whHex=wh.toString(16).toUpperCase().padStart(2,'0');
     const gbQ=(qh+0x20).toString(16).toUpperCase().padStart(2,'0');
@@ -1607,6 +1683,15 @@ MOD.enc = {
     const neiQ=(qh+0xA0).toString(16).toUpperCase().padStart(2,'0');
     const neiW=(wh+0xA0).toString(16).toUpperCase().padStart(2,'0');
     const label='区位码 → 国标码 → 机内码';
+    /* 除16取余竖式 */
+    const div16=(n)=>{
+      const rows=[];
+      let t=n;
+      if(t===0) rows.push({n:0,q:0,r:'0'});
+      while(t>0){ const q=Math.floor(t/16),r=t%16; rows.push({n:t,q,r:r.toString(16).toUpperCase()}); t=q; }
+      return rows;
+    };
+    const qRows=div16(qh), wRows=div16(wh);
     const steps=[];
     /* 步骤1：写出区位号 */
     steps.push({desc:`某汉字的区位码：区号 <b class="c-op">${qh}</b>，位号 <b class="c-op">${wh}</b>（均为十进制）。`,
@@ -1620,19 +1705,23 @@ MOD.enc = {
             </div>
           </div>`;
       }});
-    /* 步骤2：区、位分别转十六进制 */
-    steps.push({desc:`区号、位号分别换算为十六进制：<b class="c-op">${qh}</b> → ${qhHex}H，<b class="c-op">${wh}</b> → ${whHex}H。`,
+    /* 步骤2：区、位分别转十六进制（除16取余） */
+    steps.push({desc:`区号、位号分别<b>除以 16 取余</b>换算为十六进制：<b class="c-op">${qh}</b> → ${qhHex}H，<b class="c-op">${wh}</b> → ${whHex}H。`,
       draw:()=>{
+        const renderDiv=(rows,title)=>`<div style="flex:1;min-width:0">
+          <div style="font-size:clamp(10px,1.2vw,12px);font-weight:700;color:var(--text-3);margin-bottom:4px;text-align:center">${title}</div>
+          <div class="div-vertical" style="margin-bottom:6px">
+            ${rows.map((rd,i)=>`<div class="dv-row write-in ${i===rows.length-1?'cur':''}" style="animation-delay:${i*0.08}s">
+              <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">16</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>
+            </div>`).join('')}
+          </div>
+          <div style="text-align:center;font-size:clamp(11px,1.4vw,12.5px);color:#22C55E;font-weight:700">余数逆序 = ${rows.slice().reverse().map(r=>r.r).join('')}H</div>
+        </div>`;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">转十六进制</span></div>
-          <div class="step-title"><span class="st-dot"></span>区位码（十进制 → 十六进制）</div>
-          <table class="exp-table" style="max-width:420px;margin:0 auto">
-            <tr><th>项</th><th>十进制</th><th>十六进制</th></tr>
-            <tr><th>区号</th><td>${qh}</td><td class="cur write-in" style="animation-delay:.2s">${qhHex}H</td></tr>
-            <tr><th>位号</th><td>${wh}</td><td class="cur write-in" style="animation-delay:.35s">${whHex}H</td></tr>
-          </table>
-          <div class="exp-inline" style="display:inline-block;margin-top:10px">
-            <span class="term done">${qh} → ${qhHex}H</span><span class="op">，</span>
-            <span class="term done">${wh} → ${whHex}H</span>
+          <div class="step-title"><span class="st-dot"></span>区位码（十进制 → 十六进制）· 除16取余</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            ${renderDiv(qRows,`区号 ${qh} ÷16`)}
+            ${renderDiv(wRows,`位号 ${wh} ÷16`)}
           </div>`;
       }});
     /* 步骤3：+2020H 得国标码 */
@@ -1640,13 +1729,10 @@ MOD.enc = {
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+2020H</span></div>
           <div class="step-title"><span class="st-dot"></span>求国标码（区位码 + 2020H）</div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${qhHex}H</span><span class="op">+ 20H =</span>
-            <span class="term cur write-in" style="animation-delay:.2s">${gbQ}H</span>
-          </div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${whHex}H</span><span class="op">+ 20H =</span>
-            <span class="term cur write-in" style="animation-delay:.4s">${gbW}H</span>
+          <div class="calc-process">
+            <div class="cp-label">十六进制加法（区、位分别 +20H）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">${qhHex}H <span class="op">+ 20H</span> <span class="eq">=</span> <span class="sum">${gbQ}H</span></div>
+            <div class="cp-sum-line">${whHex}H <span class="op">+ 20H</span> <span class="eq">=</span> <span class="sum">${gbW}H</span></div>
           </div>
           <div class="write-result">国标码 = ${gbQ} ${gbW}H</div>`;
       }});
@@ -1655,13 +1741,10 @@ MOD.enc = {
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+8080H</span></div>
           <div class="step-title"><span class="st-dot"></span>求机内码（国标码 + 8080H）</div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${gbQ}H</span><span class="op">+ 80H =</span>
-            <span class="term cur write-in" style="animation-delay:.2s">${neiQ}H</span>
-          </div>
-          <div class="exp-inline" style="display:block;margin:6px 0">
-            <span class="term done">${gbW}H</span><span class="op">+ 80H =</span>
-            <span class="term cur write-in" style="animation-delay:.4s">${neiW}H</span>
+          <div class="calc-process">
+            <div class="cp-label">十六进制加法（区、位分别 +80H）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">${gbQ}H <span class="op">+ 80H</span> <span class="eq">=</span> <span class="sum">${neiQ}H</span></div>
+            <div class="cp-sum-line">${gbW}H <span class="op">+ 80H</span> <span class="eq">=</span> <span class="sum">${neiW}H</span></div>
           </div>
           <div class="write-result">区位 ${qh} ${wh} → 国标 ${gbQ}${gbW}H → 机内 ${neiQ}${neiW}H（2 字节）</div>`;
       }});
@@ -1784,14 +1867,15 @@ MOD.media = {
   currentSub:'audio',
   subTabs:[
     {id:'audio',label:'音频容量',method:'时长×采样率×位深×声道÷8'},
-    {id:'video',label:'视频容量',method:'时长×帧率×宽×高×位深÷8'}
+    {id:'video',label:'视频容量',method:'时长×帧率×宽×高×位深÷8'},
+    {id:'image',label:'图像编码',method:'采样·量化·宽×高×位深÷8'}
   ],
   theory(){
     return `<div class="rule"><b>音频容量</b> = 时长(秒) × 采样率(Hz) × 位深(bit) × 声道数 ÷ 8（字节）</div>
     <div class="rule"><b>视频容量</b> = 时长(秒) × 帧率(fps) × 宽 × 高 × 位深(bit) ÷ 8（字节）</div>
-    <div class="rule"><b>单位换算</b>：1 KB = 1024 B，1 MB = 1024 KB，1 GB = 1024 MB。</div>
-    <div class="rule">位深：每个采样点/像素用多少 bit 表示；除以 8 是把 bit 换成字节。</div>
-    <div class="rule">常见采样率：电话 8kHz、广播 22.05kHz、CD 44.1kHz、专业 48kHz；视频位深常见 24 bit。</div>`;
+    <div class="rule"><b>图像容量</b> = 宽 × 高 × 位深(bit) ÷ 8（字节）；位深=每个像素的颜色位数，24位=真彩色。</div>
+    <div class="rule"><b>图像编码三步</b>：①采样（把连续图像分成像素网格）②量化（把颜色值离散化为有限级别）③编码（按位存储像素数据）。</div>
+    <div class="rule"><b>单位换算</b>：1 KB = 1024 B，1 MB = 1024 KB，1 GB = 1024 MB。</div>`;
   },
   settingsHTML(){
     const sub=this.currentSub;
@@ -1848,11 +1932,26 @@ MOD.media = {
           <option value="1920x1080" ${curR==='1920x1080'?'selected':''}>1920×1080</option>
         </select></div></div>`;
     }
+    if(sub==='image'){
+      const curW=$('#md-i-w')?$('#md-i-w').value:'800';
+      const curH=$('#md-i-h')?$('#md-i-h').value:'600';
+      const curB=$('#md-i-bits')?$('#md-i-bits').value:'24';
+      return `<div class="inline-setting"><div class="setting"><label>宽度</label>
+        <input type="text" id="md-i-w" value="${esc(curW)}" style="width:clamp(50px,8vw,65px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>高度</label>
+        <input type="text" id="md-i-h" value="${esc(curH)}" style="width:clamp(50px,8vw,65px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>位深</label>
+        <select id="md-i-bits">
+          <option value="1" ${curB==='1'?'selected':''}>1 bit(黑白)</option>
+          <option value="8" ${curB==='8'?'selected':''}>8 bit(256色)</option>
+          <option value="24" ${curB==='24'?'selected':''}>24 bit(真彩)</option>
+        </select></div></div>`;
+    }
     return '';
   },
   afterSettings(){
     const bind=id=>{ const el=$('#'+id); if(el) el.onchange=()=>Engine.reload(); };
-    ['md-a-time','md-a-sr','md-a-bits','md-a-ch','md-v-time','md-v-fps','md-v-res'].forEach(bind);
+    ['md-a-time','md-a-sr','md-a-bits','md-a-ch','md-v-time','md-v-fps','md-v-res','md-i-w','md-i-h','md-i-bits'].forEach(bind);
   },
   /* 字节 → 易读单位 */
   humanSize(bytes){
@@ -2021,6 +2120,87 @@ MOD.media = {
       }});
     return steps;
   },
+  /* ========== 图像编码：采样 → 量化 → 容量计算 ========== */
+  genImage(){
+    const wEl=$('#md-i-w'), hEl=$('#md-i-h'), bEl=$('#md-i-bits');
+    const w=wEl&&/^\d+$/.test(wEl.value)?+wEl.value:800;
+    const h=hEl&&/^\d+$/.test(hEl.value)?+hEl.value:600;
+    const bits=bEl?+bEl.value:24;
+    const pixels=w*h;
+    const totalBits=pixels*bits;
+    const bytes=totalBits/8;
+    const hh=this.humanSize(bytes);
+    const label='图像编码';
+    const steps=[];
+    steps.push({desc:`<b>第一步：采样</b>。将连续图像划分为 ${w} × ${h} = <b class="c-op">${pixels.toLocaleString()}</b> 个像素（采样点），每个像素用固定位数表示颜色。`,
+      draw:()=>{
+        const gridW=Math.min(w,20), gridH=Math.min(h,15);
+        let cells='';
+        for(let r=0;r<gridH;r++){
+          for(let c=0;c<gridW;c++){
+            const shade=180+Math.floor((r+c)*3)%60;
+            cells+=`<div style="width:100%;aspect-ratio:1;background:rgb(${shade},${shade},${shade+10})"></div>`;
+          }
+        }
+        $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">采样</span></div>
+          <div class="step-title"><span class="st-dot"></span>第一步：采样（像素网格）</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <div style="flex:1;min-width:120px;max-width:200px;margin:0 auto">
+              <div style="display:grid;grid-template-columns:repeat(${gridW},1fr);gap:1px;border:1px solid var(--border);border-radius:6px;overflow:hidden">${cells}</div>
+              <div style="text-align:center;font-size:10px;color:#94A3B8;margin-top:4px">${gridW}×${gridH} 示意（实际 ${w}×${h}）</div>
+            </div>
+            <div class="calc-process" style="flex:1;min-width:140px;margin:0">
+              <div class="cp-label">采样计算</div>
+              <div class="cp-sum-line" style="margin-bottom:5px">宽 × 高 = 像素总数</div>
+              <div class="cp-sum-line">${w} × ${h} <span class="eq">=</span> <span class="sum">${pixels.toLocaleString()}</span> 像素</div>
+            </div>
+          </div>`;
+      }});
+    const colorLevels=Math.pow(2,bits);
+    const colorDesc=bits===1?'黑白二值':bits===8?'256级灰度':bits===24?'真彩色(1677万色)':`${colorLevels}色`;
+    steps.push({desc:`<b>第二步：量化</b>。每个像素用 <b class="c-op">${bits} bit</b> 表示颜色，可表示 ${colorLevels.toLocaleString()} 种颜色（${colorDesc}）；位深越大，颜色越丰富。`,
+      draw:()=>{
+        const bars=[];
+        const n=Math.min(8,bits===1?2:bits===8?8:6);
+        for(let i=0;i<n;i++){
+          const v=Math.floor(255*i/(n-1||1));
+          bars.push(`<div style="flex:1;height:24px;background:rgb(${v},${v},${v})" title="灰度 ${v}"></div>`);
+        }
+        $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">量化</span></div>
+          <div class="step-title"><span class="st-dot"></span>第二步：量化（颜色级别）</div>
+          <div style="display:flex;gap:2px;margin:10px 0;border-radius:6px;overflow:hidden">${bars.join('')}</div>
+          <div class="calc-process">
+            <div class="cp-label">量化级别</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">位深 ${bits} bit → 2<sup>${bits}</sup> 种颜色</div>
+            <div class="cp-sum-line">2<sup>${bits}</sup> <span class="eq">=</span> <span class="sum">${colorLevels.toLocaleString()}</span> 色（${colorDesc}）</div>
+          </div>`;
+      }});
+    steps.push({desc:`<b>第三步：编码</b>。总数据量 = 像素数 × 位深 = ${pixels.toLocaleString()} × ${bits} = <b class="c-op">${totalBits.toLocaleString()}</b> bit，除以 8 得 <b class="c-op">${bytes.toLocaleString()}</b> 字节。`,
+      draw:()=>{
+        $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">编码·容量</span></div>
+          <div class="step-title"><span class="st-dot"></span>第三步：编码（容量计算）</div>
+          <div class="calc-process" style="margin:10px 0">
+            <div class="cp-label">图像容量公式</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">像素数 × 位深 ÷ 8 = 字节数</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">${pixels.toLocaleString()} × ${bits} <span class="eq">=</span> ${totalBits.toLocaleString()} bit</div>
+            <div class="cp-sum-line">${totalBits.toLocaleString()} ÷ 8 <span class="eq">=</span> <span class="sum">${bytes.toLocaleString()} B</span></div>
+          </div>
+          <div class="exp-inline" style="display:inline-block">
+            <span class="term done">${bytes.toLocaleString()} B</span><span class="op">≈</span>
+            <span class="term cur">${hh[0].toFixed(2)} ${hh[1]}</span>
+          </div>`;
+      }});
+    steps.push({desc:`图像编码完成：${w}×${h} 像素、${bits} bit 位深的未压缩图像，容量 = <b class="c-op">${bytes.toLocaleString()}</b> 字节 ≈ <b class="c-op">${hh[0].toFixed(2)} ${hh[1]}</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">完成</span></div>
+          <div class="step-title"><span class="st-dot"></span>图像编码结果</div>
+          <div class="write-result">${w}×${h} 像素 × ${bits} bit ÷ 8 = ${bytes.toLocaleString()} B ≈ ${hh[0].toFixed(2)} ${hh[1]}（未压缩 BMP）</div>
+          <div class="annot" style="text-align:center;margin-top:8px;padding:6px 10px;background:#F8FAFC;border-radius:8px;display:inline-block">
+            采样 → 量化 → 编码，三步完成图像数字化
+          </div>`;
+      }});
+    return steps;
+  },
   /* 初始化演示画布（切换子页面时清空旧内容） */
   initStage(){
     const sub=this.currentSub;
@@ -2040,6 +2220,7 @@ MOD.media = {
     switch(sub){
       case 'audio': this.steps=this.genAudio(); break;
       case 'video': this.steps=this.genVideo(); break;
+      case 'image': this.steps=this.genImage(); break;
       default: this.steps=this.genAudio();
     }
   }
@@ -2562,7 +2743,8 @@ MOD.excel = {
     {id:'ref_rel', label:'相对引用', method:'行列都偏移'},
     {id:'ref_abs', label:'绝对引用', method:'行列都锁定'},
     {id:'ref_mix', label:'混合引用', method:'锁列或锁行'},
-    {id:'func',    label:'统计函数', method:'逐步求值'}
+    {id:'func',    label:'统计函数', method:'逐步求值'},
+    {id:'func_type', label:'函数与数据类型', method:'SUM对数值/日期/逻辑值'}
   ],
   theory(){
     return `<div class="rule"><b>相对引用</b>（如 A1）：复制时行号和列号都会随目标位置偏移，向右复制列 +1，向下复制行 +1。</div>
@@ -2570,7 +2752,8 @@ MOD.excel = {
     <div class="rule"><b>混合引用 $A1</b>：列绝对、行相对——列锁死不变，行随目标位置偏移。</div>
     <div class="rule"><b>混合引用 A$1</b>：列相对、行绝对——行锁死不变，列随目标位置偏移。</div>
     <div class="rule"><b>移动</b>公式（剪切粘贴）：无论哪种引用，引用地址都不变；只有<b>复制</b>时相对部分才会偏移。</div>
-    <div class="rule"><b>常用函数</b>：SUM 求和、AVERAGE 平均值、MAX 最大值、MIN 最小值。</div>`;
+    <div class="rule"><b>常用函数</b>：SUM 求和、AVERAGE 平均值、MAX 最大值、MIN 最小值。</div>
+    <div class="rule"><b>SUM 与数据类型</b>：区域引用 SUM(A1:A3) 会<b>忽略</b>单元格中的文本和逻辑值；直接写参数 SUM(TRUE,5) 时 TRUE=1、FALSE=0、文本数字会被转换；日期本质是序列号，会被当作数值相加。</div>`;
   },
   /* ---------- 参数区 ---------- */
   settingsHTML(){
@@ -2841,11 +3024,128 @@ MOD.excel = {
     return steps;
   },
 
+  /* ========== ⑤ func_type：SUM 与数据类型对比 ========== */
+  genFuncType(){
+    const steps = [];
+    /* 三组对比数据 */
+    const groupNum = { label:'纯数值', cells:[
+      {addr:'A1', val:'3',   type:'num',   seq:3},
+      {addr:'A2', val:'7',   type:'num',   seq:7},
+      {addr:'A3', val:'2',   type:'num',   seq:2}
+    ], sum:12 };
+    const groupDate = { label:'含日期', cells:[
+      {addr:'B1', val:'2024-01-01', type:'date', seq:45292},
+      {addr:'B2', val:'5',          type:'num',  seq:5},
+      {addr:'B3', val:'3',          type:'num',  seq:3}
+    ], sum:45300 };
+    const groupMixed = { label:'含逻辑值/文本', cells:[
+      {addr:'C1', val:'TRUE',  type:'bool',   seq:1, ignored:true},
+      {addr:'C2', val:'FALSE', type:'bool',   seq:0, ignored:true},
+      {addr:'C3', val:'"5"',   type:'text',   seq:5, ignored:true},
+      {addr:'C4', val:'3',     type:'num',    seq:3}
+    ], sum:3 };
+
+    /* 渲染一组数据的小表格 */
+    const miniGrid = (group, highlightIdx, showSeq)=>{
+      let html = `<div style="flex:1;min-width:0">
+        <div style="font-size:clamp(10px,1.2vw,12px);font-weight:700;color:var(--text-3);margin-bottom:4px;text-align:center">${group.label}</div>
+        <div class="xl-grid" style="grid-template-columns:30px 1fr">`;
+      group.cells.forEach((c,i)=>{
+        const cls = i===highlightIdx ? 'cur' : (showSeq && !c.ignored ? 'done' : '');
+        const display = showSeq && c.type==='date' ? c.seq : c.val;
+        html += `<div class="xl-cell hd" style="font-size:10px">${c.addr}</div>
+          <div class="xl-cell ${cls}" style="${c.ignored?'opacity:.45;text-decoration:line-through':''}">${display}</div>`;
+      });
+      html += `</div></div>`;
+      return html;
+    };
+
+    // 1. 三组数据并排展示
+    steps.push({ desc:`同样是 SUM 函数，数据类型不同，结果大不相同。对比三组数据：纯数值、含日期、含逻辑值/文本。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">对比三组数据</span></div>
+          <div class="step-title"><span class="st-dot"></span>三组数据并排对比（区域引用 SUM(范围)）</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            ${miniGrid(groupNum, -1, false)}
+            ${miniGrid(groupDate, -1, false)}
+            ${miniGrid(groupMixed, -1, false)}
+          </div>
+          <div class="annot" style="text-align:center;margin-top:8px">C1/C2 逻辑值、C3 文本数字在区域引用中会被 SUM 忽略</div>`;
+      }});
+
+    // 2. 第一组：纯数值
+    steps.push({ desc:`第一组「纯数值」：SUM(A1:A3) = 3 + 7 + 2 = <b class="c-op">12</b>，所有值都参与计算。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第1组：纯数值</span></div>
+          <div class="step-title"><span class="st-dot"></span>纯数值 — 全部参与计算</div>
+          ${miniGrid(groupNum, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(A1:A3) 计算过程</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">3 <span class="op">+</span> 7 <span class="op">+</span> 2 <span class="eq">=</span> <span class="sum">12</span></div>
+            <div class="cp-sum-line" style="background:#E8FBF0">数值型数据 → <b style="color:#15803D">全部参与求和</b></div>
+          </div>`;
+      }});
+
+    // 3. 第二组：含日期
+    steps.push({ desc:`第二组「含日期」：日期在 Excel 中本质是序列号（2024-01-01 = 45292），SUM 会把日期当数值相加：45292 + 5 + 3 = <b class="c-op">45300</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第2组：含日期</span></div>
+          <div class="step-title"><span class="st-dot"></span>日期 = 序列号，参与求和</div>
+          ${miniGrid(groupDate, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(B1:B3) 计算过程（日期转序列号）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">2024-01-01 → 序列号 <b style="color:var(--accent)">45292</b></div>
+            <div class="cp-sum-line" style="margin-bottom:5px">45292 <span class="op">+</span> 5 <span class="op">+</span> 3 <span class="eq">=</span> <span class="sum">45300</span></div>
+            <div class="cp-sum-line" style="background:#E8FBF0">日期型数据 → <b style="color:#15803D">转序列号后参与求和</b></div>
+          </div>`;
+      }});
+
+    // 4. 第三组：含逻辑值/文本（区域引用）
+    steps.push({ desc:`第三组「含逻辑值/文本」：区域引用 SUM(C1:C4) 中，TRUE/FALSE 逻辑值和 "5" 文本数字都被<b>忽略</b>，只有数值 3 参与计算，结果 = <b class="c-op">3</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第3组：含逻辑值/文本</span></div>
+          <div class="step-title"><span class="st-dot"></span>区域引用 — 逻辑值和文本被忽略</div>
+          ${miniGrid(groupMixed, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(C1:C4) 计算过程（区域引用）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px;opacity:.45;text-decoration:line-through">TRUE → 被忽略 &nbsp; FALSE → 被忽略 &nbsp; "5" → 被忽略</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">只有数值 3 参与 → <span class="sum">3</span></div>
+            <div class="cp-sum-line" style="background:#FEF2F2">区域引用中的逻辑值/文本 → <b style="color:#DC2626">被 SUM 忽略</b></div>
+          </div>`;
+      }});
+
+    // 5. 对比总结：直接参数 vs 区域引用
+    steps.push({ desc:`关键区别：<b>区域引用</b> SUM(A1:A4) 忽略逻辑值和文本；但<b>直接写参数</b> SUM(TRUE, FALSE, "5", 3) 时，TRUE=1、FALSE=0、"5"转数值5，结果 = 1+0+5+3 = <b class="c-op">9</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">关键区别</span></div>
+          <div class="step-title"><span class="st-dot"></span>区域引用 vs 直接参数 — 结果完全不同</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div class="calc-process" style="margin:0">
+                <div class="cp-label">区域引用 SUM(C1:C4)</div>
+                <div class="cp-sum-line" style="margin-bottom:5px;opacity:.45">TRUE FALSE "5" 被忽略</div>
+                <div class="cp-sum-line" style="background:#FEF2F2">结果 = <b style="color:#DC2626">3</b></div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <div class="calc-process" style="margin:0">
+                <div class="cp-label">直接参数 SUM(TRUE,FALSE,"5",3)</div>
+                <div class="cp-sum-line" style="margin-bottom:5px">TRUE=1, FALSE=0, "5"→5</div>
+                <div class="cp-sum-line" style="margin-bottom:5px">1 + 0 + 5 + 3 = 9</div>
+                <div class="cp-sum-line" style="background:#E8FBF0">结果 = <b style="color:#15803D">9</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="write-result">同样的数据，引用方式不同 → 结果不同！区域引用忽略逻辑值/文本，直接参数会转换它们。</div>`;
+      }});
+    return steps;
+  },
+
   /* ---------- 初始化画布 ---------- */
   initStage(){
     const sub = this.currentSub;
     const info = this.subTabs.find(t=>t.id===sub) || {};
-    const labelMap = { ref_rel:'相对引用复制', ref_abs:'绝对引用复制', ref_mix:'混合引用复制', func:'统计函数逐步求值' };
+    const labelMap = { ref_rel:'相对引用复制', ref_abs:'绝对引用复制', ref_mix:'混合引用复制', func:'统计函数逐步求值', func_type:'SUM与数据类型对比' };
     $('#stage').innerHTML = `<div class="stage-hd"><span>${labelMap[sub]||'Excel 公式'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:#22C55E">${info.method||''}</b></div>
@@ -2858,6 +3158,7 @@ MOD.excel = {
       case 'ref_abs': this.steps = this.genRefAbs(); break;
       case 'ref_mix': this.steps = this.genRefMix(); break;
       case 'func':    this.steps = this.genFunc(); break;
+      case 'func_type': this.steps = this.genFuncType(); break;
       default: this.steps = this.genRefRel();
     }
   }
@@ -2902,9 +3203,24 @@ MOD.pyexpr = {
     <div class="rule"><b>基本函数</b>：abs(x) 绝对值、len(x) 长度、max(a,b) 最大、min(a,b) 最小、int(x) 转整数、str(x) 转字符串。</div>`;
   },
   settingsHTML() {
-    return `<div class="inline-setting"><div class="setting"><label>变量取值</label><span class="val">自动随机生成</span></div></div>`;
+    const curA = this._varA || '';
+    const curB = this._varB || '';
+    return `<div class="inline-setting"><div class="setting"><label>变量 a</label>
+      <input type="text" id="pe-a" value="${esc(curA)}" placeholder="随机" style="width:clamp(50px,8vw,65px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>变量 b</label>
+      <input type="text" id="pe-b" value="${esc(curB)}" placeholder="随机" style="width:clamp(50px,8vw,65px)"></div></div>`;
   },
-  afterSettings() { /* 无动态参数；切换子页面由 tab 触发 Engine.reload() */ },
+  afterSettings() {
+    const a=$('#pe-a'), b=$('#pe-b');
+    if(a) a.onchange=()=>{ this._varA=a.value; Engine.reload(); };
+    if(b) b.onchange=()=>{ this._varB=b.value; Engine.reload(); };
+  },
+  /* 获取自定义变量值，无效则随机 */
+  getVar(defMin, defMax) {
+    const el = arguments[2];
+    if(el && el.value && /^-?\d+$/.test(el.value.trim())) return +el.value.trim();
+    return randInt(defMin, defMax);
+  },
   /* ---------- 通用画布辅助 ---------- */
   typeChars(text) {
     return [...String(text)].map((ch, i) => `<span class="char-in" style="animation-delay:${i * 0.05}s">${esc(ch)}</span>`).join('');
@@ -2926,7 +3242,10 @@ MOD.pyexpr = {
   },
   /* ========== arith：算术表达式 a + b * 2（先乘后加） ========== */
   genArith() {
-    const a = randInt(3, 9), b = randInt(2, 9);
+    const aEl=$('#pe-a'), bEl=$('#pe-b');
+    const a = aEl&&aEl.value&&/^-?\d+$/.test(aEl.value.trim())?+aEl.value.trim():randInt(3,9);
+    const b = bEl&&bEl.value&&/^-?\d+$/.test(bEl.value.trim())?+bEl.value.trim():randInt(2,9);
+    this._varA=String(a); this._varB=String(b);
     const prod = b * 2, sum = a + prod;
     const label = '算术表达式 · a + b * 2';
     const steps = [];
@@ -2971,7 +3290,10 @@ MOD.pyexpr = {
   },
   /* ========== func_pow：函数与幂 abs(c) + a ** 2 ========== */
   genFuncPow() {
-    const a = randInt(3, 9), c = randInt(-9, -1);
+    const aEl=$('#pe-a');
+    const a = aEl&&aEl.value&&/^-?\d+$/.test(aEl.value.trim())?+aEl.value.trim():randInt(3,9);
+    const c = randInt(-9, -1);
+    this._varA=String(a);
     const absC = Math.abs(c), pw = a * a, sum = absC + pw;
     const label = '函数与幂 · abs(c) + a ** 2';
     const steps = [];
@@ -3026,7 +3348,10 @@ MOD.pyexpr = {
   },
   /* ========== paren：括号与函数 (a + b) * 3 - max(a,b) ========== */
   genParen() {
-    const a = randInt(2, 9), b = randInt(2, 9);
+    const aEl=$('#pe-a'), bEl=$('#pe-b');
+    const a = aEl&&aEl.value&&/^-?\d+$/.test(aEl.value.trim())?+aEl.value.trim():randInt(2,9);
+    const b = bEl&&bEl.value&&/^-?\d+$/.test(bEl.value.trim())?+bEl.value.trim():randInt(2,9);
+    this._varA=String(a); this._varB=String(b);
     const inside = a + b, mx = Math.max(a, b), prod = inside * 3, ans = prod - mx;
     const label = '括号与函数 · (a + b) * 3 - max(a,b)';
     const steps = [];
@@ -3091,8 +3416,11 @@ MOD.pyexpr = {
   },
   /* ========== logic：比较与逻辑 a > b and c != 0 ========== */
   genLogic() {
-    const a = randInt(3, 9), b = randInt(2, 9);
+    const aEl=$('#pe-a'), bEl=$('#pe-b');
+    const a = aEl&&aEl.value&&/^-?\d+$/.test(aEl.value.trim())?+aEl.value.trim():randInt(3,9);
+    const b = bEl&&bEl.value&&/^-?\d+$/.test(bEl.value.trim())?+bEl.value.trim():randInt(2,9);
     const c = pick([-4, -3, -2, -1, 1, 2, 3, 4]);
+    this._varA=String(a); this._varB=String(b);
     const p1 = a > b, p2 = c !== 0, r = p1 && p2;
     const tf = v => v ? 'True' : 'False';
     const label = '比较与逻辑 · a > b and c != 0';
@@ -3149,7 +3477,10 @@ MOD.pyexpr = {
   /* ========== mod_len：取余与长度 len(s) + a % b ========== */
   genModLen() {
     const s = pick(['hello', 'world', 'python', 'code', 'data']);
-    const a = randInt(11, 20), b = randInt(3, 7);
+    const aEl=$('#pe-a'), bEl=$('#pe-b');
+    const a = aEl&&aEl.value&&/^-?\d+$/.test(aEl.value.trim())?+aEl.value.trim():randInt(11,20);
+    const b = bEl&&bEl.value&&/^-?\d+$/.test(bEl.value.trim())?+bEl.value.trim():randInt(3,7);
+    this._varA=String(a); this._varB=String(b);
     const len = s.length, rem = a % b, ans = len + rem;
     const label = '取余与长度 · len(s) + a % b';
     const steps = [];
@@ -3273,9 +3604,14 @@ MOD.pystruct = {
     <div class="rule"><b>print()</b>：输出函数，把内容显示到控制台；逗号分隔多个输出项。</div>`;
   },
   settingsHTML() {
-    return `<div class="inline-setting"><div class="setting"><label>程序代码</label><span class="val">自动生成</span></div></div>`;
+    const curN = this._loopN || '';
+    return `<div class="inline-setting"><div class="setting"><label>循环次数/初始值</label>
+      <input type="text" id="ps-n" value="${esc(curN)}" placeholder="如 5" style="width:clamp(50px,8vw,65px)"></div></div>`;
   },
-  afterSettings() { /* 无动态参数；切换子页面由 tab 触发 Engine.reload() */ },
+  afterSettings() {
+    const el=$('#ps-n');
+    if(el) el.onchange=()=>{ this._loopN=el.value; Engine.reload(); };
+  },
   /* ---------- 通用画布辅助 ---------- */
   tf(v) { return v ? 'True' : 'False'; },
   codeLines(lines, st) {
@@ -3343,7 +3679,9 @@ MOD.pystruct = {
   },
   /* ========== for：for 循环（range 遍历累加） ========== */
   genFor() {
-    const n = randInt(3, 5);
+    const nEl=$('#ps-n');
+    const n = nEl&&nEl.value&&/^\d+$/.test(nEl.value.trim())&&+nEl.value>=2&&+nEl.value<=8?+nEl.value.trim():randInt(3,5);
+    this._loopN=String(n);
     const lines = [
       `total = 0`,
       `for i in range(1, ${n + 1}):`,
@@ -3365,7 +3703,9 @@ MOD.pystruct = {
   },
   /* ========== while：while 循环（条件循环计数倒数） ========== */
   genWhile() {
-    const n = randInt(3, 4);
+    const nEl=$('#ps-n');
+    const n = nEl&&nEl.value&&/^\d+$/.test(nEl.value.trim())&&+nEl.value>=2&&+nEl.value<=6?+nEl.value.trim():randInt(3,4);
+    this._loopN=String(n);
     const lines = [
       `count = ${n}`,
       `while count > 0:`,
@@ -3490,14 +3830,22 @@ MOD.stack = {
   },
   settingsHTML(){
     const cur = $('#st-n') ? $('#st-n').value : '5';
-    return `<div class="inline-setting"><div class="setting"><label>操作步数</label>
+    const customOps = this._customOps || '';
+    return `<div class="inline-setting"><div class="setting"><label>自定义操作</label>
+      <input type="text" id="st-ops" value="${esc(customOps)}" placeholder="push 1, push 2, pop" style="width:clamp(120px,20vw,180px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>或随机步数</label>
       <select id="st-n">
         <option value="4" ${cur==='4'?'selected':''}>4 步</option>
         <option value="5" ${cur==='5'?'selected':''}>5 步</option>
         <option value="6" ${cur==='6'?'selected':''}>6 步</option>
       </select></div></div>`;
   },
-  afterSettings(){ $('#st-n').onchange=()=>Engine.reload(); },
+  afterSettings(){
+    const el=$('#st-ops');
+    if(el) el.onchange=()=>{ this._customOps=el.value; Engine.reload(); };
+    const sel=$('#st-n');
+    if(sel) sel.onchange=()=>{ this._customOps=''; Engine.reload(); };
+  },
 
   /* 逐字出现动画辅助 */
   typeChars(text){
@@ -3638,14 +3986,34 @@ MOD.stack = {
 
   /* ========== 子页面 3：push / pop 交替混合操作 ========== */
   genMixed(){
-    const n=+$('#st-n').value||5;
-    const ops=[]; let size=0;
-    for(let i=0;i<n;i++){
-      if(size===0){ ops.push({op:'push',val:randInt(1,9)}); size++; }
-      else if(size>=5){ ops.push({op:'pop'}); size--; }
-      else if(size===1 && Math.random()<0.7){ ops.push({op:'push',val:randInt(1,9)}); size++; }
-      else if(Math.random()<0.5){ ops.push({op:'push',val:randInt(1,9)}); size++; }
-      else { ops.push({op:'pop'}); size--; }
+    const customEl=$('#st-ops');
+    const custom=customEl?customEl.value.trim():'';
+    let ops=[];
+    if(custom){
+      /* 解析自定义操作：push 1, push 2, pop */
+      const parts=custom.split(/[,，;；\s]+/).filter(s=>s.length>0);
+      let i=0;
+      while(i<parts.length){
+        if(/^push$/i.test(parts[i]) && i+1<parts.length && /^\d+$/.test(parts[i+1])){
+          ops.push({op:'push',val:+parts[i+1]}); i+=2;
+        }else if(/^push(\d+)$/i.test(parts[i])){
+          ops.push({op:'push',val:+parts[i].replace(/^push/i,'')}); i++;
+        }else if(/^pop$/i.test(parts[i])){
+          ops.push({op:'pop'}); i++;
+        }else{ i++; }
+      }
+      if(ops.length===0) ops=[{op:'push',val:1},{op:'push',val:2},{op:'pop'}];
+      this._customOps=custom;
+    }else{
+      const n=+$('#st-n').value||5;
+      let size=0;
+      for(let i=0;i<n;i++){
+        if(size===0){ ops.push({op:'push',val:randInt(1,9)}); size++; }
+        else if(size>=5){ ops.push({op:'pop'}); size--; }
+        else if(size===1 && Math.random()<0.7){ ops.push({op:'push',val:randInt(1,9)}); size++; }
+        else if(Math.random()<0.5){ ops.push({op:'push',val:randInt(1,9)}); size++; }
+        else { ops.push({op:'pop'}); size--; }
+      }
     }
     /* 回放得到每一步快照，保证画面与描述一致 */
     const stack=[]; const replay=[];
@@ -3752,14 +4120,22 @@ MOD.queue = {
   },
   settingsHTML(){
     const cur = $('#q-n') ? $('#q-n').value : '5';
-    return `<div class="inline-setting"><div class="setting"><label>操作步数</label>
+    const customOps = this._customOps || '';
+    return `<div class="inline-setting"><div class="setting"><label>自定义操作</label>
+      <input type="text" id="q-ops" value="${esc(customOps)}" placeholder="enqueue 1, enqueue 2, dequeue" style="width:clamp(140px,22vw,200px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>或随机步数</label>
       <select id="q-n">
         <option value="4" ${cur==='4'?'selected':''}>4 步</option>
         <option value="5" ${cur==='5'?'selected':''}>5 步</option>
         <option value="6" ${cur==='6'?'selected':''}>6 步</option>
       </select></div></div>`;
   },
-  afterSettings(){ $('#q-n').onchange=()=>Engine.reload(); },
+  afterSettings(){
+    const el=$('#q-ops');
+    if(el) el.onchange=()=>{ this._customOps=el.value; Engine.reload(); };
+    const sel=$('#q-n');
+    if(sel) sel.onchange=()=>{ this._customOps=''; Engine.reload(); };
+  },
 
   /* 逐字出现动画辅助 */
   typeChars(text){
@@ -3843,13 +4219,32 @@ MOD.queue = {
 
   /* ========== 子页面 1：普通队列 enqueue / dequeue（FIFO） ========== */
   genNormal(){
-    const n=+$('#q-n').value||5;
-    const ops=[]; let size=0;
-    for(let i=0;i<n;i++){
-      if(size===0||size<2){ ops.push({op:'enqueue',val:randInt(1,9)}); size++; }
-      else if(size>=5){ ops.push({op:'dequeue'}); size--; }
-      else if(Math.random()<0.55){ ops.push({op:'enqueue',val:randInt(1,9)}); size++; }
-      else { ops.push({op:'dequeue'}); size--; }
+    const customEl=$('#q-ops');
+    const custom=customEl?customEl.value.trim():'';
+    let ops=[];
+    if(custom){
+      const parts=custom.split(/[,，;；\s]+/).filter(s=>s.length>0);
+      let i=0;
+      while(i<parts.length){
+        if(/^(enqueue|in|push)$/i.test(parts[i]) && i+1<parts.length && /^\d+$/.test(parts[i+1])){
+          ops.push({op:'enqueue',val:+parts[i+1]}); i+=2;
+        }else if(/^(enqueue|in|push)(\d+)$/i.test(parts[i])){
+          ops.push({op:'enqueue',val:+parts[i].replace(/^(enqueue|in|push)/i,'')}); i++;
+        }else if(/^(dequeue|out|pop)$/i.test(parts[i])){
+          ops.push({op:'dequeue'}); i++;
+        }else{ i++; }
+      }
+      if(ops.length===0) ops=[{op:'enqueue',val:1},{op:'enqueue',val:2},{op:'dequeue'}];
+      this._customOps=custom;
+    }else{
+      const n=+$('#q-n').value||5;
+      let size=0;
+      for(let i=0;i<n;i++){
+        if(size===0||size<2){ ops.push({op:'enqueue',val:randInt(1,9)}); size++; }
+        else if(size>=5){ ops.push({op:'dequeue'}); size--; }
+        else if(Math.random()<0.55){ ops.push({op:'enqueue',val:randInt(1,9)}); size++; }
+        else { ops.push({op:'dequeue'}); size--; }
+      }
     }
     /* 回放得到每一步快照，保证画面与描述一致 */
     const q=[]; const replay=[];
@@ -4023,25 +4418,45 @@ MOD.tree = {
     <div class="rule"><b>层序遍历</b>：从上到下、从左到右逐层访问，需要借助<b>队列</b>（先进先出）实现。</div>`;
   },
   settingsHTML(){
-    return `<div class="inline-setting"><div class="setting"><label>树结构</label>
-      <span style="font-family:var(--mono);font-size:clamp(11px,1.4vw,12.5px);color:var(--text-2);padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:#fff">7 节点满二叉树（固定）</span></div></div>`;
+    const customNodes = this._customNodes || '';
+    return `<div class="inline-setting"><div class="setting"><label>自定义节点(层序)</label>
+      <input type="text" id="tr-nodes" value="${esc(customNodes)}" placeholder="1,2,3,4,5,6,7" style="width:clamp(120px,20vw,180px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>树结构</label>
+      <span style="font-family:var(--mono);font-size:clamp(11px,1.4vw,12.5px);color:var(--text-2);padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:#fff">7 节点满二叉树</span></div></div>`;
   },
-  afterSettings(){ /* 无动态参数；切换子页面由 tab 触发 Engine.reload() */ },
+  afterSettings(){
+    const el=$('#tr-nodes');
+    if(el) el.onchange=()=>{ this._customNodes=el.value; Engine.reload(); };
+  },
 
-  /* ---------- 固定二叉树数据 ---------- */
-  treeNodes:[
-    {id:1,x:50,y:14,label:'1',left:2,right:3},
-    {id:2,x:25,y:42,label:'2',left:4,right:5},
-    {id:3,x:75,y:42,label:'3',left:6,right:7},
-    {id:4,x:12,y:70,label:'4',left:null,right:null},
-    {id:5,x:38,y:70,label:'5',left:null,right:null},
-    {id:6,x:62,y:70,label:'6',left:null,right:null},
-    {id:7,x:88,y:70,label:'7',left:null,right:null}
-  ],
-  edges:[[1,2],[1,3],[2,4],[2,5],[3,6],[3,7]],
+  /* ---------- 构建二叉树数据（支持自定义节点值） ---------- */
+  buildTree(){
+    const customEl=$('#tr-nodes');
+    const custom=customEl?customEl.value.trim():'';
+    let labels=['1','2','3','4','5','6','7'];
+    if(custom){
+      const parts=custom.split(/[,，、\s]+/).filter(s=>s.length>0);
+      if(parts.length>=7){
+        labels=parts.slice(0,7);
+        this._customNodes=custom;
+      }
+    }
+    return {
+      nodes:[
+        {id:1,x:50,y:14,label:labels[0],left:2,right:3},
+        {id:2,x:25,y:42,label:labels[1],left:4,right:5},
+        {id:3,x:75,y:42,label:labels[2],left:6,right:7},
+        {id:4,x:12,y:70,label:labels[3],left:null,right:null},
+        {id:5,x:38,y:70,label:labels[4],left:null,right:null},
+        {id:6,x:62,y:70,label:labels[5],left:null,right:null},
+        {id:7,x:88,y:70,label:labels[6],left:null,right:null}
+      ],
+      edges:[[1,2],[1,3],[2,4],[2,5],[3,6],[3,7]]
+    };
+  },
 
-  node(id){ return this.treeNodes.find(n=>n.id===id); },
-  parentOf(id){ const e=this.edges.find(([a,b])=>b===id); return e?e[0]:null; },
+  node(id){ return this.buildTree().nodes.find(n=>n.id===id); },
+  parentOf(id){ const e=this.buildTree().edges.find(([a,b])=>b===id); return e?e[0]:null; },
   subMeta(){
     return {
       pre:  {name:'前序遍历', rule:'根 → 左 → 右', kind:'pre'},
@@ -4100,13 +4515,14 @@ MOD.tree = {
     /* SVG 二叉树 */
     html+=`<div class="svg-box" style="margin-bottom:1px;display:flex;justify-content:center">
       <svg viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:320px;height:110px">`;
-    this.edges.forEach(([a,b])=>{
+    const tree=this.buildTree();
+    tree.edges.forEach(([a,b])=>{
       const na=this.node(a), nb=this.node(b);
       const both=vis.has(a)&&vis.has(b);
       html+=`<line x1="${na.x}" y1="${na.y+4.2}" x2="${nb.x}" y2="${nb.y-4.2}"
         stroke="${both?'#22C55E':'#E2E8F0'}" stroke-width="0.7"/>`;
     });
-    this.treeNodes.forEach(n=>{
+    tree.nodes.forEach(n=>{
       let state='un';
       if(curId===n.id) state='cur';
       else if(vis.has(n.id)) state='done';
@@ -4284,23 +4700,50 @@ MOD.graph = {
     <div class="rule">应用：BFS 求最短路径、层序遍历；DFS 求连通分量、拓扑排序、迷宫。</div>`;
   },
   settingsHTML(){
-    return `<div class="inline-setting"><div class="setting"><label>图结构</label>
-      <span style="font-family:var(--mono);font-size:clamp(11px,1.4vw,12.5px);color:var(--text-2);padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:#fff">6 节点无向图（固定）</span></div></div>`;
+    const customEdges = this._customEdges || '';
+    return `<div class="inline-setting"><div class="setting"><label>自定义边</label>
+      <input type="text" id="g-edges" value="${esc(customEdges)}" placeholder="A-B,B-C,A-C,C-D" style="width:clamp(140px,22vw,200px)"></div></div>
+      <div class="inline-setting"><div class="setting"><label>起点</label>
+      <input type="text" id="g-start" value="${this._customStart||'A'}" maxlength="1" style="width:clamp(40px,6vw,50px)"></div></div>`;
   },
-  afterSettings(){ /* 无动态参数；切换子页面由 tab 触发 Engine.reload() */ },
+  afterSettings(){
+    const el=$('#g-edges');
+    if(el) el.onchange=()=>{ this._customEdges=el.value; Engine.reload(); };
+    const s=$('#g-start');
+    if(s) s.onchange=()=>{ this._customStart=s.value; Engine.reload(); };
+  },
 
-  /* ---------- 固定无向图数据 ---------- */
-  nodes:[
-    {id:'A',x:50,y:16},
-    {id:'B',x:20,y:46},
-    {id:'C',x:80,y:46},
-    {id:'D',x:15,y:76},
-    {id:'E',x:50,y:76},
-    {id:'F',x:85,y:76}
-  ],
-  adj:{A:['B','C'],B:['A','D','E'],C:['A','F'],D:['B','E'],E:['B','D','F'],F:['C','E']},
-
-  node(id){ return this.nodes.find(n=>n.id===id); },
+  /* ---------- 构建图数据（支持自定义边） ---------- */
+  buildGraph(){
+    const customEl=$('#g-edges');
+    const custom=customEl?customEl.value.trim():'';
+    const startEl=$('#g-start');
+    const start=(startEl?startEl.value.trim():'A')||'A';
+    const defaultNodes=[
+      {id:'A',x:50,y:16},{id:'B',x:20,y:46},{id:'C',x:80,y:46},
+      {id:'D',x:15,y:76},{id:'E',x:50,y:76},{id:'F',x:85,y:76}
+    ];
+    let adj={A:[],B:[],C:[],D:[],E:[],F:[]};
+    if(custom){
+      /* 解析边列表：A-B,B-C,A-C */
+      const edges=custom.split(/[,，;；\s]+/).filter(s=>s.length>0);
+      edges.forEach(e=>{
+        const m=e.match(/^([A-F])[-–—]([A-F])$/i);
+        if(m){
+          const a=m[1].toUpperCase(), b=m[2].toUpperCase();
+          if(!adj[a].includes(b)) adj[a].push(b);
+          if(!adj[b].includes(a)) adj[b].push(a);
+        }
+      });
+      /* 确保每个节点至少有排序后的邻接列表 */
+      Object.keys(adj).forEach(k=>adj[k].sort());
+      this._customEdges=custom;
+      this._customStart=start;
+    }else{
+      adj={A:['B','C'],B:['A','D','E'],C:['A','F'],D:['B','E'],E:['B','D','F'],F:['C','E']};
+    }
+    return {nodes:defaultNodes, adj, start};
+  },
   subMeta(){
     return {
       bfs:{name:'广度优先 BFS', rule:'队列 · 逐层扩展', ds:'队列', dsLabel:'队列（队首 → 队尾）', opVerb:'出队'},
@@ -4313,12 +4756,13 @@ MOD.graph = {
   },
   /* ---------- BFS：队列模拟，代码实际计算顺序 ---------- */
   genBfsEvents(){
-    const visited=[], seen=new Set(['A']), queue=['A'], events=[];
+    const g=this.buildGraph();
+    const visited=[], seen=new Set([g.start]), queue=[g.start], events=[];
     while(queue.length){
       const cur=queue.shift();
       visited.push(cur);
       const newly=[];
-      this.adj[cur].forEach(nb=>{
+      (g.adj[cur]||[]).forEach(nb=>{
         if(!seen.has(nb)){ seen.add(nb); queue.push(nb); newly.push(nb); }
       });
       events.push({curId:cur,visited:[...visited],waiting:[...queue],newly});
@@ -4327,12 +4771,13 @@ MOD.graph = {
   },
   /* ---------- DFS：栈模拟（压栈即标记，逆序压栈保证邻居顺序一致） ---------- */
   genDfsEvents(){
-    const visited=[], seen=new Set(['A']), stack=['A'], events=[];
+    const g=this.buildGraph();
+    const visited=[], seen=new Set([g.start]), stack=[g.start], events=[];
     while(stack.length){
       const cur=stack.pop();
       visited.push(cur);
       const newly=[];
-      [...this.adj[cur]].reverse().forEach(nb=>{
+      [...(g.adj[cur]||[])].reverse().forEach(nb=>{
         if(!seen.has(nb)){ seen.add(nb); stack.push(nb); newly.push(nb); }
       });
       events.push({curId:cur,visited:[...visited],waiting:[...stack],newly});
@@ -4350,20 +4795,22 @@ MOD.graph = {
     /* SVG 无向图 */
     html+=`<div class="svg-box" style="margin-bottom:1px;display:flex;justify-content:center">
       <svg viewBox="0 0 100 82" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:320px;height:110px">`;
+    const g=this.buildGraph();
     const drawn=new Set();
-    Object.entries(this.adj).forEach(([a,nbs])=>{
+    Object.entries(g.adj).forEach(([a,nbs])=>{
       nbs.forEach(b=>{
         const key=[a,b].sort().join('-');
         if(drawn.has(key)) return;
         drawn.add(key);
-        const na=this.node(a), nb=this.node(b);
+        const na=g.nodes.find(n=>n.id===a), nb=g.nodes.find(n=>n.id===b);
+        if(!na||!nb) return;
         const both=vis.has(a)&&vis.has(b);
         const touched=(a===curId||b===curId)&&(waiting.includes(a)||waiting.includes(b));
         const stroke=both?'#22C55E':touched?'#7DD3FC':'#E2E8F0';
         html+=`<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}" stroke="${stroke}" stroke-width="0.7"/>`;
       });
     });
-    this.nodes.forEach(n=>{
+    g.nodes.forEach(n=>{
       let state='un';
       if(curId===n.id) state='cur';
       else if(vis.has(n.id)) state='done';

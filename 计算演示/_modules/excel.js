@@ -17,7 +17,8 @@ MOD.excel = {
     {id:'ref_rel', label:'相对引用', method:'行列都偏移'},
     {id:'ref_abs', label:'绝对引用', method:'行列都锁定'},
     {id:'ref_mix', label:'混合引用', method:'锁列或锁行'},
-    {id:'func',    label:'统计函数', method:'逐步求值'}
+    {id:'func',    label:'统计函数', method:'逐步求值'},
+    {id:'func_type', label:'函数与数据类型', method:'SUM对数值/日期/逻辑值'}
   ],
   theory(){
     return `<div class="rule"><b>相对引用</b>（如 A1）：复制时行号和列号都会随目标位置偏移，向右复制列 +1，向下复制行 +1。</div>
@@ -25,7 +26,8 @@ MOD.excel = {
     <div class="rule"><b>混合引用 $A1</b>：列绝对、行相对——列锁死不变，行随目标位置偏移。</div>
     <div class="rule"><b>混合引用 A$1</b>：列相对、行绝对——行锁死不变，列随目标位置偏移。</div>
     <div class="rule"><b>移动</b>公式（剪切粘贴）：无论哪种引用，引用地址都不变；只有<b>复制</b>时相对部分才会偏移。</div>
-    <div class="rule"><b>常用函数</b>：SUM 求和、AVERAGE 平均值、MAX 最大值、MIN 最小值。</div>`;
+    <div class="rule"><b>常用函数</b>：SUM 求和、AVERAGE 平均值、MAX 最大值、MIN 最小值。</div>
+    <div class="rule"><b>SUM 与数据类型</b>：区域引用 SUM(A1:A3) 会<b>忽略</b>单元格中的文本和逻辑值；直接写参数 SUM(TRUE,5) 时 TRUE=1、FALSE=0、文本数字会被转换；日期本质是序列号，会被当作数值相加。</div>`;
   },
   /* ---------- 参数区 ---------- */
   settingsHTML(){
@@ -296,11 +298,128 @@ MOD.excel = {
     return steps;
   },
 
+  /* ========== ⑤ func_type：SUM 与数据类型对比 ========== */
+  genFuncType(){
+    const steps = [];
+    /* 三组对比数据 */
+    const groupNum = { label:'纯数值', cells:[
+      {addr:'A1', val:'3',   type:'num',   seq:3},
+      {addr:'A2', val:'7',   type:'num',   seq:7},
+      {addr:'A3', val:'2',   type:'num',   seq:2}
+    ], sum:12 };
+    const groupDate = { label:'含日期', cells:[
+      {addr:'B1', val:'2024-01-01', type:'date', seq:45292},
+      {addr:'B2', val:'5',          type:'num',  seq:5},
+      {addr:'B3', val:'3',          type:'num',  seq:3}
+    ], sum:45300 };
+    const groupMixed = { label:'含逻辑值/文本', cells:[
+      {addr:'C1', val:'TRUE',  type:'bool',   seq:1, ignored:true},
+      {addr:'C2', val:'FALSE', type:'bool',   seq:0, ignored:true},
+      {addr:'C3', val:'"5"',   type:'text',   seq:5, ignored:true},
+      {addr:'C4', val:'3',     type:'num',    seq:3}
+    ], sum:3 };
+
+    /* 渲染一组数据的小表格 */
+    const miniGrid = (group, highlightIdx, showSeq)=>{
+      let html = `<div style="flex:1;min-width:0">
+        <div style="font-size:clamp(10px,1.2vw,12px);font-weight:700;color:var(--text-3);margin-bottom:4px;text-align:center">${group.label}</div>
+        <div class="xl-grid" style="grid-template-columns:30px 1fr">`;
+      group.cells.forEach((c,i)=>{
+        const cls = i===highlightIdx ? 'cur' : (showSeq && !c.ignored ? 'done' : '');
+        const display = showSeq && c.type==='date' ? c.seq : c.val;
+        html += `<div class="xl-cell hd" style="font-size:10px">${c.addr}</div>
+          <div class="xl-cell ${cls}" style="${c.ignored?'opacity:.45;text-decoration:line-through':''}">${display}</div>`;
+      });
+      html += `</div></div>`;
+      return html;
+    };
+
+    // 1. 三组数据并排展示
+    steps.push({ desc:`同样是 SUM 函数，数据类型不同，结果大不相同。对比三组数据：纯数值、含日期、含逻辑值/文本。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">对比三组数据</span></div>
+          <div class="step-title"><span class="st-dot"></span>三组数据并排对比（区域引用 SUM(范围)）</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            ${miniGrid(groupNum, -1, false)}
+            ${miniGrid(groupDate, -1, false)}
+            ${miniGrid(groupMixed, -1, false)}
+          </div>
+          <div class="annot" style="text-align:center;margin-top:8px">C1/C2 逻辑值、C3 文本数字在区域引用中会被 SUM 忽略</div>`;
+      }});
+
+    // 2. 第一组：纯数值
+    steps.push({ desc:`第一组「纯数值」：SUM(A1:A3) = 3 + 7 + 2 = <b class="c-op">12</b>，所有值都参与计算。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第1组：纯数值</span></div>
+          <div class="step-title"><span class="st-dot"></span>纯数值 — 全部参与计算</div>
+          ${miniGrid(groupNum, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(A1:A3) 计算过程</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">3 <span class="op">+</span> 7 <span class="op">+</span> 2 <span class="eq">=</span> <span class="sum">12</span></div>
+            <div class="cp-sum-line" style="background:#E8FBF0">数值型数据 → <b style="color:#15803D">全部参与求和</b></div>
+          </div>`;
+      }});
+
+    // 3. 第二组：含日期
+    steps.push({ desc:`第二组「含日期」：日期在 Excel 中本质是序列号（2024-01-01 = 45292），SUM 会把日期当数值相加：45292 + 5 + 3 = <b class="c-op">45300</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第2组：含日期</span></div>
+          <div class="step-title"><span class="st-dot"></span>日期 = 序列号，参与求和</div>
+          ${miniGrid(groupDate, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(B1:B3) 计算过程（日期转序列号）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">2024-01-01 → 序列号 <b style="color:var(--accent)">45292</b></div>
+            <div class="cp-sum-line" style="margin-bottom:5px">45292 <span class="op">+</span> 5 <span class="op">+</span> 3 <span class="eq">=</span> <span class="sum">45300</span></div>
+            <div class="cp-sum-line" style="background:#E8FBF0">日期型数据 → <b style="color:#15803D">转序列号后参与求和</b></div>
+          </div>`;
+      }});
+
+    // 4. 第三组：含逻辑值/文本（区域引用）
+    steps.push({ desc:`第三组「含逻辑值/文本」：区域引用 SUM(C1:C4) 中，TRUE/FALSE 逻辑值和 "5" 文本数字都被<b>忽略</b>，只有数值 3 参与计算，结果 = <b class="c-op">3</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">第3组：含逻辑值/文本</span></div>
+          <div class="step-title"><span class="st-dot"></span>区域引用 — 逻辑值和文本被忽略</div>
+          ${miniGrid(groupMixed, -1, true)}
+          <div class="calc-process">
+            <div class="cp-label">SUM(C1:C4) 计算过程（区域引用）</div>
+            <div class="cp-sum-line" style="margin-bottom:5px;opacity:.45;text-decoration:line-through">TRUE → 被忽略 &nbsp; FALSE → 被忽略 &nbsp; "5" → 被忽略</div>
+            <div class="cp-sum-line" style="margin-bottom:5px">只有数值 3 参与 → <span class="sum">3</span></div>
+            <div class="cp-sum-line" style="background:#FEF2F2">区域引用中的逻辑值/文本 → <b style="color:#DC2626">被 SUM 忽略</b></div>
+          </div>`;
+      }});
+
+    // 5. 对比总结：直接参数 vs 区域引用
+    steps.push({ desc:`关键区别：<b>区域引用</b> SUM(A1:A4) 忽略逻辑值和文本；但<b>直接写参数</b> SUM(TRUE, FALSE, "5", 3) 时，TRUE=1、FALSE=0、"5"转数值5，结果 = 1+0+5+3 = <b class="c-op">9</b>。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>SUM 与数据类型</span><span class="state">关键区别</span></div>
+          <div class="step-title"><span class="st-dot"></span>区域引用 vs 直接参数 — 结果完全不同</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div class="calc-process" style="margin:0">
+                <div class="cp-label">区域引用 SUM(C1:C4)</div>
+                <div class="cp-sum-line" style="margin-bottom:5px;opacity:.45">TRUE FALSE "5" 被忽略</div>
+                <div class="cp-sum-line" style="background:#FEF2F2">结果 = <b style="color:#DC2626">3</b></div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <div class="calc-process" style="margin:0">
+                <div class="cp-label">直接参数 SUM(TRUE,FALSE,"5",3)</div>
+                <div class="cp-sum-line" style="margin-bottom:5px">TRUE=1, FALSE=0, "5"→5</div>
+                <div class="cp-sum-line" style="margin-bottom:5px">1 + 0 + 5 + 3 = 9</div>
+                <div class="cp-sum-line" style="background:#E8FBF0">结果 = <b style="color:#15803D">9</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="write-result">同样的数据，引用方式不同 → 结果不同！区域引用忽略逻辑值/文本，直接参数会转换它们。</div>`;
+      }});
+    return steps;
+  },
+
   /* ---------- 初始化画布 ---------- */
   initStage(){
     const sub = this.currentSub;
     const info = this.subTabs.find(t=>t.id===sub) || {};
-    const labelMap = { ref_rel:'相对引用复制', ref_abs:'绝对引用复制', ref_mix:'混合引用复制', func:'统计函数逐步求值' };
+    const labelMap = { ref_rel:'相对引用复制', ref_abs:'绝对引用复制', ref_mix:'混合引用复制', func:'统计函数逐步求值', func_type:'SUM与数据类型对比' };
     $('#stage').innerHTML = `<div class="stage-hd"><span>${labelMap[sub]||'Excel 公式'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:#22C55E">${info.method||''}</b></div>
@@ -313,6 +432,7 @@ MOD.excel = {
       case 'ref_abs': this.steps = this.genRefAbs(); break;
       case 'ref_mix': this.steps = this.genRefMix(); break;
       case 'func':    this.steps = this.genFunc(); break;
+      case 'func_type': this.steps = this.genFuncType(); break;
       default: this.steps = this.genRefRel();
     }
   }
