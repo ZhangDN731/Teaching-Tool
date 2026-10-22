@@ -1,16 +1,43 @@
 /* ================================================================
  * IP 地址与子网掩码
  * 子页面：classify 地址分类 / mask 子网掩码 / network 网络地址 / hostrange 主机范围
- * 复用全局辅助函数：ipToArr, arrToIp, ipAnd, ipOr, ipNot, ipAdd, prefixToMask, ipClass
+ * 复用全局辅助函数（保留在 index.html 中）：ipToArr, arrToIp, ipAnd, ipOr, ipNot, ipAdd, prefixToMask, ipClass
+ * 网络地址 / 主机范围统一使用 32 位二进制按 8 位一组加点分隔展示：
+ * 网络位蓝色、主机位绿色，AND 结果 / 变化位橙色，两行布局对齐一致。
  * ================================================================ */
+if(!document.getElementById('mod-ip-css')){
+  document.head.insertAdjacentHTML('beforeend', `<style id="mod-ip-css">
+    .bin32-row{display:flex;align-items:center;gap:clamp(8px,1.4vw,12px);margin:clamp(6px,1vw,10px) 0}
+    .bin32-label{width:clamp(72px,10vw,96px);flex:none;font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);text-align:right;font-family:var(--font)}
+    .bin32-groups{flex:1;display:flex;align-items:center;gap:clamp(6px,1.2vw,10px);min-width:0}
+    .grp32{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(2px,.5vw,4px);flex:1;min-width:0}
+    .bin-dot{font-family:var(--mono);font-weight:800;font-size:clamp(16px,2.2vw,22px);color:var(--text-3);flex:none}
+    .grp32 .bd32{background:#fff;border:1px solid var(--border);border-radius:6px;text-align:center;font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;padding:clamp(5px,1vw,9px) 0;color:var(--text-2)}
+    .grp32 .bd32.nb{color:#4F6BFF;background:#EEF3FF;border-color:#C7D2FE}
+    .grp32 .bd32.hb{color:#15803D;background:#E8FBF0;border-color:#BFE9CF}
+    .grp32 .bd32.hb-zero{color:#CBD5E1;background:#F8FAFC;border-color:#E2E8F0}
+    .grp32 .bd32.hb-hot{color:#B45309;background:#FFF4DB;border-color:var(--orange)}
+    .grp32 .bd32.rs{color:#B45309;background:#FFF4DB;border-color:var(--orange)}
+    .bin32-caption{font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;text-align:center;margin:clamp(4px,1vw,8px) 0;word-break:break-all;letter-spacing:1px;color:var(--text-2)}
+    .bin32-caption .nb-t{color:#4F6BFF}
+    .bin32-caption .hb-t{color:#15803D}
+    .bin32-caption .hb-zero-t{color:#CBD5E1}
+    .bin32-caption .hb-hot-t{color:#B45309}
+    .bin32-caption .bin-dot-t{color:var(--text-3);margin:0 1px}
+    .bin32-legend{display:flex;gap:clamp(10px,2vw,18px);justify-content:center;flex-wrap:wrap;font-size:clamp(11px,1.4vw,12.5px);color:var(--text-3);margin:6px 0}
+    .bin32-legend .lg{display:inline-flex;align-items:center;gap:5px}
+    .bin32-legend .sw{width:12px;height:12px;border-radius:4px;display:inline-block}
+  </style>`);
+}
+
 MOD.ip = {
   name:'IP与子网掩码', sub:'IPv4分类 · 子网掩码 · 网络地址 · 主机范围',
   badge:'网络 · 子网', tag:'网络', cat:'net',
   color:'#06B6D4', soft:'#E6F9FE', type:'IPv4分类 · 前缀掩码 · 按位与 · 广播与主机范围',
-  desc:'IPv4 地址分类、子网掩码二进制推导、网络地址按位与计算、广播地址与可用主机范围及主机数，逐步手写演示。',
+  desc:'IPv4 地址分类、子网掩码二进制推导、网络地址按位与计算、广播地址与可用主机范围及主机数，逐步手写演示；网络位蓝色、主机位绿色，32 位二进制按 8 位一组加点分隔。',
   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>',
   setDesc:'输入 IP 地址并选择子网前缀；各子页面独立演示对应计算。',
-  stageDesc:'橙色=当前计算段，绿色=已得出结果，逐段展示按位与与地址范围。',
+  stageDesc:'蓝色=网络位，绿色=主机位，橙色=AND 结果或变化位；32 位二进制按 8 位一组加点分隔，与点分十进制格式一致。',
   initDesc:'点击「自动演示」或「下一步」，观看 IP 分类与子网计算的手写推导。',
   currentSub:'classify',
   subTabs:[
@@ -20,13 +47,14 @@ MOD.ip = {
     {id:'hostrange',label:'主机范围', method:'广播与主机数'}
   ],
   theory(){
-    return `<div class="rule"><b>IP 地址组成</b>：32 位二进制，分 4 段（每段 8 位），用点分十进制表示，如 192.168.1.10。</div>
+    return `<div class="rule"><b>IP 地址组成</b>：32 位二进制，分 4 段（每段 8 位），用点分十进制表示，如 192.168.1.10；二进制同样按 8 位一组加点书写，如 <span class="mono">11000000.10101000.00000001.00000000</span>。</div>
     <div class="rule"><b>IP 分类</b>：A 类（1~126，默认掩码 255.0.0.0）、B 类（128~191，255.255.0.0）、C 类（192~223，255.255.255.0）、D 类组播（224~239）、E 类保留（240~255）。</div>
     <div class="rule"><b>子网掩码</b>：连续的 1 后跟连续的 0，1 对应网络位，0 对应主机位，用 /前缀长度 表示，如 /24。</div>
     <div class="rule"><b>网络地址</b> = IP 地址 <b>按位与</b> 子网掩码（主机位全 0）。</div>
     <div class="rule"><b>广播地址</b> = 网络地址的主机位全 1（网络地址 | 反掩码）。</div>
     <div class="rule"><b>可用主机范围</b>：网络地址 +1 ~ 广播地址 −1；可用主机数 = 2<sup>主机位数</sup> − 2（减去网络地址和广播地址）。</div>`;
   },
+
   /* ---------- 参数区 ---------- */
   settingsHTML(){
     const sub = this.currentSub;
@@ -56,6 +84,7 @@ MOD.ip = {
     const pfEl = $('#ip-prefix');
     if(pfEl) pfEl.onchange = ()=>{ this._prefix = +pfEl.value; Engine.reload(); };
   },
+
   /* ---------- 内部辅助 ---------- */
   segBin(v){ return v.toString(2).padStart(8,'0'); },
   /* 位权展开：返回位权数组、二进制位、求和结果、被激活的位权 */
@@ -91,23 +120,59 @@ MOD.ip = {
       <div class="cp-sum-line">${sumExpr} <span class="eq">=</span> <span class="sum">${sum}</span></div>
     </div>`;
   },
-  /* 生成逐位 AND 计算卡片 HTML */
-  andCard(ipBin, maskBin, resBin){
-    const ipBits = ipBin.split('');
-    const mkBits = maskBin.split('');
-    const rsBits = resBin.split('');
-    const row = (label,cls,bits,delayBase)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-      <span style="width:34px;font-size:clamp(9px,1.1vw,10.5px);color:var(--text-3);font-weight:700;text-align:right;flex:none">${label}</span>
-      <div class="bin-grid" style="flex:1">${bits.map((b,i)=>`<div class="bd ${cls} ${cls==='and-result'?'write-in':''}" style="${cls==='and-result'?`animation-delay:${delayBase+i*0.06}s`:''}">${b}</div>`).join('')}</div>
-    </div>`;
-    return `<div class="calc-process">
-      <div class="cp-label">逐位按位与（AND）：只有 1 AND 1 = 1，其余均为 0</div>
-      ${row('IP','one',ipBits,0)}
-      ${row('掩码','mask',mkBits,0)}
-      ${row('结果','and-result',rsBits,0.3)}
-      <div style="text-align:center;font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);margin-top:2px">蓝=IP位 &nbsp; 青=掩码位 &nbsp; 橙=AND结果</div>
+
+  /* 32 位二进制行：4 个 8 位分组、组间加点；网络位蓝、主机位绿，布局全模块统一 */
+  binRow32(arr, prefix, opts){
+    opts = opts || {};
+    const role = opts.role || 'ip';              // ip | mask | net | broad | result
+    const label = opts.label || '';
+    const delayBase = opts.delayBase || 0;
+    const highlightHost = !!opts.highlightHost;
+    const groups = [];
+    for(let oct=0; oct<4; oct++){
+      const bits = this.segBin(arr[oct]).split('');
+      groups.push(bits.map((b,k)=>{
+        const pos = oct*8+k;
+        const isNet = pos < prefix;
+        let cls;
+        if(role==='mask'){ cls = isNet ? 'nb' : 'hb-zero'; }
+        else if(role==='result'){ cls = 'rs'; }
+        else if(role==='broad' && highlightHost && !isNet){ cls = 'hb-hot'; }
+        else { cls = isNet ? 'nb' : 'hb'; }
+        return `<div class="bd32 ${cls} write-in" style="animation-delay:${delayBase+pos*0.018}s">${b}</div>`;
+      }).join(''));
+    }
+    const groupsHtml = groups.map((g,i)=>`<div class="grp32">${g}</div>${i<3?'<div class="bin-dot">.</div>':''}`).join('');
+    return `<div class="bin32-row">
+      <span class="bin32-label">${label}</span>
+      <div class="bin32-groups">${groupsHtml}</div>
     </div>`;
   },
+  /* 点分格式二进制字符串（逐位着色：网络位蓝、主机位绿/橙，8 位一组加点） */
+  binDottedColored(arr, prefix, role){
+    const segs = arr.map((v, oct)=>{
+      const bits = this.segBin(v).split('');
+      return bits.map((b,k)=>{
+        const pos = oct*8+k;
+        const isNet = pos < prefix;
+        let cls;
+        if(role==='mask'){ cls = isNet ? 'nb-t' : 'hb-zero-t'; }
+        else if(role==='broad'){ cls = isNet ? 'nb-t' : 'hb-hot-t'; }
+        else { cls = isNet ? 'nb-t' : 'hb-t'; }
+        return `<span class="${cls}">${b}</span>`;
+      }).join('');
+    });
+    return segs.join('<span class="bin-dot-t">.</span>');
+  },
+  /* 图例：网络位 / 主机位 / 结果色 */
+  legendHTML(){
+    return `<div class="bin32-legend">
+      <span class="lg"><span class="sw" style="background:#EEF3FF;border:1px solid #C7D2FE"></span>网络位（蓝）</span>
+      <span class="lg"><span class="sw" style="background:#E8FBF0;border:1px solid #BFE9CF"></span>主机位（绿）</span>
+      <span class="lg"><span class="sw" style="background:#FFF4DB;border:1px solid var(--orange)"></span>AND 结果 / 变化位（橙）</span>
+    </div>`;
+  },
+
   _randIp(){
     return [randInt(1,254), randInt(0,255), randInt(0,255), randInt(1,254)].join('.');
   },
@@ -145,8 +210,8 @@ MOD.ip = {
     ];
   },
   classifyOf(arr){
-    const cls = ipClass(arr);              // ['A','255.0.0.0','/8'] …
-    const key = cls[0][0];                // A/B/C/D/E（含括号标注时取首字母）
+    const cls = ipClass(arr);
+    const key = cls[0][0];
     const rows = this.classRows();
     const row = rows.find(r=>r.key===key) || rows[0];
     const note = cls[0].includes('(') ? '127.x 为回环地址（仍属 A 类保留段）' : row.note;
@@ -268,55 +333,78 @@ MOD.ip = {
   },
 
   /* ========== ③ network：网络地址计算 ========== */
+  /* 步骤：IP 二进制 → 掩码二进制 → 逐位 AND → 网络地址二进制 → 转十进制
+   * 展示与主机范围页完全一致：8 位分组加点、网络位蓝 / 主机位绿、相同布局对齐 */
   genNetwork(){
     const { str, arr:ip } = this._parseIp();
     const prefix = this._readPrefix();
     const mask = prefixToMask(prefix);
     const net = ipAnd(ip, mask);
+    const hostBits = 32 - prefix;
     const label = '网络地址计算';
     const steps = [];
     // 1. 写出 IP 与前缀
-    steps.push({ desc:`IP 地址 <b class="c-op">${str}</b>，前缀 /${prefix}，对应掩码 ${arrToIp(mask)}。`,
+    steps.push({ desc:`IP 地址 <b class="c-op">${str}</b>，前缀 /${prefix}，对应掩码 ${arrToIp(mask)}；网络地址 = IP 按位与 子网掩码。`,
       draw:()=>{
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">准备</span></div>
           <div style="text-align:center;padding:clamp(14px,2.5vw,22px) 0">
             <span style="font-family:var(--mono);font-size:clamp(20px,3.5vw,28px);font-weight:700;color:var(--text)">${this.typeChars(str)}<sub style="font-size:.45em;color:var(--text-3)"> /${prefix}</sub></span>
             <span class="caret pen"></span>
-          </div>`;
+          </div>
+          ${this.legendHTML()}`;
       }});
-    // 2. 方法说明，IP 与掩码并排
-    steps.push({ desc:`<b>网络地址 = IP 按位与 子网掩码</b>：掩码为 1 的位保留原值，为 0 的位清 0（主机位全 0）。`,
+    // 2. IP 地址二进制（8 位一组加点）
+    steps.push({ desc:`把 IP 地址 ${str} 写成 32 位二进制，按 8 位一组用点分隔；前 ${prefix} 位为网络位（蓝），后 ${hostBits} 位为主机位（绿）。`,
       draw:()=>{
-        $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">按位与</span></div>
-          <div class="step-title"><span class="st-dot"></span>IP 与掩码并排</div>
-          ${this.ipRow(ip,-1,'IP')}${this.ipRow(mask,-1,'掩码')}`;
+        $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">IP 二进制</span></div>
+          <div class="step-title"><span class="st-dot"></span>IP 地址 32 位二进制（8 位一组，加点分隔）</div>
+          ${this.binRow32(ip, prefix, {label:'IP', role:'ip'})}
+          <div class="bin32-caption">${this.binDottedColored(ip, prefix, 'ip')}</div>
+          ${this.legendHTML()}`;
       }});
-    // 3-6. 逐段按位与（逐位 AND 详细过程）
-    for(let i=0; i<4; i++){
-      const r = ip[i] & mask[i];
-      const oct = i;
-      const ipBin = this.segBin(ip[oct]);
-      const mkBin = this.segBin(mask[oct]);
-      const rsBin = this.segBin(r);
-      steps.push({ desc:`第 ${oct+1} 段按位与：${ipBin} AND ${mkBin} = ${rsBin}，即 ${ip[oct]} AND ${mask[oct]} = <b class="c-op">${r}</b>，网络地址已写出 ${oct+1} 段。`,
-        draw:()=>{
-          const table = `<table class="exp-table" style="margin-bottom:8px">
-            <tr><th>项目</th>${[0,1,2,3].map(k=>`<th>第 ${k+1} 段</th>`).join('')}</tr>
-            <tr><th>IP</th>${ip.map((v,k)=>`<td class="${k<oct?'done':k===oct?'cur':''} ${k===oct?'write-in':''}">${k<=oct?v:'?'}</td>`).join('')}</tr>
-            <tr><th>掩码</th>${mask.map((v,k)=>`<td class="${k<oct?'done':k===oct?'cur':''} ${k===oct?'write-in':''}">${k<=oct?v:'?'}</td>`).join('')}</tr>
-            <tr><th>AND 结果</th>${net.map((v,k)=>`<td class="${k<oct?'done':k===oct?'cur':'empty'} ${k===oct?'write-in':''}">${k<=oct?v:'?'}</td>`).join('')}</tr>
-          </table>`;
-          $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">第 ${oct+1}/4 段</span></div>
-            <div class="step-title"><span class="st-dot"></span>逐段按位与（逐位 AND）</div>${table}
-            ${this.andCard(ipBin, mkBin, rsBin)}
-            <div class="exp-inline"><span class="term">${ipBin}</span><span class="op">AND</span><span class="term">${mkBin}</span><span class="op">=</span><span class="term cur">${rsBin}</span><span class="op">=</span><span class="term cur">${r}</span></div>`;
-        }});
-    }
-    // 7. 网络地址结果
-    steps.push({ desc:`网络地址 = <b class="c-op">${arrToIp(net)}</b>（主机位全 0），/${prefix}。`,
+    // 3. 子网掩码二进制（8 位一组加点）
+    steps.push({ desc:`子网掩码 ${arrToIp(mask)} 的 32 位二进制：前 ${prefix} 位为 1（网络位，蓝），后 ${hostBits} 位为 0（主机位，灰）。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">掩码二进制</span></div>
+          <div class="step-title"><span class="st-dot"></span>子网掩码 32 位二进制（8 位一组，加点分隔）</div>
+          ${this.binRow32(mask, prefix, {label:'掩码', role:'mask'})}
+          <div class="bin32-caption">${this.binDottedColored(mask, prefix, 'mask')}</div>
+          ${this.legendHTML()}`;
+      }});
+    // 4. 按位与运算（逐位展示，三行对齐）
+    steps.push({ desc:`逐位按位与（AND）：只有 1 AND 1 = 1，其余均为 0；掩码为 1 的位保留 IP 原值，掩码为 0 的位清 0（主机位全 0）。`,
+      draw:()=>{
+        const table = `<table class="exp-table" style="margin-top:10px">
+          <tr><th>项目</th>${[0,1,2,3].map(k=>`<th>第 ${k+1} 段</th>`).join('')}</tr>
+          <tr><th>IP</th>${ip.map(v=>`<td class="done">${v}</td>`).join('')}</tr>
+          <tr><th>掩码</th>${mask.map(v=>`<td class="done">${v}</td>`).join('')}</tr>
+          <tr><th>AND 结果</th>${net.map(v=>`<td class="cur">${v}</td>`).join('')}</tr>
+        </table>`;
+        $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">逐位 AND</span></div>
+          <div class="step-title"><span class="st-dot"></span>IP AND 掩码（逐位计算，8 位一组对齐）</div>
+          <div class="calc-process" style="margin-top:6px">
+            <div class="cp-label">逐位按位与：1 AND 1 = 1，1 AND 0 = 0，0 AND 1 = 0，0 AND 0 = 0</div>
+            ${this.binRow32(ip, prefix, {label:'IP', role:'ip'})}
+            ${this.binRow32(mask, prefix, {label:'掩码', role:'mask'})}
+            ${this.binRow32(net, prefix, {label:'结果', role:'result'})}
+          </div>
+          ${table}
+          ${this.legendHTML()}`;
+      }});
+    // 5. 网络地址二进制（主机位全 0）
+    steps.push({ desc:`按位与结果即网络地址二进制：网络位保持不变，主机位全部清 0（绿色 0）。`,
+      draw:()=>{
+        $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">网络地址二进制</span></div>
+          <div class="step-title"><span class="st-dot"></span>网络地址 32 位二进制（主机位全 0）</div>
+          ${this.binRow32(net, prefix, {label:'网络地址', role:'net'})}
+          <div class="bin32-caption">${this.binDottedColored(net, prefix, 'net')}</div>
+          ${this.legendHTML()}`;
+      }});
+    // 6. 网络地址二进制 → 十进制
+    steps.push({ desc:`网络地址二进制转点分十进制 = <b class="c-op">${arrToIp(net)}</b>（主机位全 0），/${prefix}。`,
       draw:()=>{
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">完成</span></div>
-          <div class="step-title"><span class="st-dot"></span>网络地址</div>
+          <div class="step-title"><span class="st-dot"></span>网络地址（点分十进制）</div>
           ${this.ipRow(net,-1,'网络地址',true)}
           <div class="write-result">网络地址 = ${arrToIp(net)} /${prefix}</div>`;
       }});
@@ -324,6 +412,7 @@ MOD.ip = {
   },
 
   /* ========== ④ hostrange：主机范围与数量 ========== */
+  /* 二进制展示与网络地址页完全一致：8 位分组加点、网络位蓝 / 主机位绿、相同布局对齐 */
   genHostrange(){
     const { str, arr:ip } = this._parseIp();
     const prefix = this._readPrefix();
@@ -337,75 +426,58 @@ MOD.ip = {
     const count = Math.pow(2, hostBits) - 2;
     const label = '主机范围与数量';
     const steps = [];
-    // 1. 网络地址
-    steps.push({ desc:`先求网络地址：${str} AND ${arrToIp(mask)} = <b class="c-op">${arrToIp(net)}</b>。`,
+    // 1. 网络地址（统一二进制展示，与网络地址页一致）
+    steps.push({ desc:`先求网络地址：${str} AND ${arrToIp(mask)} = <b class="c-op">${arrToIp(net)}</b>（主机位全 0）。`,
       draw:()=>{
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">网络地址</span></div>
           <div class="step-title"><span class="st-dot"></span>网络地址（主机位全 0）</div>
-          <div class="exp-inline" style="margin-bottom:6px"><span class="term">${str}</span><span class="op">AND</span><span class="term">${arrToIp(mask)}</span><span class="op">=</span><span class="term cur">${arrToIp(net)}</span></div>
+          ${this.binRow32(net, prefix, {label:'网络地址', role:'net'})}
+          <div class="bin32-caption">${this.binDottedColored(net, prefix, 'net')}</div>
           ${this.ipRow(net,-1,'网络地址',true)}
-          <div class="write-result">网络地址 = ${arrToIp(net)} /${prefix}</div>`;
+          <div class="write-result">网络地址 = ${arrToIp(net)} /${prefix}</div>
+          ${this.legendHTML()}`;
       }});
-    // 2. 广播地址：主机位全 1（逐位 OR 过程）
-    steps.push({ desc:`广播地址 = 网络地址的<b>主机位全 1</b>：网络地址 OR 反掩码，主机位 0→1，网络位保持不变 = <b class="c-op">${arrToIp(broad)}</b>。`,
+    // 2. 广播地址：主机位全 1（逐位 OR，主机位橙色高亮变化）
+    steps.push({ desc:`广播地址 = 网络地址的<b>主机位全 1</b>：网络位保持不变，主机位 0→1，得到 <b class="c-op">${arrToIp(broad)}</b>。`,
       draw:()=>{
-        /* 找出主机位所在的段范围 */
-        const netOct = Math.floor(prefix / 8);
-        const netBitInOct = prefix % 8;
-        /* 构建32位二进制三行展示 */
-        const bitRow32 = (arr, cls, highlightHost, delayBase)=>{
-          let html = '';
-          for(let oct=0; oct<4; oct++){
-            const bits = this.segBin(arr[oct]).split('');
-            bits.forEach((b,k)=>{
-              const pos = oct*8+k;
-              const isHost = pos >= prefix;
-              const hl = highlightHost && isHost;
-              html += `<div class="bd ${cls} ${hl?'cur':''} ${cls==='and-result'?'write-in':''}" style="${cls==='and-result'?`animation-delay:${delayBase+pos*0.025}s`:''}">${b}</div>`;
-            });
-          }
-          return html;
-        };
-        const row32 = (label, arr, cls, hl, delay)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-          <span style="width:42px;font-size:clamp(9px,1.1vw,10.5px);color:var(--text-3);font-weight:700;text-align:right;flex:none">${label}</span>
-          <div class="bin-grid" style="flex:1;grid-template-columns:repeat(32,1fr);gap:2px">${bitRow32(arr,cls,hl,delay)}</div>
-        </div>`;
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">广播地址</span></div>
           <div class="step-title"><span class="st-dot"></span>主机位全 1 → 广播地址（32 位逐位 OR）</div>
           <div class="calc-process">
             <div class="cp-label">网络位（前 ${prefix} 位）保持不变，主机位（后 ${hostBits} 位）全部置 1</div>
-            ${row32('网络地址', net, 'one', false, 0)}
-            ${row32('反掩码', notMask, 'mask', false, 0)}
-            ${row32('广播地址', broad, 'and-result', true, 0.3)}
-            <div style="text-align:center;font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);margin-top:4px">橙色高亮 = 主机位，由 0 全部变为 1</div>
+            ${this.binRow32(net, prefix, {label:'网络地址', role:'net'})}
+            ${this.binRow32(broad, prefix, {label:'广播地址', role:'broad', highlightHost:true})}
           </div>
-          <table class="exp-table" style="margin-bottom:8px">
+          <div class="bin32-caption">${this.binDottedColored(broad, prefix, 'broad')}</div>
+          <table class="exp-table" style="margin-top:8px">
             <tr><th>项目</th>${[0,1,2,3].map(k=>`<th>段 ${k+1}</th>`).join('')}</tr>
             <tr><th>网络地址</th>${net.map(v=>`<td class="done">${v}</td>`).join('')}</tr>
-            <tr><th>反掩码</th>${notMask.map(v=>`<td>${v}</td>`).join('')}</tr>
             <tr><th>广播地址</th>${broad.map(v=>`<td class="cur">${v}</td>`).join('')}</tr>
           </table>
-          <div class="exp-inline"><span class="term done">${arrToIp(net)}</span><span class="op">OR</span><span class="term">${arrToIp(notMask)}</span><span class="op">=</span><span class="term cur">${arrToIp(broad)}</span></div>`;
+          <div class="exp-inline" style="margin-top:8px"><span class="term done">${arrToIp(net)}</span><span class="op">OR</span><span class="term">${arrToIp(notMask)}</span><span class="op">=</span><span class="term cur">${arrToIp(broad)}</span></div>
+          ${this.legendHTML()}`;
       }});
-    // 3. 可用主机范围
+    // 3. 可用主机范围（首台 / 末台主机二进制，统一展示风格）
     steps.push({ desc:`第一个可用主机 = 网络地址 + 1 = <b class="c-op">${arrToIp(first)}</b>；最后一个 = 广播地址 − 1 = <b class="c-op">${arrToIp(last)}</b>。`,
       draw:()=>{
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">可用范围</span></div>
-          <div class="step-title"><span class="st-dot"></span>排除网络地址与广播地址</div>
-          <div class="exp-inline" style="margin-bottom:6px"><span class="term done">${arrToIp(net)}</span><span class="op">+1 =</span><span class="term cur">${arrToIp(first)}</span></div>
+          <div class="step-title"><span class="st-dot"></span>排除网络地址与广播地址（首台 / 末台主机）</div>
+          ${this.binRow32(first, prefix, {label:'首台主机', role:'net'})}
+          <div class="bin32-caption">${this.binDottedColored(first, prefix, 'net')}</div>
+          ${this.binRow32(last, prefix, {label:'末台主机', role:'net'})}
+          <div class="bin32-caption">${this.binDottedColored(last, prefix, 'net')}</div>
+          <div class="exp-inline" style="margin:8px 0 6px"><span class="term done">${arrToIp(net)}</span><span class="op">+1 =</span><span class="term cur">${arrToIp(first)}</span></div>
           <div class="exp-inline" style="margin-bottom:6px"><span class="term done">${arrToIp(broad)}</span><span class="op">−1 =</span><span class="term cur">${arrToIp(last)}</span></div>
-          <div class="write-result">可用主机范围：${arrToIp(first)} ~ ${arrToIp(last)}</div>`;
+          <div class="write-result">可用主机范围：${arrToIp(first)} ~ ${arrToIp(last)}</div>
+          ${this.legendHTML()}`;
       }});
     // 4. 可用主机数 = 2^主机位 − 2（幂运算展开）
     steps.push({ desc:`主机位 = ${hostBits} 位，2<sup>${hostBits}</sup> = ${Math.pow(2,hostBits).toLocaleString()}，减去网络地址和广播地址各 1 个，可用主机数 = <b class="c-op">${count.toLocaleString()}</b>。`,
       draw:()=>{
         const total = Math.pow(2, hostBits);
-        /* 2^n 连乘展开：n<=12 时展示完整连乘，否则展示分组 */
         let expandExpr;
         if(hostBits <= 12){
           expandExpr = Array(hostBits).fill('2').join(' × ');
         } else {
-          const half = Math.ceil(hostBits/2);
           expandExpr = `2 × 2 × … × 2（${hostBits} 个 2 相乘）`;
         }
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">可用主机数</span></div>
