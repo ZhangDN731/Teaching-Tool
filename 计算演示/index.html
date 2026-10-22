@@ -26,6 +26,7 @@
 html{scroll-behavior:smooth}
 body{
   font-family:var(--font);color:var(--text-2);background:var(--bg);background-attachment:fixed;
+  font-size:clamp(11px,1.4vw,14px);
   min-height:100vh;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
 body::before{
@@ -203,6 +204,43 @@ details.theory .t-body th{background:var(--surface-3);color:var(--accent);font-w
 }
 .stage .stage-hd .state{color:var(--text-3);font-weight:600;font-family:var(--mono)}
 
+/* ===== 演示页一屏布局：固定视口高度，舞台弹性占满，其余区块固定不伸缩，始终一屏不滚动 ===== */
+#view-demo.active{height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+#view-demo.active .demo-top{flex:none}
+#view-demo.active details.theory{flex:none;max-height:26vh;overflow:auto}
+#view-demo.active .sub-tabs{flex:none}
+#view-demo.active .panel-card{flex:1;min-height:0;display:flex;flex-direction:column;margin-bottom:0;overflow:hidden}
+#view-demo.active .ctrl{flex:none;margin:4px 0 3px}
+#view-demo.active .stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;margin:2px 0;padding:clamp(4px,0.8vw,8px)}
+#view-demo.active .stepbar{flex:none;margin:3px 0 2px}
+#view-demo.active .explain{flex:none}
+/* 演示模式：外层容器清空内边距，面板卡片压缩留白，保证 100vh 内无文档级溢出 */
+body.demo{overflow:hidden}
+body.demo .wrap{padding:0;max-width:none;margin:0}
+body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
+/* 设置区容器允许收缩并换行，避免长提示文字把控制条横向撑爆 */
+#view-demo.active #settingsRowWrap{flex:1 1 auto;min-width:0;flex-shrink:1;margin-right:0}
+#view-demo.active #settingsRow{min-width:0}
+#view-demo.active #settingsRowWrap .chk{max-width:100%;white-space:normal;line-height:1.5}
+/* 树 / 图模块紧凑化：约束 SVG 高度，压缩序列条、图例、距离表与结果条间距 */
+#stage .graph-stage .svg-box,#stage .tree-stage .svg-box{max-height:clamp(180px,31vh,270px);margin-bottom:6px}
+#stage .graph-stage .svg-box svg,#stage .tree-stage .svg-box svg{max-height:clamp(180px,31vh,270px);width:auto;margin:0 auto}
+#stage .graph-stage .order-rack,#stage .tree-stage .order-rack{min-height:30px;margin-bottom:6px}
+#stage .graph-stage .zone-label{margin-bottom:3px}
+#stage .graph-stage .tbl td,#stage .graph-stage .tbl th{padding:3px 8px}
+#stage .graph-stage .legend,#stage .tree-stage .legend{margin-top:4px;line-height:1.6}
+#stage .graph-stage .write-result{margin-top:6px;padding:5px 12px}
+/* 舞台内容适配层：模块内容置于 .stage-fit-inner，由 Engine 测量后等比缩放，宁可缩小也不溢出 */
+.stage-fit{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;width:100%}
+.stage-fit-inner{transform-origin:center center center;transition:transform .18s ease;max-width:100%}
+/* 小高度视口紧凑模式 */
+@media (max-height:800px){
+  #view-demo.active .stage{padding:clamp(3px,.6vw,6px) clamp(5px,.9vw,8px)}
+  #view-demo.active .ctrl{padding:clamp(3px,.7vw,5px) clamp(6px,1.2vw,9px)}
+  #view-demo.active .explain{padding:clamp(3px,.6vw,5px) clamp(6px,1vw,9px);font-size:clamp(10px,1.2vw,11.5px);line-height:1.4}
+  #view-demo.active details.theory{max-height:22vh}
+}
+
 /* 控制条 */
 .ctrl{
   display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin:6px 0 3px;
@@ -213,7 +251,8 @@ details.theory .t-body th{background:var(--surface-3);color:var(--accent);font-w
 .ctrl::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
 .ctrl .grp{display:flex;gap:5px;flex-wrap:nowrap;flex-shrink:0}
 .ctrl .spacer{flex:1}
-.ctrl .speed{display:flex;align-items:center;gap:4px;font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3)}
+.ctrl .speed{display:flex;align-items:center;gap:4px;font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);flex-shrink:0;white-space:nowrap}
+.ctrl .speed span{white-space:nowrap}
 .ctrl .speed button{
   border:1px solid var(--border);background:#fff;color:var(--text-3);border-radius:6px;
   padding:2px 7px;font-size:clamp(10px,1.2vw,11.5px);font-weight:700;cursor:pointer;font-family:var(--mono);
@@ -835,6 +874,7 @@ const Engine = {
     const s = m.steps[Engine.i];
     if(!s) return;
     s.draw();
+    Engine.fitStage();
     $('#explainBox').innerHTML = s.desc;
     const N = m.steps.length;
     $('#stepLbl').textContent = `第 ${Engine.i+1} / ${N} 步`;
@@ -847,6 +887,7 @@ const Engine = {
     if(Engine.error){
       $('#explainBox').innerHTML = `<div class="err"><div class="err-t">参数不合法，无法生成演示</div>${Engine.error}</div>`;
       $('#stage').innerHTML = `<div class="err"><div class="err-t">请修正上方参数后重试</div>修正后点击「换一题」或改动任一参数即可重新生成演示步骤。</div>`;
+      Engine.fitStage();
       $('#stepLbl').textContent = '共 0 步';
       $('#stepDone').textContent = '参数待修正';
       $('#stepFill').style.width = '0%';
@@ -860,6 +901,7 @@ const Engine = {
     $('#stepDone').textContent = '尚未开始';
     $('#stepFill').style.width = '0%';
     if(N && m.initStage) m.initStage();
+    Engine.fitStage();
     Engine.syncButtons();
   },
   /* 用 setTimeout 链而非 setInterval：切换倍速时不会残留旧节拍 */
@@ -891,6 +933,33 @@ const Engine = {
   setSpeed(ms){
     Engine.ms = ms;
     if(Engine.timer){ clearTimeout(Engine.timer); Engine.timer=null; Engine.auto(); }
+  },
+
+  /* 舞台适配：把模块内容包进 .stage-fit/.stage-fit-inner，按舞台可用尺寸等比缩小，保证一屏不溢出 */
+  fitStage(secondPass){
+    const stage = $('#stage'); if(!stage) return;
+    let fit = stage.querySelector(':scope > .stage-fit');
+    if(!fit){
+      fit = document.createElement('div'); fit.className='stage-fit';
+      stage.appendChild(fit);
+    }
+    let inner = fit.querySelector(':scope > .stage-fit-inner');
+    if(!inner){
+      inner = document.createElement('div'); inner.className='stage-fit-inner';
+      fit.appendChild(inner);
+    }
+    /* 把散落在 fit / stage 里的其他兄弟节点并入内层包裹（兼容模块 innerHTML += 追加的节点） */
+    Array.from(fit.children).forEach(c=>{ if(c!==inner) inner.appendChild(c); });
+    Array.from(stage.children).forEach(c=>{ if(c!==fit) inner.appendChild(c); });
+    inner.style.transform = '';
+    const fw = fit.clientWidth, fh = fit.clientHeight;
+    if(fw>0 && fh>0){
+      const sw = inner.scrollWidth || 1, sh = inner.scrollHeight || 1;
+      let scale = Math.min(fw/sw, fh/sh, 1);
+      if(!isFinite(scale) || scale>1) scale = 1;
+      inner.style.transform = `scale(${scale})`;
+    }
+    if(!secondPass) requestAnimationFrame(()=>Engine.fitStage(true));
   }
 };
 $('#btnAuto').onclick = () => Engine.auto();
@@ -923,17 +992,22 @@ document.addEventListener('keydown', e=>{
 function route(){
   const h = location.hash.replace('#/','').replace('#','');
   const demo = $('#view-demo'), home = $('#view-home');
-  if(h && h!=='home' && MOD[h]){
-    home.classList.remove('active'); demo.classList.add('active');
+  const isDemo = !!(h && h!=='home' && MOD[h]);
+  home.classList.toggle('active', !isDemo);
+  demo.classList.toggle('active', isDemo);
+  document.body.classList.toggle('demo', isDemo);
+  document.body.style.overflow = isDemo ? 'hidden' : '';
+  if(isDemo){
     Engine.load(h);
     window.scrollTo(0,0);
   }else{
-    demo.classList.remove('active'); home.classList.add('active');
     Engine.stop();
     window.scrollTo(0,0);
   }
 }
 window.addEventListener('hashchange', route);
+/* 窗口尺寸变化后重新做舞台等比适配 */
+window.addEventListener('resize', ()=>Engine.fitStage());
 
 /* ---------- 首页卡片生成 ---------- */
 const MOD_ORDER = ['base','enc','media','ip','excel','pyexpr','pystruct','stack','tree','graph'];
@@ -990,8 +1064,8 @@ function randDigits(b,len){ let s=''; for(let i=0;i<len;i++) s+=DIGITS[randInt(0
   if(document.getElementById('base-module-css')) return;
   const css = `
   .base-stage{font-family:var(--font)}
-  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(10px,1.8vw,16px)}
-  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:5px 14px;margin-bottom:clamp(12px,2.2vw,18px)}
+  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(6px,1vw,10px)}
+  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:4px 12px;margin-bottom:clamp(6px,1vw,10px)}
   /* 竖式除法：计算过程字号放大、行间距加大 */
   .base-stage .div-vertical{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:2.1;padding:6px 10px}
   .base-stage .div-vertical .dv-row{margin:clamp(8px,1.6vw,12px) 0;white-space:normal}
@@ -1010,62 +1084,12 @@ function randDigits(b,len){ let s=''; for(let i=0;i<len;i++) s+=DIGITS[randInt(0
   .base-stage .exp-inline{font-size:clamp(16px,2.2vw,22px);padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px);margin:clamp(12px,2.2vw,18px) 0;line-height:1.8}
   .base-stage .exp-inline .res{color:var(--accent);font-weight:700;margin-left:4px}
   /* 分组框 */
-  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(8px,1.4vw,12px);margin:clamp(10px,1.8vw,14px) 0;flex-wrap:wrap;justify-content:center}
-  .base-stage .group-box .grp{padding:clamp(7px,1.3vw,11px) clamp(13px,2vw,18px);font-size:clamp(18px,2.8vw,28px)}
-  .base-stage .group-box .grp .grp-label{top:-20px;font-size:.6em}
+  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(12px,2vw,18px);margin:clamp(4px,.8vw,8px) 0;flex-wrap:nowrap;justify-content:center}
+  .base-stage .group-box .grp{padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px);font-size:clamp(17px,2.5vw,24px);min-width:clamp(50px,6.5vw,68px);text-align:center}
+  .base-stage .group-box .grp .grp-label{top:-18px;font-size:clamp(10px,1.3vw,13px);min-width:max-content;font-family:var(--font)}
   /* 结果框 */
   .base-stage .write-result{font-size:clamp(18px,2.8vw,28px);padding:clamp(11px,1.8vw,16px) clamp(14px,2.2vw,22px);margin-top:clamp(14px,2.6vw,20px);letter-spacing:1px}
-  .base-stage .annot{font-size:clamp(13px,1.8vw,17px);line-height:1.7;padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px)}
-  /* 逆序读取箭头条 */
-  .base-stage .rev-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono);font-size:clamp(12px,1.6vw,15px);padding:0 clamp(6px,1.2vw,10px)}
-  .base-stage .rev-arrow .ra-top{color:#94A3B8;font-weight:700}
-  .base-stage .rev-arrow .ra-mid{color:#22C55E;font-size:clamp(22px,3.2vw,30px);font-weight:700;line-height:1.1}
-  .base-stage .rev-arrow .ra-bottom{color:#22C55E;font-weight:700}
-  .base-stage .two-col{align-items:stretch}
-  .base-stage .two-col>div{min-width:min(100%,220px)}
-  `;
-  document.head.insertAdjacentHTML('beforeend', `<style id="base-module-css">${css}</style>`);
-})();
-
-/* ================================================================
- * ① 进制转换（仅保留 6 种转换：二 ↔ 十 · 二 ↔ 八 · 二 ↔ 十六）
- * 子页面：bin2dec 二转十（按权展开）/ dec2bin 十转二（除基取余·逆序）
- *         bin2oct 二转八（三位分组）/ oct2bin 八转二（逐位展开）
- *         bin2hex 二转十六（四位分组）/ hex2bin 十六转二（逐位展开）
- * 复用全局辅助：B, DIGITS, toBase, fromBase, randDigits, randInt, $, $$, esc
- * ================================================================ */
-
-/* ---------- 本模块大屏幕样式覆盖（作用域限定在 .base-stage，不影响其他模块） ---------- */
-(function injectBaseCss(){
-  if(document.getElementById('base-module-css')) return;
-  const css = `
-  .base-stage{font-family:var(--font)}
-  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(10px,1.8vw,16px)}
-  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:5px 14px;margin-bottom:clamp(12px,2.2vw,18px)}
-  /* 竖式除法：计算过程字号放大、行间距加大 */
-  .base-stage .div-vertical{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:2.1;padding:6px 10px}
-  .base-stage .div-vertical .dv-row{margin:clamp(8px,1.6vw,12px) 0;white-space:normal}
-  .base-stage .div-vertical .dv-row.empty{opacity:.32;color:#94A3B8}
-  .base-stage .div-vertical .dv-row.done{opacity:.85}
-  .base-stage .div-vertical .dv-row.done .dv-num,.base-stage .div-vertical .dv-row.done .dv-q{color:#15803D}
-  .base-stage .div-vertical .dv-row.done .dv-rem{color:#16A34A}
-  .base-stage .div-vertical .dv-num,.base-stage .div-vertical .dv-q{font-size:clamp(18px,2.8vw,28px);min-width:2.1em}
-  .base-stage .div-vertical .dv-rem{font-size:clamp(18px,2.8vw,28px)}
-  .base-stage .div-vertical .dv-rem::before{font-size:.6em}
-  .base-stage .dv-rank{margin-left:1em;font-size:clamp(12px,1.6vw,15px);font-weight:700;color:#15803D;background:#E8FBF0;border:1px solid #BFE9CF;border-radius:8px;padding:2px 10px;white-space:nowrap}
-  .base-stage .dv-rank.cur{color:#B45309;background:#FFF4DB;border-color:#F59E0B}
-  /* 按权展开表：单元格加大内边距 */
-  .base-stage .exp-table{font-size:clamp(12px,1.6vw,16px);margin:clamp(10px,1.8vw,14px) 0}
-  .base-stage .exp-table th,.base-stage .exp-table td{padding:clamp(11px,1.8vw,15px) clamp(12px,1.8vw,18px);font-size:clamp(13px,1.8vw,17px)}
-  .base-stage .exp-inline{font-size:clamp(16px,2.2vw,22px);padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px);margin:clamp(12px,2.2vw,18px) 0;line-height:1.8}
-  .base-stage .exp-inline .res{color:var(--accent);font-weight:700;margin-left:4px}
-  /* 分组框 */
-  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(8px,1.4vw,12px);margin:clamp(10px,1.8vw,14px) 0;flex-wrap:wrap;justify-content:center}
-  .base-stage .group-box .grp{padding:clamp(7px,1.3vw,11px) clamp(13px,2vw,18px);font-size:clamp(18px,2.8vw,28px)}
-  .base-stage .group-box .grp .grp-label{top:-20px;font-size:.6em}
-  /* 结果框 */
-  .base-stage .write-result{font-size:clamp(18px,2.8vw,28px);padding:clamp(11px,1.8vw,16px) clamp(14px,2.2vw,22px);margin-top:clamp(14px,2.6vw,20px);letter-spacing:1px}
-  .base-stage .annot{font-size:clamp(13px,1.8vw,17px);line-height:1.7;padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px)}
+  .base-stage .annot{font-size:clamp(12px,1.6vw,15px);line-height:1.6;padding:clamp(5px,1vw,8px) clamp(10px,1.6vw,14px)}
   /* 逆序读取箭头条 */
   .base-stage .rev-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono);font-size:clamp(12px,1.6vw,15px);padding:0 clamp(6px,1.2vw,10px)}
   .base-stage .rev-arrow .ra-top{color:#94A3B8;font-weight:700}
@@ -1074,24 +1098,32 @@ function randDigits(b,len){ let s=''; for(let i=0;i<len;i++) s+=DIGITS[randInt(0
   .base-stage .two-col{align-items:stretch}
   .base-stage .two-col>div{min-width:min(100%,220px)}
   /* ===== 十转二：三列对齐网格（除法行 ↔ 倒排箭头 ↔ 二进制位） ===== */
-  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(8px,1.5vw,14px) 0}
-  .base-stage .d2b-col{display:flex;flex-direction:column;gap:4px}
-  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(36px,5vw,48px);padding:2px 6px;border-radius:6px;font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+  .base-stage .d2b-rack{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.4vw,12px);flex-wrap:nowrap;min-height:clamp(34px,5vh,44px)}
+  .base-stage .d2b-rack .d2b-rack-cap{flex:none;font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;color:var(--text-3);white-space:nowrap}
+  .base-stage .d2b-rack .group-box{margin:0}
+  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(4px,.8vw,8px) 0}
+  .base-stage .d2b-col{display:flex;flex-direction:column;gap:clamp(4px,.8vw,6px);min-width:0}
+  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(28px,4.2vh,40px);padding:2px 8px;border-radius:7px;font-family:var(--mono);font-size:clamp(13px,1.9vw,17px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
   .base-stage .d2b-row.done{background:var(--green-soft);color:#15803D}
   .base-stage .d2b-row.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
-  .base-stage .d2b-row.empty{color:#CBD5E1}
-  .base-stage .d2b-arrow{display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0;min-width:clamp(60px,9vw,80px)}
-  .base-stage .d2b-arrow .arr-label{font-size:clamp(10px,1.3vw,12px);font-weight:700;text-align:center;line-height:1.3}
+  .base-stage .d2b-row.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
+  .base-stage .d2b-row .dv-rank{margin-left:auto;flex:none;font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;white-space:nowrap;color:var(--text-3);background:#fff;border:1px solid var(--border);border-radius:999px;padding:1px 9px}
+  .base-stage .d2b-row.done .dv-rank{color:#15803D;border-color:#BFE9CF}
+  .base-stage .d2b-row.cur .dv-rank{color:#B45309;border-color:var(--orange);background:#FFF7E6}
+  /* 倒排箭头：垂直渐变条（顶=最低位橙，底=最高位绿）+ 向上箭头 + 上下标签，不使用 writing-mode */
+  .base-stage .d2b-arrow{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;min-width:clamp(54px,8vw,74px)}
+  .base-stage .d2b-arrow .arr-label{font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;text-align:center;line-height:1.35;white-space:nowrap}
   .base-stage .d2b-arrow .arr-label.top{color:#B45309}
   .base-stage .d2b-arrow .arr-label.bottom{color:#15803D}
-  .base-stage .d2b-arrow .arr-line{flex:1;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.5vw,22px);color:var(--accent);font-weight:800;writing-mode:vertical-rl;letter-spacing:2px}
-  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:6px;min-height:clamp(36px,5vw,48px);border-radius:6px;font-family:var(--mono);font-size:clamp(16px,2.5vw,22px);font-weight:800}
+  .base-stage .d2b-arrow .arr-bar{flex:1;width:clamp(20px,3vw,28px);min-height:clamp(36px,6vh,60px);border-radius:10px;background:linear-gradient(180deg,var(--orange) 0%,#FBBF24 45%,var(--green) 100%);display:flex;align-items:center;justify-content:center}
+  .base-stage .d2b-arrow .arr-bar .arr-up{color:#fff;font-size:clamp(18px,2.6vw,26px);font-weight:800;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:clamp(6px,1vw,10px);min-height:clamp(28px,4.2vh,40px);border-radius:7px;font-family:var(--mono);font-size:clamp(16px,2.3vw,21px);font-weight:800;white-space:nowrap}
   .base-stage .d2b-bit.done{background:var(--green-soft);color:#15803D}
   .base-stage .d2b-bit.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
   .base-stage .d2b-bit.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
-  .base-stage .d2b-bit .bit-label{font-size:clamp(9px,1.1vw,11px);font-weight:600;color:var(--text-3);font-family:var(--font)}
+  .base-stage .d2b-bit .bit-label{font-size:clamp(10px,1.3vw,13px);font-weight:600;color:var(--text-3);font-family:var(--font);min-width:clamp(48px,6.5vw,66px);text-align:center}
   .base-stage .d2b-bit.cur .bit-label{color:#FFF7E6}
-  .base-stage .d2b-result{text-align:center;margin-top:clamp(10px,2vw,16px);font-family:var(--mono);font-size:clamp(18px,2.8vw,26px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(8px,1.5vw,12px);white-space:nowrap}
+  .base-stage .d2b-result{text-align:center;margin-top:clamp(8px,1.4vw,12px);font-family:var(--mono);font-size:clamp(17px,2.6vw,24px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(7px,1.2vw,10px);white-space:nowrap}
   /* ===== 二转八/十六：分组换算纵向累加列表 ===== */
   .base-stage .b2g-list{display:flex;flex-direction:column;gap:clamp(8px,1.4vw,12px);max-width:680px;margin:clamp(6px,1.2vw,10px) auto}
   .base-stage .b2g-row{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.2vw,12px);flex-wrap:wrap;font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;border-radius:12px;padding:clamp(8px,1.3vw,12px) clamp(12px,1.8vw,16px);border:1.5px solid var(--border)}
@@ -1363,7 +1395,7 @@ MOD.base = {
       }});
 
     /* 三列对齐网格渲染：phase='div' 除法阶段(curIdx=当前除法序号) / 'rev' 倒排阶段(curIdx=倒排序号k) / 'done' 完成。
-       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐。 */
+       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐；行数恒等于 R。 */
     const renderGrid = (phase, curIdx)=>{
       const leftRows = allRows.map((rd,j)=>{
         let state='done', badge='';
@@ -1371,9 +1403,10 @@ MOD.base = {
           state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
         }else if(phase==='rev'){
           const rowIdx = R-1-curIdx;
-          state = j===rowIdx?'cur' : 'done';
+          state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
           if(j>=rowIdx) badge = `<span class="dv-rank ${j===rowIdx?'cur':''}">${this._rankName(R-1-j,R)}</span>`;
         }else{
+          state='done';
           badge = `<span class="dv-rank">${this._rankName(R-1-j,R)}</span>`;
         }
         const show = phase!=='div' || j<=curIdx;
@@ -1381,28 +1414,28 @@ MOD.base = {
         return `<div class="d2b-row ${state}"><span>${n} ÷ 2 = ${q} … 余 ${r}</span>${badge}</div>`;
       }).join('');
       const rightBits = allRows.map((rd,j)=>{
-        let state, label;
+        let state, label='';
         if(phase==='div'){
           state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
-          label = `第 ${j+1} 个余数`;
         }else if(phase==='rev'){
           const rowIdx = R-1-curIdx;
           state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
-          label = j>=rowIdx ? this._rankName(R-1-j,R) : '待标注';
+          label = j>=rowIdx ? this._rankName(R-1-j,R) : '';
         }else{
           state='done';
           label = this._rankName(R-1-j,R);
         }
         const show = phase!=='div' || j<=curIdx;
         const r = show?rd.r:'?';
-        return `<div class="d2b-bit ${state}"><span>${r}</span><span class="bit-label">${label}</span></div>`;
+        const lbl = label ? `<span class="bit-label">${label}</span>` : '';
+        return `<div class="d2b-bit ${state}"><span>${r}</span>${lbl}</div>`;
       }).join('');
       return `<div class="d2b-grid">
         <div class="d2b-col">${leftRows}</div>
         <div class="d2b-arrow">
-          <div class="arr-label top">最低位<br>（第一个余数）</div>
-          <div class="arr-line">↑ 从下往上倒排 ↑</div>
-          <div class="arr-label bottom">最高位<br>（最后一个余数）</div>
+          <div class="arr-label top">最低位</div>
+          <div class="arr-bar"><span class="arr-up">↑</span></div>
+          <div class="arr-label bottom">最高位</div>
         </div>
         <div class="d2b-col">${rightBits}</div>
       </div>`;
@@ -1417,8 +1450,7 @@ MOD.base = {
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${R} 次除法`)}
             <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
-            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>余数收集区</b>（先收集 → 后收集，顺序暂存，最后需倒排读取）</div>
-            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
+            <div class="d2b-rack"><span class="d2b-rack-cap">余数收集（先 → 后）</span><div class="group-box">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(13px,1.9vw,16px)">（暂无）</span>'}</div></div>
             ${renderGrid('div',idx)}`);
         }});
     }
@@ -1434,8 +1466,7 @@ MOD.base = {
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,'逆序读取')}
             <div class="step-title"><span class="st-dot"></span>余数从下往上读（最高位 → 最低位）</div>
-            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>逆序读取区</b>（最高位 → 最低位，已读出的余数）</div>
-            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+            <div class="d2b-rack"><span class="d2b-rack-cap">逆序读取（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
             ${renderGrid('rev',k)}`);
         }});
     }
@@ -1447,8 +1478,7 @@ MOD.base = {
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
           <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>二进制结果</b>（最高位 → 最低位）</div>
-          <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+          <div class="d2b-rack"><span class="d2b-rack-cap">二进制结果（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
           ${renderGrid('done',-1)}
           <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
@@ -1655,11 +1685,11 @@ MOD.base = {
     .enc-flow .enc-node.locked .enc-nv{color:#CBD5E1}
     .enc-flow .enc-arrow{display:flex;align-items:center;color:#94A3B8;font-size:clamp(16px,2.2vw,22px);font-weight:700}
 
-    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(12px,2vw,20px);margin-bottom:clamp(10px,2vw,16px);position:relative;transition:all .2s}
+    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(9px,1.4vw,14px);margin-bottom:clamp(6px,1.2vw,10px);position:relative;transition:all .2s}
     .enc-card.done{border-color:var(--green);background:linear-gradient(135deg,#F0FDF4,#fff 60%)}
     .enc-card.cur{border-color:var(--orange);background:linear-gradient(135deg,#FFF8EE,#fff 60%);box-shadow:0 6px 20px rgba(245,158,11,.12)}
     .enc-card.locked{opacity:.55;background:#F8FAFC;border-style:dashed}
-    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(8px,1.4vw,12px)}
+    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(5px,.9vw,8px)}
     .enc-card .enc-card-title{font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
     .enc-card .enc-card-sub{font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:600;margin-top:2px}
     .enc-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 12px;font-size:clamp(10px,1.3vw,12.5px);font-weight:700;font-family:var(--mono);white-space:nowrap}
@@ -1671,7 +1701,7 @@ MOD.base = {
     .enc-card.done .enc-big{color:#15803D}
     .enc-card.cur .enc-big{color:#B45309}
 
-    .enc-calc{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;line-height:2.1;text-align:center;color:var(--text)}
+    .enc-calc{font-family:var(--mono);font-size:clamp(15px,2vw,20px);font-weight:700;line-height:1.75;text-align:center;color:var(--text)}
     .enc-calc .enc-op{color:#94A3B8;margin:0 6px;font-weight:400}
     .enc-calc .enc-eq{color:var(--accent);margin:0 6px}
     .enc-calc .enc-res{color:#B45309;background:#FFF4DB;border:1.5px solid var(--orange);border-radius:8px;padding:2px 12px}
@@ -1680,7 +1710,7 @@ MOD.base = {
     .enc-sub{font-size:clamp(12px,1.6vw,15px);color:var(--text-3);text-align:center;font-family:var(--font);margin-top:4px;line-height:1.7}
 
     /* 二进制大网格（8 位一组） */
-    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(8px,1.4vw,12px) auto}
+    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(5px,1vw,8px) auto}
     .enc-bitgrid .enc-bit{background:#fff;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-family:var(--mono);font-size:clamp(18px,2.8vw,28px);font-weight:800;padding:clamp(8px,1.4vw,12px) 0;color:var(--text-2)}
     .enc-bitgrid .enc-bit.one{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
     .enc-bitgrid .enc-bit.zero{color:#CBD5E1}
@@ -1695,6 +1725,18 @@ MOD.base = {
     .enc-tri .enc-card{margin-bottom:0}
     @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
 
+    /* ASCII / 字形码四步卡片 2×2 紧凑网格，避免纵向堆叠溢出 */
+    .enc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(6px,1vw,10px);margin:clamp(4px,.8vw,8px) 0}
+    .enc-grid .enc-card{margin-bottom:0;padding:clamp(8px,1.1vw,12px)}
+    .enc-grid .enc-card-hd{margin-bottom:clamp(4px,.8vw,7px)}
+    .enc-grid .enc-big{margin:clamp(3px,.7vw,6px) 0}
+    .enc-grid .enc-mini{margin:clamp(3px,.7vw,6px) 0;line-height:1.6}
+    .enc-grid .enc-bitgrid{margin:clamp(4px,.9vw,8px) auto}
+    .enc-grid .enc-divrows{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;line-height:1.45;font-size:clamp(11px,1.5vw,13px)}
+    .enc-grid .enc-big{font-size:clamp(16px,2.3vw,22px)}
+    .enc-grid .enc-sub{line-height:1.5}
+    @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
+
     .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
     .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
     .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -1706,11 +1748,11 @@ MOD.base = {
     .enc-result-strip{font-family:var(--mono);font-size:clamp(15px,2.3vw,22px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border-radius:12px;padding:clamp(10px,1.6vw,14px) clamp(12px,2vw,18px);text-align:center;margin-top:clamp(8px,1.4vw,12px);border:1px solid #C7D2FE;line-height:1.9;min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(6px,1vw,10px)}
     .enc-result-strip .enc-op{color:#94A3B8;font-weight:400}
     .enc-result-strip.locked{background:#F8FAFC;border:1px dashed var(--border);color:#94A3B8;font-family:var(--font);font-size:clamp(12px,1.6vw,15px);font-weight:600}
-    .enc-mini{font-family:var(--mono);font-size:clamp(14px,2vw,18px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(8px,1.3vw,12px);margin:clamp(6px,1.1vw,10px) 0;line-height:2}
+    .enc-mini{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,9px);margin:clamp(4px,.8vw,7px) 0;line-height:1.65}
     .enc-mini .enc-h{color:var(--text-3);font-size:clamp(10px,1.3vw,12.5px);font-family:var(--font);font-weight:700;margin-bottom:4px}
     .enc-note{display:inline-block;background:#F8FAFC;border:1px dashed var(--border);border-radius:10px;padding:6px 12px;font-size:clamp(12px,1.6vw,15px);color:var(--text-3);font-family:var(--font);margin:6px auto}
     .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
-    .enc-table th,.enc-table td{padding:clamp(7px,1.1vw,11px) clamp(8px,1.4vw,13px);font-size:inherit}
+    .enc-table th,.enc-table td{padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,13px);font-size:inherit}
     .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
   </style>`);
 })();
@@ -1741,11 +1783,11 @@ MOD.base = {
     .enc-flow .enc-node.locked .enc-nv{color:#CBD5E1}
     .enc-flow .enc-arrow{display:flex;align-items:center;color:#94A3B8;font-size:clamp(16px,2.2vw,22px);font-weight:700}
 
-    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(12px,2vw,20px);margin-bottom:clamp(10px,2vw,16px);position:relative;transition:all .2s}
+    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(9px,1.4vw,14px);margin-bottom:clamp(6px,1.2vw,10px);position:relative;transition:all .2s}
     .enc-card.done{border-color:var(--green);background:linear-gradient(135deg,#F0FDF4,#fff 60%)}
     .enc-card.cur{border-color:var(--orange);background:linear-gradient(135deg,#FFF8EE,#fff 60%);box-shadow:0 6px 20px rgba(245,158,11,.12)}
     .enc-card.locked{opacity:.55;background:#F8FAFC;border-style:dashed}
-    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(8px,1.4vw,12px)}
+    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(5px,.9vw,8px)}
     .enc-card .enc-card-title{font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
     .enc-card .enc-card-sub{font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:600;margin-top:2px}
     .enc-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 12px;font-size:clamp(10px,1.3vw,12.5px);font-weight:700;font-family:var(--mono);white-space:nowrap}
@@ -1757,7 +1799,7 @@ MOD.base = {
     .enc-card.done .enc-big{color:#15803D}
     .enc-card.cur .enc-big{color:#B45309}
 
-    .enc-calc{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;line-height:2.1;text-align:center;color:var(--text)}
+    .enc-calc{font-family:var(--mono);font-size:clamp(15px,2vw,20px);font-weight:700;line-height:1.75;text-align:center;color:var(--text)}
     .enc-calc .enc-op{color:#94A3B8;margin:0 6px;font-weight:400}
     .enc-calc .enc-eq{color:var(--accent);margin:0 6px}
     .enc-calc .enc-res{color:#B45309;background:#FFF4DB;border:1.5px solid var(--orange);border-radius:8px;padding:2px 12px}
@@ -1766,7 +1808,7 @@ MOD.base = {
     .enc-sub{font-size:clamp(12px,1.6vw,15px);color:var(--text-3);text-align:center;font-family:var(--font);margin-top:4px;line-height:1.7}
 
     /* 二进制大网格（8 位一组） */
-    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(8px,1.4vw,12px) auto}
+    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(5px,1vw,8px) auto}
     .enc-bitgrid .enc-bit{background:#fff;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-family:var(--mono);font-size:clamp(18px,2.8vw,28px);font-weight:800;padding:clamp(8px,1.4vw,12px) 0;color:var(--text-2)}
     .enc-bitgrid .enc-bit.one{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
     .enc-bitgrid .enc-bit.zero{color:#CBD5E1}
@@ -1781,6 +1823,18 @@ MOD.base = {
     .enc-tri .enc-card{margin-bottom:0}
     @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
 
+    /* ASCII / 字形码四步卡片 2×2 紧凑网格，避免纵向堆叠溢出 */
+    .enc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(6px,1vw,10px);margin:clamp(4px,.8vw,8px) 0}
+    .enc-grid .enc-card{margin-bottom:0;padding:clamp(8px,1.1vw,12px)}
+    .enc-grid .enc-card-hd{margin-bottom:clamp(4px,.8vw,7px)}
+    .enc-grid .enc-big{margin:clamp(3px,.7vw,6px) 0}
+    .enc-grid .enc-mini{margin:clamp(3px,.7vw,6px) 0;line-height:1.6}
+    .enc-grid .enc-bitgrid{margin:clamp(4px,.9vw,8px) auto}
+    .enc-grid .enc-divrows{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;line-height:1.45;font-size:clamp(11px,1.5vw,13px)}
+    .enc-grid .enc-big{font-size:clamp(16px,2.3vw,22px)}
+    .enc-grid .enc-sub{line-height:1.5}
+    @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
+
     .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
     .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
     .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -1792,11 +1846,11 @@ MOD.base = {
     .enc-result-strip{font-family:var(--mono);font-size:clamp(15px,2.3vw,22px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border-radius:12px;padding:clamp(10px,1.6vw,14px) clamp(12px,2vw,18px);text-align:center;margin-top:clamp(8px,1.4vw,12px);border:1px solid #C7D2FE;line-height:1.9;min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(6px,1vw,10px)}
     .enc-result-strip .enc-op{color:#94A3B8;font-weight:400}
     .enc-result-strip.locked{background:#F8FAFC;border:1px dashed var(--border);color:#94A3B8;font-family:var(--font);font-size:clamp(12px,1.6vw,15px);font-weight:600}
-    .enc-mini{font-family:var(--mono);font-size:clamp(14px,2vw,18px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(8px,1.3vw,12px);margin:clamp(6px,1.1vw,10px) 0;line-height:2}
+    .enc-mini{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,9px);margin:clamp(4px,.8vw,7px) 0;line-height:1.65}
     .enc-mini .enc-h{color:var(--text-3);font-size:clamp(10px,1.3vw,12.5px);font-family:var(--font);font-weight:700;margin-bottom:4px}
     .enc-note{display:inline-block;background:#F8FAFC;border:1px dashed var(--border);border-radius:10px;padding:6px 12px;font-size:clamp(12px,1.6vw,15px);color:var(--text-3);font-family:var(--font);margin:6px auto}
     .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
-    .enc-table th,.enc-table td{padding:clamp(7px,1.1vw,11px) clamp(8px,1.4vw,13px);font-size:inherit}
+    .enc-table th,.enc-table td{padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,13px);font-size:inherit}
     .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
   </style>`);
 })();
@@ -1943,15 +1997,12 @@ MOD.enc = {
       /* 卡片 1：8 位二进制（计算机存储）—— 直接查 ASCII 表得到存储码 */
       let c1;
       if(cur>=1){
-        const weightRow=weights.map(w=>`<div class="enc-bit">${w}</div>`).join('');
         const bitRow=bin.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('');
-        const divRows=rows.map(rd=>`<div>${rd.n} ÷ 2 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
+        const divRows=rows.map(rd=>`<span>${rd.n} ÷2=${rd.q} <span style="color:var(--orange);font-weight:700">余${rd.r}</span></span>`).join('');
         c1=this._card(this._state(1,cur),'② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
-          `<div class="enc-bitgrid weight">${weightRow}</div>
-           <div class="enc-bitgrid">${bitRow}</div>
-           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出，补足 8 位）</div>${divRows}</div>
-           <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>
-           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”</div>`);
+          `<div class="enc-bitgrid">${bitRow}</div>
+           <div class="enc-mini enc-divlist"><div class="enc-h">除 2 取余 · 余数逆序读出，补足 8 位</div><div class="enc-divrows">${divRows}</div></div>
+           <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>`);
       }else{
         c1=this._card('locked','② 8 位二进制 · 计算机存储','1 字节 = 8 位二进制',this._lockedInner());
       }
@@ -1963,15 +2014,16 @@ MOD.enc = {
           <tr><th>二进制位</th>${bin.split('').map(b=>`<td class="${b==='1'?'done':'empty'}">${b}</td>`).join('')}</tr>
           <tr><th>贡献</th>${contribs.map(c=>`<td class="${c?'done':'empty'}">${c}</td>`).join('')}</tr>
         </table>`;
+        const activeTerms=terms.filter((_,i)=>bin[i]==='1');
         const calc=`<div class="enc-calc" style="flex-wrap:wrap;justify-content:center;display:flex;gap:clamp(6px,1vw,10px)">
-          ${terms.map((t,i)=>`<span>${t}</span>${i<terms.length-1?'<span class="enc-op">+</span>':''}`).join('')}
+          ${activeTerms.map((t,i)=>`<span>${t}</span>${i<activeTerms.length-1?'<span class="enc-op">+</span>':''}`).join('')}
           <span class="enc-eq">=</span><span class="enc-res">${code}</span>
         </div>`;
         c2=this._card(this._state(2,cur),'③ 二进制 → 十进制 · 按权展开','每一位 × 对应位权，再把所有贡献相加',
           `${tableHtml}
            ${calc}
            <div class="enc-big">${code}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>
-           <div class="enc-sub">按权展开求和得十进制码值 <b style="color:var(--accent)">${code}</b>（对照 ASCII 表：${esc(ch)} = ${code}）</div>`);
+           <div class="enc-sub">对照 ASCII 表：${esc(ch)} = ${code}</div>`);
       }else{
         c2=this._card('locked','③ 二进制 → 十进制 · 按权展开','每一位 × 位权再相加',this._lockedInner());
       }
@@ -1988,7 +2040,7 @@ MOD.enc = {
       }else{
         c3=this._card('locked','④ 转换为十六进制','4 位二进制 = 1 位十六进制',this._lockedInner());
       }
-      return c0+c1+c2+c3;
+      return `<div class="enc-grid">${c0}${c1}${c2}${c3}</div>`;
     };
 
     /* 步骤 0：输入字符 */
@@ -2305,7 +2357,7 @@ MOD.enc = {
       }else{
         c3=this._card('locked','④ 字库总存储容量','每字字节数 × 汉字数量',this._lockedInner());
       }
-      return c0+c1+c2+c3;
+      return `<div class="enc-grid">${c0}${c1}${c2}${c3}</div>`;
     };
 
     /* 步骤 0：已知参数 */
@@ -2400,31 +2452,33 @@ MOD.enc = {
  * ================================================================ */
 if(!document.getElementById('mod-media-css')){
   document.head.insertAdjacentHTML('beforeend', `<style id="mod-media-css">
-    .mm-wrap{display:flex;flex-direction:column;gap:clamp(10px,2vw,16px)}
-    .mm-step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;padding:clamp(10px,1.8vw,16px)}
+    .mm-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(5px,.9vw,9px)}
+    .mm-step.wide{grid-column:span 2}
+    @media (max-width:900px){ .mm-wrap{grid-template-columns:1fr} }
+    .mm-step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;padding:clamp(6px,1vw,10px)}
     .mm-step.done{opacity:.72;background:var(--surface-2);border-left:4px solid var(--green)}
     .mm-step.cur{border:2px solid var(--orange);background:#FFFCF5;box-shadow:0 4px 18px rgba(245,158,11,.12)}
-    .mm-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,1.4vw,12px);font-weight:700;color:var(--text);font-size:clamp(13px,1.7vw,16px)}
-    .mm-step-hd .mm-idx{display:inline-flex;align-items:center;justify-content:center;width:clamp(22px,2.6vw,28px);height:clamp(22px,2.6vw,28px);border-radius:50%;font-family:var(--mono);font-size:clamp(12px,1.5vw,14px);font-weight:700;background:var(--surface-3);color:var(--text-3);flex:none}
+    .mm-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:clamp(4px,.8vw,6px);font-weight:700;color:var(--text);font-size:clamp(12px,1.5vw,15px)}
+    .mm-step-hd .mm-idx{display:inline-flex;align-items:center;justify-content:center;width:clamp(20px,2.4vw,25px);height:clamp(20px,2.4vw,25px);border-radius:50%;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);font-weight:700;background:var(--surface-3);color:var(--text-3);flex:none}
     .mm-step.cur .mm-step-hd .mm-idx{background:var(--orange);color:#fff}
     .mm-step.done .mm-step-hd .mm-idx{background:var(--green);color:#fff}
     .mm-step-hd .mm-status{margin-left:auto;font-size:clamp(10px,1.2vw,11.5px);font-weight:600}
     .mm-step.done .mm-status{color:var(--green)}
     .mm-step.cur .mm-status{color:var(--orange)}
-    .mm-body{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:1.9;color:var(--text-2)}
-    .mm-num{font-size:clamp(18px,2.8vw,28px);font-weight:800;color:var(--accent)}
+    .mm-body{font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);line-height:1.6;color:var(--text-2)}
+    .mm-num{font-size:clamp(16px,2.4vw,22px);font-weight:800;color:var(--accent)}
     .mm-num.hot{color:var(--orange)}
     .mm-num.g{color:var(--green)}
     .mm-op{color:var(--text-3);margin:0 .35em;font-weight:600}
-    .mm-chips{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);margin:clamp(6px,1vw,10px) 0}
-    .mm-chip{background:var(--surface-3);border:1px solid var(--border);border-radius:10px;padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px);font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
-    .mm-chip .mm-chip-l{display:block;font-family:var(--font);font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);font-weight:600;margin-bottom:2px}
+    .mm-chips{display:flex;flex-wrap:wrap;gap:clamp(5px,.9vw,8px);margin:clamp(4px,.8vw,7px) 0}
+    .mm-chip{background:var(--surface-3);border:1px solid var(--border);border-radius:10px;padding:clamp(4px,.8vw,7px) clamp(8px,1.3vw,12px);font-family:var(--mono);font-size:clamp(13px,1.7vw,16px);font-weight:700;color:var(--text)}
+    .mm-chip .mm-chip-l{display:block;font-family:var(--font);font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);font-weight:600;margin-bottom:1px}
     .mm-chip.done{background:var(--green-soft);border-color:var(--green);color:#15803D}
-    .mm-formula{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:clamp(8px,1.4vw,12px);margin-top:clamp(8px,1.4vw,12px);font-family:var(--font);font-size:clamp(13px,1.8vw,17px);color:var(--text-3);line-height:1.8}
-    .mm-result{margin-top:clamp(10px,1.8vw,14px);font-family:var(--mono);font-size:clamp(16px,2.4vw,24px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border:1px solid #C7D2FE;border-radius:12px;padding:clamp(10px,1.8vw,16px);text-align:center;line-height:1.8}
-    .mm-note{font-family:var(--font);font-size:clamp(12px,1.6vw,14.5px);color:var(--text-3);line-height:1.7;margin-top:6px}
-    .mm-conv{display:flex;flex-direction:column;gap:clamp(6px,1vw,10px);margin:clamp(8px,1.4vw,12px) 0}
-    .mm-conv div{background:#fff;border:1px solid var(--border);border-radius:10px;padding:clamp(6px,1.2vw,10px) clamp(10px,1.6vw,14px);font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:700;color:var(--text-2)}
+    .mm-formula{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:clamp(5px,1vw,8px);margin-top:clamp(5px,.9vw,8px);font-family:var(--font);font-size:clamp(12px,1.6vw,15px);color:var(--text-3);line-height:1.6}
+    .mm-result{margin-top:clamp(6px,1vw,10px);font-family:var(--mono);font-size:clamp(15px,2.1vw,20px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border:1px solid #C7D2FE;border-radius:12px;padding:clamp(6px,1.2vw,10px);text-align:center;line-height:1.5}
+    .mm-note{font-family:var(--font);font-size:clamp(11.5px,1.5vw,13.5px);color:var(--text-3);line-height:1.5;margin-top:3px}
+    .mm-conv{display:flex;flex-direction:column;gap:clamp(4px,.8vw,7px);margin:clamp(5px,.9vw,8px) 0}
+    .mm-conv div{background:#fff;border:1px solid var(--border);border-radius:10px;padding:clamp(4px,.9vw,8px) clamp(8px,1.3vw,12px);font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text-2);line-height:1.6}
   </style>`);
 }
 
@@ -2557,7 +2611,7 @@ MOD.media = {
     $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${statePrefix} 第 ${i+1}/${blocks.length} 步</span></div>
       <div class="mm-wrap">
         ${blocks.slice(0,i+1).map((bk,j)=>`
-          <div class="mm-step ${j<i?'done':j===i?'cur':''} ${j===i?'write-in':''}">
+          <div class="mm-step ${j<i?'done':j===i?'cur':''} ${j===i?'write-in':''} ${(j===0||j===blocks.length-1)?'wide':''}">
             <div class="mm-step-hd"><span class="mm-idx">${j+1}</span>${bk.title}
               <span class="mm-status">${j<i?'已完成':j===i?'进行中':'待计算'}</span></div>
             <div class="mm-body">${bk.body(j===i)}</div>
@@ -4754,29 +4808,29 @@ MOD.pyexpr = {
 /* 模块专属样式：仅作用于 #stage 画布；大屏字号放大，变量面板纵向排列 */
 if (!document.getElementById('mod-pystruct-css')) {
   document.head.insertAdjacentHTML('beforeend', `<style id="mod-pystruct-css">
-  #stage .pystruct-wrap .ps-code{font-size:clamp(13px,1.8vw,17px);line-height:1.9;padding:clamp(8px,1.4vw,12px) clamp(8px,1.2vw,12px)}
-  #stage .pystruct-wrap .ps-cols{display:flex;gap:clamp(8px,1.4vw,14px);flex-wrap:wrap;margin-top:clamp(6px,1vw,10px)}
-  #stage .pystruct-wrap .ps-panel{flex:1 1 300px;min-width:250px}
-  #stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:6px}
-  #stage .pystruct-wrap .var-rack{flex-direction:column;align-items:stretch;gap:clamp(6px,1vw,8px);margin:0;min-height:clamp(60px,9vw,90px)}
-  #stage .pystruct-wrap .var-pill{display:flex;flex-direction:row;align-items:center;gap:clamp(8px,1.2vw,12px);width:100%;padding:clamp(6px,1vw,9px) clamp(10px,1.4vw,14px);font-size:clamp(13px,1.8vw,17px)}
-  #stage .pystruct-wrap .vp-name{color:var(--accent);font-weight:700;min-width:clamp(70px,9vw,100px)}
+  #stage .pystruct-wrap .ps-code{font-size:clamp(12px,1.6vw,15px);line-height:1.6;padding:clamp(6px,1.1vw,9px) clamp(8px,1.2vw,12px)}
+  #stage .pystruct-wrap .ps-cols{display:flex;gap:clamp(6px,1.1vw,10px);flex-wrap:nowrap;margin-top:clamp(4px,.8vw,7px)}
+  #stage .pystruct-wrap .ps-panel{flex:1 1 0;min-width:0}
+  #stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:4px}
+  #stage .pystruct-wrap .var-rack{flex-direction:column;align-items:stretch;gap:clamp(4px,.8vw,6px);margin:0;min-height:clamp(48px,6vw,64px)}
+  #stage .pystruct-wrap .var-pill{display:flex;flex-direction:row;align-items:center;gap:clamp(6px,1vw,10px);width:100%;padding:clamp(4px,.8vw,7px) clamp(8px,1.2vw,12px);font-size:clamp(12px,1.6vw,15px)}
+  #stage .pystruct-wrap .vp-name{color:var(--accent);font-weight:700;min-width:clamp(60px,8vw,88px)}
   #stage .pystruct-wrap .vp-eq{color:var(--text-3)}
   #stage .pystruct-wrap .vp-val{font-family:var(--mono);font-weight:700;color:var(--text);flex:1;word-break:break-all}
-  #stage .pystruct-wrap .vp-type{font-size:clamp(10px,1.3vw,12.5px);color:var(--text-3);background:var(--surface-3);border-radius:6px;padding:2px clamp(7px,1vw,10px);font-family:var(--mono);flex:none}
+  #stage .pystruct-wrap .vp-type{font-size:clamp(10px,1.3vw,12.5px);color:var(--text-3);background:var(--surface-3);border-radius:6px;padding:2px clamp(6px,.9vw,9px);font-family:var(--mono);flex:none}
   #stage .pystruct-wrap .var-pill.hot{animation:psHotFlash .7s ease 2}
   #stage .pystruct-wrap .var-pill.var-new{animation:psPopIn .3s ease}
   @keyframes psHotFlash{0%,100%{background:#fff;border-color:var(--border)}50%{background:var(--orange-soft);border-color:var(--orange)}}
   @keyframes psPopIn{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
-  #stage .pystruct-wrap .ps-console{font-size:clamp(12px,1.6vw,15px);min-height:clamp(60px,9vw,90px)}
-  #stage .pystruct-wrap .ps-banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:clamp(6px,1vw,8px) 0 0;font-size:clamp(12px,1.6vw,15px)}
-  #stage .pystruct-wrap .ps-cond{background:var(--orange-soft);border:1px solid var(--orange);color:#B45309;border-radius:9px;padding:clamp(6px,1vw,9px) clamp(12px,1.6vw,16px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-loop{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:9px;padding:clamp(6px,1vw,9px) clamp(12px,1.6vw,16px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-empty{opacity:.4;font-size:clamp(12px,1.6vw,15px);padding:clamp(8px,1.4vw,12px)}
+  #stage .pystruct-wrap .ps-console{font-size:clamp(11px,1.5vw,14px);min-height:clamp(48px,6vw,64px)}
+  #stage .pystruct-wrap .ps-banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:clamp(4px,.8vw,6px) 0 0;font-size:clamp(11px,1.5vw,14px)}
+  #stage .pystruct-wrap .ps-cond{background:var(--orange-soft);border:1px solid var(--orange);color:#B45309;border-radius:9px;padding:clamp(4px,.8vw,7px) clamp(10px,1.4vw,14px);font-family:var(--mono);font-weight:700}
+  #stage .pystruct-wrap .ps-loop{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:9px;padding:clamp(4px,.8vw,7px) clamp(10px,1.4vw,14px);font-family:var(--mono);font-weight:700}
+  #stage .pystruct-wrap .ps-empty{opacity:.4;font-size:clamp(11px,1.5vw,14px);padding:clamp(6px,1.1vw,9px)}
   /* 仅在本模块设置项存在时约束外层控制条，避免 flex-shrink:0 导致横向溢出 */
   #settingsRowWrap:has(.ps-setting-root){flex:0 0 auto;width:clamp(320px,52vw,640px);min-width:0;max-width:100%}
   #settingsRow:has(.ps-setting-root){display:flex;flex-direction:column;gap:8px;width:100%;min-width:0;max-width:100%}
-  #ps-code{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);line-height:1.7;width:100%;min-width:0;box-sizing:border-box;display:block;min-height:clamp(150px,22vw,210px);padding:clamp(10px,1.6vw,14px);border:1.5px solid var(--border);border-radius:10px;outline:none;resize:vertical;background:#fff;color:var(--text)}
+  #ps-code{font-family:var(--mono);font-size:clamp(12px,1.6vw,14px);line-height:1.6;width:100%;min-width:0;box-sizing:border-box;display:block;min-height:clamp(92px,12vw,118px);padding:clamp(7px,1.2vw,10px);border:1.5px solid var(--border);border-radius:10px;outline:none;resize:vertical;background:#fff;color:var(--text)}
   #ps-code:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
   </style>`);
 }
@@ -4838,7 +4892,7 @@ print(a)`
     return `<div class="ps-setting-root" style="flex:1 1 auto;min-width:0;width:100%;display:flex;flex-direction:column;gap:8px">
       <div class="setting" style="width:100%">
         <label>自定义 Python 代码（可直接修改，自动生成演示步骤）</label>
-        <textarea id="ps-code" rows="7" spellcheck="false">${esc(code)}</textarea>
+        <textarea id="ps-code" rows="4" spellcheck="false">${esc(code)}</textarea>
       </div>
       <div class="inline-setting" style="width:100%;min-width:0;margin-right:0">
         <div class="setting" style="width:100%">
@@ -5448,20 +5502,20 @@ if(!document.getElementById('ds-stack-queue-style')){
     /* 操作按钮：大触控热区 */
     .ds-op{min-height:clamp(38px,5vw,46px);font-size:clamp(12.5px,1.6vw,14.5px);gap:6px}
     /* 栈 chip：纵向大尺寸 */
-    .ds-chip-v{position:relative;min-width:clamp(64px,9vw,86px);min-height:clamp(44px,6vw,56px);
-      font-size:clamp(14px,2vw,18px);padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px)}
+    .ds-chip-v{position:relative;min-width:clamp(60px,8vw,78px);min-height:clamp(36px,5vw,46px);
+      font-size:clamp(13px,1.8vw,16px);padding:clamp(5px,.9vw,8px) clamp(9px,1.4vw,12px)}
     /* 队列 chip：横向大尺寸 */
-    .ds-chip-h{min-width:clamp(58px,8vw,78px);min-height:clamp(38px,5vw,50px);
-      font-size:clamp(14px,2vw,18px);padding:clamp(6px,1vw,9px) clamp(11px,1.8vw,15px)}
+    .ds-chip-h{min-width:clamp(54px,7vw,72px);min-height:clamp(32px,4.4vw,42px);
+      font-size:clamp(13px,1.8vw,16px);padding:clamp(5px,.9vw,8px) clamp(10px,1.6vw,13px)}
     /* 栈容器：底部封闭、顶部开放 */
-    .ds-stack-area{display:flex;flex-direction:column-reverse;gap:clamp(6px,1vw,8px);
-      align-items:center;justify-content:flex-end;min-height:clamp(210px,28vw,270px);
-      max-height:clamp(260px,36vw,330px);overflow-y:auto;padding:clamp(30px,4vw,40px) 14px 12px;
+    .ds-stack-area{display:flex;flex-direction:column-reverse;gap:clamp(5px,.9vw,7px);
+      align-items:center;justify-content:flex-end;min-height:clamp(150px,20vw,190px);
+      max-height:clamp(200px,28vw,250px);overflow-y:auto;padding:clamp(16px,2.4vw,22px) 14px 10px;
       background:#fff;border:1px solid var(--border);border-bottom:4px solid #8B5CF6;
       border-radius:0 0 12px 12px;scrollbar-width:thin}
     /* 队列容器 */
-    .ds-queue-area{display:flex;flex-direction:row;gap:clamp(7px,1.2vw,10px);align-items:center;
-      justify-content:center;flex-wrap:wrap;min-height:clamp(64px,9vw,84px);padding:12px;
+    .ds-queue-area{display:flex;flex-direction:row;gap:clamp(6px,1vw,9px);align-items:center;
+      justify-content:center;flex-wrap:wrap;min-height:clamp(52px,7vw,66px);padding:10px;
       background:#fff;border:1px solid var(--border);border-radius:12px}
     .ds-empty{color:#CBD5E1;font-family:var(--mono);font-size:clamp(13px,1.8vw,16px)}
     /* 侧端标签（栈顶 / 栈底 / 队头 / 队尾） */
@@ -5469,7 +5523,7 @@ if(!document.getElementById('ds-stack-queue-style')){
     .side-top{left:100%;top:50%;transform:translateY(-50%);margin-left:12px;color:#8B5CF6}
     .side-bottom{right:100%;top:50%;transform:translateY(-50%);margin-right:12px;color:#94A3B8}
     /* 幽灵动画槽位 */
-    .ds-ghost-v-row{min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+    .ds-ghost-v-row{min-height:clamp(32px,5vw,44px);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
     .ds-ghost-v{display:flex;align-items:center;gap:10px}
     .ds-ghost-h{display:flex;align-items:center;gap:6px}
     .ghost-tag{font-size:clamp(10px,1.3vw,12px);font-family:var(--mono);font-weight:700;color:#F59E0B;white-space:nowrap}
@@ -5689,20 +5743,21 @@ MOD.stack = {
     const warnHtml=this._warn?`<div class="err" style="margin-top:8px"><div class="err-t">提示</div>${esc(this._warn)}</div>`:'';
 
     $('#stage').innerHTML=`<div class="stage-hd"><span>${meta.title}</span><span class="state">${stateTxt}</span></div>
-      <div class="step-title" style="margin-bottom:6px"><span class="st-dot"></span>${meta.rule}</div>
-      <div class="annot" style="margin:0 0 8px;line-height:1.7">${meta.hint}</div>
+      <div class="step-title" style="margin-bottom:4px"><span class="st-dot"></span>${meta.rule}</div>
+      <div class="annot" style="margin:0 0 4px;line-height:1.55">${meta.hint}</div>
       ${structureHtml}
-      <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:10px">
+      <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:6px">
         <div style="flex:1 1 280px;min-width:230px">
           <div class="zone-label" style="margin-bottom:0">操作日志（共 ${this._stepNo} 步）</div>
-          <div class="ds-log" style="margin-top:2px;line-height:1.8">${logHtml}</div>
+          <div class="ds-log" style="margin-top:2px;line-height:1.6">${logHtml}</div>
         </div>
         ${exprHtml?`<div style="flex:1 1 260px;min-width:210px">
           <div class="zone-label" style="margin-bottom:0">最近操作表达式</div>
-          <div class="exp-inline" style="margin-top:2px;min-height:34px">${exprHtml}</div>
+          <div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>
         </div>`:''}
       </div>
       ${warnHtml}`;
+    Engine.fitStage();
   },
 
   /* ---------- 栈结构（纵向 · 底封闭顶开放） ---------- */
@@ -6042,7 +6097,7 @@ MOD.tree = {
     html += `<div class="zone-label">访问序列</div>
       <div class="order-rack"><span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">构建完成后点击「开始遍历」，访问序列将显示在这里</span></div>`;
 
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="tree-stage">${html}</div>`;
     $$('#stage .t-node').forEach(c => {
       c.onclick = () => {
         const id = parseInt(c.dataset.id, 10);
@@ -6050,6 +6105,7 @@ MOD.tree = {
         this.afterEdit();
       };
     });
+    Engine.fitStage();
   },
 
   /* ================= 遍历模式画布 ================= */
@@ -6139,7 +6195,7 @@ MOD.tree = {
       const seq = visited.map(v => this.findNode(v).label).join(' · ');
       html += `<div class="write-result" style="margin-top:8px;padding:6px 14px;line-height:1.6;font-size:clamp(13px,1.8vw,16px)">${meta.name}结果：[${seq}]</div>`;
     }
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="tree-stage">${html}</div>`;
   },
 
   /* ================= 步骤生成 ================= */
@@ -6594,8 +6650,9 @@ MOD.graph = {
     html += `<div class="zone-label">访问序列</div>
       <div class="order-rack"><span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">构建完成后点击「开始遍历」，访问序列将显示在这里</span></div>`;
 
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
     this.bindBuildInteractions();
+    Engine.fitStage();
   },
 
   bindBuildInteractions() {
@@ -6750,7 +6807,7 @@ MOD.graph = {
           ${meta.name}结果：[${visited.join(' · ')}]</div>`;
       }
     }
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
   },
 
   /* ================= 步骤生成 ================= */

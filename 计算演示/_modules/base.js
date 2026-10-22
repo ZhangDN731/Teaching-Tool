@@ -11,8 +11,8 @@
   if(document.getElementById('base-module-css')) return;
   const css = `
   .base-stage{font-family:var(--font)}
-  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(10px,1.8vw,16px)}
-  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:5px 14px;margin-bottom:clamp(12px,2.2vw,18px)}
+  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(6px,1vw,10px)}
+  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:4px 12px;margin-bottom:clamp(6px,1vw,10px)}
   /* 竖式除法：计算过程字号放大、行间距加大 */
   .base-stage .div-vertical{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:2.1;padding:6px 10px}
   .base-stage .div-vertical .dv-row{margin:clamp(8px,1.6vw,12px) 0;white-space:normal}
@@ -31,12 +31,12 @@
   .base-stage .exp-inline{font-size:clamp(16px,2.2vw,22px);padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px);margin:clamp(12px,2.2vw,18px) 0;line-height:1.8}
   .base-stage .exp-inline .res{color:var(--accent);font-weight:700;margin-left:4px}
   /* 分组框 */
-  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(8px,1.4vw,12px);margin:clamp(10px,1.8vw,14px) 0;flex-wrap:wrap;justify-content:center}
-  .base-stage .group-box .grp{padding:clamp(7px,1.3vw,11px) clamp(13px,2vw,18px);font-size:clamp(18px,2.8vw,28px)}
-  .base-stage .group-box .grp .grp-label{top:-20px;font-size:.6em}
+  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(12px,2vw,18px);margin:clamp(4px,.8vw,8px) 0;flex-wrap:nowrap;justify-content:center}
+  .base-stage .group-box .grp{padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px);font-size:clamp(17px,2.5vw,24px);min-width:clamp(50px,6.5vw,68px);text-align:center}
+  .base-stage .group-box .grp .grp-label{top:-18px;font-size:clamp(10px,1.3vw,13px);min-width:max-content;font-family:var(--font)}
   /* 结果框 */
   .base-stage .write-result{font-size:clamp(18px,2.8vw,28px);padding:clamp(11px,1.8vw,16px) clamp(14px,2.2vw,22px);margin-top:clamp(14px,2.6vw,20px);letter-spacing:1px}
-  .base-stage .annot{font-size:clamp(13px,1.8vw,17px);line-height:1.7;padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px)}
+  .base-stage .annot{font-size:clamp(12px,1.6vw,15px);line-height:1.6;padding:clamp(5px,1vw,8px) clamp(10px,1.6vw,14px)}
   /* 逆序读取箭头条 */
   .base-stage .rev-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono);font-size:clamp(12px,1.6vw,15px);padding:0 clamp(6px,1.2vw,10px)}
   .base-stage .rev-arrow .ra-top{color:#94A3B8;font-weight:700}
@@ -45,24 +45,32 @@
   .base-stage .two-col{align-items:stretch}
   .base-stage .two-col>div{min-width:min(100%,220px)}
   /* ===== 十转二：三列对齐网格（除法行 ↔ 倒排箭头 ↔ 二进制位） ===== */
-  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(8px,1.5vw,14px) 0}
-  .base-stage .d2b-col{display:flex;flex-direction:column;gap:4px}
-  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(36px,5vw,48px);padding:2px 6px;border-radius:6px;font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+  .base-stage .d2b-rack{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.4vw,12px);flex-wrap:nowrap;min-height:clamp(34px,5vh,44px)}
+  .base-stage .d2b-rack .d2b-rack-cap{flex:none;font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;color:var(--text-3);white-space:nowrap}
+  .base-stage .d2b-rack .group-box{margin:0}
+  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(4px,.8vw,8px) 0}
+  .base-stage .d2b-col{display:flex;flex-direction:column;gap:clamp(4px,.8vw,6px);min-width:0}
+  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(28px,4.2vh,40px);padding:2px 8px;border-radius:7px;font-family:var(--mono);font-size:clamp(13px,1.9vw,17px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
   .base-stage .d2b-row.done{background:var(--green-soft);color:#15803D}
   .base-stage .d2b-row.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
-  .base-stage .d2b-row.empty{color:#CBD5E1}
-  .base-stage .d2b-arrow{display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0;min-width:clamp(60px,9vw,80px)}
-  .base-stage .d2b-arrow .arr-label{font-size:clamp(10px,1.3vw,12px);font-weight:700;text-align:center;line-height:1.3}
+  .base-stage .d2b-row.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
+  .base-stage .d2b-row .dv-rank{margin-left:auto;flex:none;font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;white-space:nowrap;color:var(--text-3);background:#fff;border:1px solid var(--border);border-radius:999px;padding:1px 9px}
+  .base-stage .d2b-row.done .dv-rank{color:#15803D;border-color:#BFE9CF}
+  .base-stage .d2b-row.cur .dv-rank{color:#B45309;border-color:var(--orange);background:#FFF7E6}
+  /* 倒排箭头：垂直渐变条（顶=最低位橙，底=最高位绿）+ 向上箭头 + 上下标签，不使用 writing-mode */
+  .base-stage .d2b-arrow{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;min-width:clamp(54px,8vw,74px)}
+  .base-stage .d2b-arrow .arr-label{font-family:var(--font);font-size:clamp(10px,1.3vw,12.5px);font-weight:700;text-align:center;line-height:1.35;white-space:nowrap}
   .base-stage .d2b-arrow .arr-label.top{color:#B45309}
   .base-stage .d2b-arrow .arr-label.bottom{color:#15803D}
-  .base-stage .d2b-arrow .arr-line{flex:1;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.5vw,22px);color:var(--accent);font-weight:800;writing-mode:vertical-rl;letter-spacing:2px}
-  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:6px;min-height:clamp(36px,5vw,48px);border-radius:6px;font-family:var(--mono);font-size:clamp(16px,2.5vw,22px);font-weight:800}
+  .base-stage .d2b-arrow .arr-bar{flex:1;width:clamp(20px,3vw,28px);min-height:clamp(36px,6vh,60px);border-radius:10px;background:linear-gradient(180deg,var(--orange) 0%,#FBBF24 45%,var(--green) 100%);display:flex;align-items:center;justify-content:center}
+  .base-stage .d2b-arrow .arr-bar .arr-up{color:#fff;font-size:clamp(18px,2.6vw,26px);font-weight:800;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:clamp(6px,1vw,10px);min-height:clamp(28px,4.2vh,40px);border-radius:7px;font-family:var(--mono);font-size:clamp(16px,2.3vw,21px);font-weight:800;white-space:nowrap}
   .base-stage .d2b-bit.done{background:var(--green-soft);color:#15803D}
   .base-stage .d2b-bit.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
   .base-stage .d2b-bit.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
-  .base-stage .d2b-bit .bit-label{font-size:clamp(9px,1.1vw,11px);font-weight:600;color:var(--text-3);font-family:var(--font)}
+  .base-stage .d2b-bit .bit-label{font-size:clamp(10px,1.3vw,13px);font-weight:600;color:var(--text-3);font-family:var(--font);min-width:clamp(48px,6.5vw,66px);text-align:center}
   .base-stage .d2b-bit.cur .bit-label{color:#FFF7E6}
-  .base-stage .d2b-result{text-align:center;margin-top:clamp(10px,2vw,16px);font-family:var(--mono);font-size:clamp(18px,2.8vw,26px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(8px,1.5vw,12px);white-space:nowrap}
+  .base-stage .d2b-result{text-align:center;margin-top:clamp(8px,1.4vw,12px);font-family:var(--mono);font-size:clamp(17px,2.6vw,24px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(7px,1.2vw,10px);white-space:nowrap}
   /* ===== 二转八/十六：分组换算纵向累加列表 ===== */
   .base-stage .b2g-list{display:flex;flex-direction:column;gap:clamp(8px,1.4vw,12px);max-width:680px;margin:clamp(6px,1.2vw,10px) auto}
   .base-stage .b2g-row{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.2vw,12px);flex-wrap:wrap;font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;border-radius:12px;padding:clamp(8px,1.3vw,12px) clamp(12px,1.8vw,16px);border:1.5px solid var(--border)}
@@ -334,7 +342,7 @@ MOD.base = {
       }});
 
     /* 三列对齐网格渲染：phase='div' 除法阶段(curIdx=当前除法序号) / 'rev' 倒排阶段(curIdx=倒排序号k) / 'done' 完成。
-       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐。 */
+       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐；行数恒等于 R。 */
     const renderGrid = (phase, curIdx)=>{
       const leftRows = allRows.map((rd,j)=>{
         let state='done', badge='';
@@ -342,9 +350,10 @@ MOD.base = {
           state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
         }else if(phase==='rev'){
           const rowIdx = R-1-curIdx;
-          state = j===rowIdx?'cur' : 'done';
+          state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
           if(j>=rowIdx) badge = `<span class="dv-rank ${j===rowIdx?'cur':''}">${this._rankName(R-1-j,R)}</span>`;
         }else{
+          state='done';
           badge = `<span class="dv-rank">${this._rankName(R-1-j,R)}</span>`;
         }
         const show = phase!=='div' || j<=curIdx;
@@ -352,28 +361,28 @@ MOD.base = {
         return `<div class="d2b-row ${state}"><span>${n} ÷ 2 = ${q} … 余 ${r}</span>${badge}</div>`;
       }).join('');
       const rightBits = allRows.map((rd,j)=>{
-        let state, label;
+        let state, label='';
         if(phase==='div'){
           state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
-          label = `第 ${j+1} 个余数`;
         }else if(phase==='rev'){
           const rowIdx = R-1-curIdx;
           state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
-          label = j>=rowIdx ? this._rankName(R-1-j,R) : '待标注';
+          label = j>=rowIdx ? this._rankName(R-1-j,R) : '';
         }else{
           state='done';
           label = this._rankName(R-1-j,R);
         }
         const show = phase!=='div' || j<=curIdx;
         const r = show?rd.r:'?';
-        return `<div class="d2b-bit ${state}"><span>${r}</span><span class="bit-label">${label}</span></div>`;
+        const lbl = label ? `<span class="bit-label">${label}</span>` : '';
+        return `<div class="d2b-bit ${state}"><span>${r}</span>${lbl}</div>`;
       }).join('');
       return `<div class="d2b-grid">
         <div class="d2b-col">${leftRows}</div>
         <div class="d2b-arrow">
-          <div class="arr-label top">最低位<br>（第一个余数）</div>
-          <div class="arr-line">↑ 从下往上倒排 ↑</div>
-          <div class="arr-label bottom">最高位<br>（最后一个余数）</div>
+          <div class="arr-label top">最低位</div>
+          <div class="arr-bar"><span class="arr-up">↑</span></div>
+          <div class="arr-label bottom">最高位</div>
         </div>
         <div class="d2b-col">${rightBits}</div>
       </div>`;
@@ -388,8 +397,7 @@ MOD.base = {
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${R} 次除法`)}
             <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
-            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>余数收集区</b>（先收集 → 后收集，顺序暂存，最后需倒排读取）</div>
-            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
+            <div class="d2b-rack"><span class="d2b-rack-cap">余数收集（先 → 后）</span><div class="group-box">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(13px,1.9vw,16px)">（暂无）</span>'}</div></div>
             ${renderGrid('div',idx)}`);
         }});
     }
@@ -405,8 +413,7 @@ MOD.base = {
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,'逆序读取')}
             <div class="step-title"><span class="st-dot"></span>余数从下往上读（最高位 → 最低位）</div>
-            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>逆序读取区</b>（最高位 → 最低位，已读出的余数）</div>
-            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+            <div class="d2b-rack"><span class="d2b-rack-cap">逆序读取（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
             ${renderGrid('rev',k)}`);
         }});
     }
@@ -418,8 +425,7 @@ MOD.base = {
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
           <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>二进制结果</b>（最高位 → 最低位）</div>
-          <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+          <div class="d2b-rack"><span class="d2b-rack-cap">二进制结果（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
           ${renderGrid('done',-1)}
           <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
