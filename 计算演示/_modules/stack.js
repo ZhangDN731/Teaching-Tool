@@ -1,3 +1,21 @@
+
+;;;
+
+/* ================================================================
+ * ⑧ 栈 Stack
+ * ================================================================ */
+/* ================================================================
+ * ⑧ 栈 Stack（push 入栈 · pop 出栈 · LIFO 后进先出）
+ * 子页面：push 连续入栈 / pop 先压后弹 / mixed 混合操作
+ * ================================================================ */
+/* ================================================================
+ * ⑧ 栈 Stack（push 入栈 · pop 出栈 · LIFO 后进先出）
+ * 子页面：push 连续入栈 / pop 先压后弹 / mixed 混合操作
+ * ================================================================ */
+/* ================================================================
+ * ⑧ 栈 Stack（push 入栈 · pop 出栈 · LIFO 后进先出）
+ * 子页面：push 连续入栈 / pop 先压后弹 / mixed 混合操作
+ * ================================================================ */
 /* ================================================================
  * ⑧ 栈与队列（合并模块）
  *   1) 栈 Stack（LIFO）：栈顶一端进出 push / pop
@@ -14,20 +32,20 @@ if(!document.getElementById('ds-stack-queue-style')){
     /* 操作按钮：大触控热区 */
     .ds-op{min-height:clamp(38px,5vw,46px);font-size:clamp(12.5px,1.6vw,14.5px);gap:6px}
     /* 栈 chip：纵向大尺寸 */
-    .ds-chip-v{position:relative;min-width:clamp(64px,9vw,86px);min-height:clamp(44px,6vw,56px);
-      font-size:clamp(14px,2vw,18px);padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px)}
+    .ds-chip-v{position:relative;min-width:clamp(60px,8vw,78px);min-height:clamp(36px,5vw,46px);
+      font-size:clamp(13px,1.8vw,16px);padding:clamp(5px,.9vw,8px) clamp(9px,1.4vw,12px)}
     /* 队列 chip：横向大尺寸 */
-    .ds-chip-h{min-width:clamp(58px,8vw,78px);min-height:clamp(38px,5vw,50px);
-      font-size:clamp(14px,2vw,18px);padding:clamp(6px,1vw,9px) clamp(11px,1.8vw,15px)}
+    .ds-chip-h{min-width:clamp(54px,7vw,72px);min-height:clamp(32px,4.4vw,42px);
+      font-size:clamp(13px,1.8vw,16px);padding:clamp(5px,.9vw,8px) clamp(10px,1.6vw,13px)}
     /* 栈容器：底部封闭、顶部开放 */
-    .ds-stack-area{display:flex;flex-direction:column-reverse;gap:clamp(6px,1vw,8px);
-      align-items:center;justify-content:flex-end;min-height:clamp(210px,28vw,270px);
-      max-height:clamp(260px,36vw,330px);overflow-y:auto;padding:clamp(30px,4vw,40px) 14px 12px;
+    .ds-stack-area{display:flex;flex-direction:column-reverse;gap:clamp(5px,.9vw,7px);
+      align-items:center;justify-content:flex-end;min-height:clamp(150px,20vw,190px);
+      max-height:clamp(200px,28vw,250px);overflow-y:auto;padding:clamp(16px,2.4vw,22px) 14px 10px;
       background:#fff;border:1px solid var(--border);border-bottom:4px solid #8B5CF6;
       border-radius:0 0 12px 12px;scrollbar-width:thin}
     /* 队列容器 */
-    .ds-queue-area{display:flex;flex-direction:row;gap:clamp(7px,1.2vw,10px);align-items:center;
-      justify-content:center;flex-wrap:wrap;min-height:clamp(64px,9vw,84px);padding:12px;
+    .ds-queue-area{display:flex;flex-direction:row;gap:clamp(6px,1vw,9px);align-items:center;
+      justify-content:center;flex-wrap:wrap;min-height:clamp(52px,7vw,66px);padding:10px;
       background:#fff;border:1px solid var(--border);border-radius:12px}
     .ds-empty{color:#CBD5E1;font-family:var(--mono);font-size:clamp(13px,1.8vw,16px)}
     /* 侧端标签（栈顶 / 栈底 / 队头 / 队尾） */
@@ -35,7 +53,7 @@ if(!document.getElementById('ds-stack-queue-style')){
     .side-top{left:100%;top:50%;transform:translateY(-50%);margin-left:12px;color:#8B5CF6}
     .side-bottom{right:100%;top:50%;transform:translateY(-50%);margin-right:12px;color:#94A3B8}
     /* 幽灵动画槽位 */
-    .ds-ghost-v-row{min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+    .ds-ghost-v-row{min-height:clamp(32px,5vw,44px);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
     .ds-ghost-v{display:flex;align-items:center;gap:10px}
     .ds-ghost-h{display:flex;align-items:center;gap:6px}
     .ghost-tag{font-size:clamp(10px,1.3vw,12px);font-family:var(--mono);font-weight:700;color:#F59E0B;white-space:nowrap}
@@ -255,20 +273,21 @@ MOD.stack = {
     const warnHtml=this._warn?`<div class="err" style="margin-top:8px"><div class="err-t">提示</div>${esc(this._warn)}</div>`:'';
 
     $('#stage').innerHTML=`<div class="stage-hd"><span>${meta.title}</span><span class="state">${stateTxt}</span></div>
-      <div class="step-title" style="margin-bottom:6px"><span class="st-dot"></span>${meta.rule}</div>
-      <div class="annot" style="margin:0 0 8px;line-height:1.7">${meta.hint}</div>
+      <div class="step-title" style="margin-bottom:4px"><span class="st-dot"></span>${meta.rule}</div>
+      <div class="annot" style="margin:0 0 4px;line-height:1.55">${meta.hint}</div>
       ${structureHtml}
-      <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:10px">
+      <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:6px">
         <div style="flex:1 1 280px;min-width:230px">
           <div class="zone-label" style="margin-bottom:0">操作日志（共 ${this._stepNo} 步）</div>
-          <div class="ds-log" style="margin-top:2px;line-height:1.8">${logHtml}</div>
+          <div class="ds-log" style="margin-top:2px;line-height:1.6">${logHtml}</div>
         </div>
         ${exprHtml?`<div style="flex:1 1 260px;min-width:210px">
           <div class="zone-label" style="margin-bottom:0">最近操作表达式</div>
-          <div class="exp-inline" style="margin-top:2px;min-height:34px">${exprHtml}</div>
+          <div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>
         </div>`:''}
       </div>
       ${warnHtml}`;
+    Engine.fitStage();
   },
 
   /* ---------- 栈结构（纵向 · 底封闭顶开放） ---------- */

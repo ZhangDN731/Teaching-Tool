@@ -1,3 +1,33 @@
+
+;;;
+
+/* ================================================================
+ * ④ IP 地址与子网掩码（分类 + 全套子网计算）
+ * ================================================================ */
+function ipToArr(ip){return ip.split('.').map(Number);}
+function arrToIp(a){return a.join('.');}
+function ipAnd(a,b){return a.map((v,i)=>v&b[i]);}
+function ipOr(a,b){return a.map((v,i)=>v|b[i]);}
+function ipNot(a){return a.map(v=>255-v);}
+function ipAdd(a,n){let v=a[0]*16777216+a[1]*65536+a[2]*256+a[3]+n;return [(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,v&255];}
+function prefixToMask(p){const m=[];for(let i=0;i<4;i++){const s=Math.max(0,Math.min(8,p-i*8));m.push(s===8?255:s===0?0:256-Math.pow(2,8-s));}return m;}
+function ipClass(a){const f=a[0];if(f>=1&&f<=126)return['A','255.0.0.0','/8'];if(f===127)return['A(回环)','255.0.0.0','/8'];if(f>=128&&f<=191)return['B','255.255.0.0','/16'];if(f>=192&&f<=223)return['C','255.255.255.0','/24'];if(f>=224&&f<=239)return['D(组播)','—','—'];return['E(保留)','—','—'];}
+
+/* ================================================================
+ * IP 地址与子网掩码
+ * 子页面：classify 地址分类 / mask 子网掩码 / network 网络地址 / hostrange 主机范围
+ * 复用全局辅助函数：ipToArr, arrToIp, ipAnd, ipOr, ipNot, ipAdd, prefixToMask, ipClass
+ * ================================================================ */
+/* ================================================================
+ * IP 地址与子网掩码
+ * 子页面：classify 地址分类 / mask 子网掩码 / network 网络地址 / hostrange 主机范围
+ * 复用全局辅助函数：ipToArr, arrToIp, ipAnd, ipOr, ipNot, ipAdd, prefixToMask, ipClass
+ * ================================================================ */
+/* ================================================================
+ * IP 地址与子网掩码
+ * 子页面：classify 地址分类 / mask 子网掩码 / network 网络地址 / hostrange 主机范围
+ * 复用全局辅助函数：ipToArr, arrToIp, ipAnd, ipOr, ipNot, ipAdd, prefixToMask, ipClass
+ * ================================================================ */
 /* ================================================================
  * IP 地址与子网掩码
  * 子页面：classify 地址分类 / mask 子网掩码 / network 网络地址 / hostrange 主机范围

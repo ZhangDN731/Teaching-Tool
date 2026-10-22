@@ -1,3 +1,18 @@
+
+;;;
+
+/* ================================================================
+ * ⑦ Python 程序结构（顺序 · 分支 · 循环）
+ * ================================================================ */
+/* ================================================================
+ * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
+ * ================================================================ */
+/* ================================================================
+ * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
+ * ================================================================ */
+/* ================================================================
+ * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
+ * ================================================================ */
 /* ================================================================
  * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
  * 支持用户在代码框中自定义 Python 代码，内置轻量解释器模拟器：
@@ -7,29 +22,29 @@
 /* 模块专属样式：仅作用于 #stage 画布；大屏字号放大，变量面板纵向排列 */
 if (!document.getElementById('mod-pystruct-css')) {
   document.head.insertAdjacentHTML('beforeend', `<style id="mod-pystruct-css">
-  #stage .pystruct-wrap .ps-code{font-size:clamp(13px,1.8vw,17px);line-height:1.9;padding:clamp(8px,1.4vw,12px) clamp(8px,1.2vw,12px)}
-  #stage .pystruct-wrap .ps-cols{display:flex;gap:clamp(8px,1.4vw,14px);flex-wrap:wrap;margin-top:clamp(6px,1vw,10px)}
-  #stage .pystruct-wrap .ps-panel{flex:1 1 300px;min-width:250px}
-  #stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:6px}
-  #stage .pystruct-wrap .var-rack{flex-direction:column;align-items:stretch;gap:clamp(6px,1vw,8px);margin:0;min-height:clamp(60px,9vw,90px)}
-  #stage .pystruct-wrap .var-pill{display:flex;flex-direction:row;align-items:center;gap:clamp(8px,1.2vw,12px);width:100%;padding:clamp(6px,1vw,9px) clamp(10px,1.4vw,14px);font-size:clamp(13px,1.8vw,17px)}
-  #stage .pystruct-wrap .vp-name{color:var(--accent);font-weight:700;min-width:clamp(70px,9vw,100px)}
-  #stage .pystruct-wrap .vp-eq{color:var(--text-3)}
-  #stage .pystruct-wrap .vp-val{font-family:var(--mono);font-weight:700;color:var(--text);flex:1;word-break:break-all}
-  #stage .pystruct-wrap .vp-type{font-size:clamp(10px,1.3vw,12.5px);color:var(--text-3);background:var(--surface-3);border-radius:6px;padding:2px clamp(7px,1vw,10px);font-family:var(--mono);flex:none}
+  #stage .pystruct-wrap .ps-code{font-size:clamp(14px,1.9vw,18px);line-height:1.9;padding:clamp(8px,1.3vw,12px) clamp(10px,1.5vw,14px)}
+  #stage .pystruct-wrap .ps-cols{display:flex;gap:clamp(8px,1.3vw,12px);flex-wrap:nowrap;margin-top:clamp(6px,1vw,10px)}
+  #stage .pystruct-wrap .ps-panel{flex:1 1 0;min-width:0;background:#fff;border:1px solid var(--border);border-radius:10px;padding:clamp(6px,1vw,10px);overflow:hidden}
+  #stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:6px;font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3)}
+  #stage .pystruct-wrap .var-rack{flex-direction:column;align-items:stretch;gap:clamp(5px,1vw,8px);margin:0;min-height:clamp(60px,8vw,80px)}
+  #stage .pystruct-wrap .var-pill{display:flex;flex-direction:row;align-items:center;gap:clamp(8px,1.2vw,12px);width:100%;padding:clamp(6px,1vw,9px) clamp(10px,1.5vw,14px);font-size:clamp(14px,1.9vw,18px);border-radius:8px;background:var(--surface-2);border:1px solid var(--border);box-sizing:border-box}
+  #stage .pystruct-wrap .vp-name{color:var(--accent);font-weight:700;min-width:clamp(50px,7vw,72px);flex:none}
+  #stage .pystruct-wrap .vp-eq{color:var(--text-3);flex:none}
+  #stage .pystruct-wrap .vp-val{font-family:var(--mono);font-weight:700;color:var(--text);flex:1;word-break:break-all;min-width:0}
+  #stage .pystruct-wrap .vp-type{font-size:clamp(10px,1.3vw,13px);color:var(--text-3);background:var(--surface-3);border-radius:6px;padding:2px clamp(7px,1vw,10px);font-family:var(--mono);flex:none;white-space:nowrap}
   #stage .pystruct-wrap .var-pill.hot{animation:psHotFlash .7s ease 2}
   #stage .pystruct-wrap .var-pill.var-new{animation:psPopIn .3s ease}
-  @keyframes psHotFlash{0%,100%{background:#fff;border-color:var(--border)}50%{background:var(--orange-soft);border-color:var(--orange)}}
+  @keyframes psHotFlash{0%,100%{background:var(--surface-2);border-color:var(--border)}50%{background:var(--orange-soft);border-color:var(--orange)}}
   @keyframes psPopIn{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
-  #stage .pystruct-wrap .ps-console{font-size:clamp(12px,1.6vw,15px);min-height:clamp(60px,9vw,90px)}
+  #stage .pystruct-wrap .ps-console{font-size:clamp(13px,1.7vw,16px);min-height:clamp(60px,8vw,80px);padding:clamp(8px,1.3vw,12px);line-height:1.8}
   #stage .pystruct-wrap .ps-banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:clamp(6px,1vw,8px) 0 0;font-size:clamp(12px,1.6vw,15px)}
-  #stage .pystruct-wrap .ps-cond{background:var(--orange-soft);border:1px solid var(--orange);color:#B45309;border-radius:9px;padding:clamp(6px,1vw,9px) clamp(12px,1.6vw,16px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-loop{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:9px;padding:clamp(6px,1vw,9px) clamp(12px,1.6vw,16px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-empty{opacity:.4;font-size:clamp(12px,1.6vw,15px);padding:clamp(8px,1.4vw,12px)}
+  #stage .pystruct-wrap .ps-cond{background:var(--orange-soft);border:1px solid var(--orange);color:#B45309;border-radius:9px;padding:clamp(5px,1vw,8px) clamp(12px,1.8vw,16px);font-family:var(--mono);font-weight:700}
+  #stage .pystruct-wrap .ps-loop{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:9px;padding:clamp(5px,1vw,8px) clamp(12px,1.8vw,16px);font-family:var(--mono);font-weight:700}
+  #stage .pystruct-wrap .ps-empty{opacity:.4;font-size:clamp(12px,1.6vw,15px);padding:clamp(8px,1.3vw,12px)}
   /* 仅在本模块设置项存在时约束外层控制条，避免 flex-shrink:0 导致横向溢出 */
   #settingsRowWrap:has(.ps-setting-root){flex:0 0 auto;width:clamp(320px,52vw,640px);min-width:0;max-width:100%}
   #settingsRow:has(.ps-setting-root){display:flex;flex-direction:column;gap:8px;width:100%;min-width:0;max-width:100%}
-  #ps-code{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);line-height:1.7;width:100%;min-width:0;box-sizing:border-box;display:block;min-height:clamp(150px,22vw,210px);padding:clamp(10px,1.6vw,14px);border:1.5px solid var(--border);border-radius:10px;outline:none;resize:vertical;background:#fff;color:var(--text)}
+  #ps-code{font-family:var(--mono);font-size:clamp(12px,1.6vw,14px);line-height:1.6;width:100%;min-width:0;box-sizing:border-box;display:block;min-height:clamp(92px,12vw,118px);padding:clamp(7px,1.2vw,10px);border:1.5px solid var(--border);border-radius:10px;outline:none;resize:vertical;background:#fff;color:var(--text)}
   #ps-code:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
   </style>`);
 }
@@ -91,7 +106,7 @@ print(a)`
     return `<div class="ps-setting-root" style="flex:1 1 auto;min-width:0;width:100%;display:flex;flex-direction:column;gap:8px">
       <div class="setting" style="width:100%">
         <label>自定义 Python 代码（可直接修改，自动生成演示步骤）</label>
-        <textarea id="ps-code" rows="7" spellcheck="false">${esc(code)}</textarea>
+        <textarea id="ps-code" rows="4" spellcheck="false">${esc(code)}</textarea>
       </div>
       <div class="inline-setting" style="width:100%;min-width:0;margin-right:0">
         <div class="setting" style="width:100%">

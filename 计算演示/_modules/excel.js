@@ -1,11 +1,18 @@
+
+;;;
+
+/* ================================================================
+ * ⑤ Excel 公式（相对 / 绝对 / 混合引用的复制变化）
+ * ================================================================ */
+
 /* ================================================================
  * Excel 公式
  * 子页面：ref_rel 相对引用 / ref_abs 绝对引用 / ref_mix 混合引用 / func 统计函数与数据类型
- * 引用复制路径：起点 B2 → 向右 C2、D2 → 向下 B3、B4
+ * 引用复制：用户自主选择方向（上 / 下 / 左 / 右）与步数（1~3 格），起点随方向自动避让边界
  * 函数数据区域：A1:D4（数字 10/20/30、文本 abc、逻辑 TRUE、空单元格）
  * ================================================================ */
 
-/* ---- 大屏幕专用样式注入（仅作用于本模块 .excel-stage 容器，不影响其他模块） ---- */
+/* ---- 大屏幕专用样式注入（仅作用于本模块；方向按钮位于参数区，单独给出全局规则） ---- */
 if(!document.getElementById('excel-xl-style')){
   document.head.insertAdjacentHTML('beforeend', `
   <style id="excel-xl-style">
@@ -40,98 +47,59 @@ if(!document.getElementById('excel-xl-style')){
     .excel-stage .legend{display:flex;gap:clamp(8px,1.5vw,14px);flex-wrap:wrap;margin:clamp(8px,1.5vw,12px) 0}
     .excel-stage .legend .lg{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:clamp(11px,1.4vw,13px);color:var(--text-2);font-weight:600}
     .excel-stage .legend .swatch{width:14px;height:14px;border-radius:4px;display:inline-block}
+    /* 方向选择按钮（位于参数区 #settingsRow，不在 .excel-stage 内，故单独给规则） */
+    .xl-dir-row{display:inline-flex;gap:6px;align-items:center}
+    .xl-dir-btn{width:38px;height:34px;border:1.5px solid var(--border);background:#fff;border-radius:9px;font-size:17px;font-weight:800;color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:all .15s ease;font-family:var(--mono)}
+    .xl-dir-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .xl-dir-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px var(--accent-soft)}
   </style>`);
 }
 
-/* ---- 引用类型配置 ---- */
+/* ---- 方向布局：起点（anchor）、源引用列/行、第 k 格目标地址与偏移量；向左/向上时起点自动避让边界 ---- */
+const DIR_LAYOUT = {
+  right:{ label:'右', anchorCol:2, anchorRow:2, refCol:1, refRow:1,
+          tCol:k=>2+k, tRow:()=>2, dc:k=>k, dr:()=>0 },
+  down: { label:'下', anchorCol:2, anchorRow:2, refCol:1, refRow:1,
+          tCol:()=>2, tRow:k=>2+k, dc:()=>0, dr:k=>k },
+  left: { label:'左', anchorCol:4, anchorRow:2, refCol:5, refRow:1,
+          tCol:k=>4-k, tRow:()=>2, dc:k=>-k, dr:()=>0 },
+  up:   { label:'上', anchorCol:2, anchorRow:4, refCol:1, refRow:5,
+          tCol:()=>2, tRow:k=>4-k, dc:()=>0, dr:k=>-k }
+};
+
+/* ---- 引用类型配置（ana[0]=列标是否锁定，ana[1]=行号是否锁定） ---- */
 const REF_CONFIG = {
   rel: {
-    ref:'A1', title:'相对引用', subtitle:'列标、行号都随目标位置偏移',
-    intro:'<b>相对引用</b>（如 A1）：列标、行号都没有 $，复制时一起随目标位置偏移——向右复制列号增大，向下复制行号增大。',
-    analysisDesc:'先拆解 B2 中公式 =A1 的两个部分，判断谁会动、谁不动。',
+    title:'相对引用', subtitle:'列标、行号都随目标位置偏移',
+    intro:'<b>相对引用</b>（如 A1）：列标、行号都没有 $，复制时一起随目标位置偏移——横向复制列号变化，纵向复制行号变化。',
     ana:[
-      {label:'列标', lock:false, val:'A', relText:'相对 → 向右复制时列标变', lockText:'锁定 → 不动'},
-      {label:'行号', lock:false, val:'1', relText:'相对 → 向下复制时行号变', lockText:'不动'}
-    ],
-    stepDesc:{
-      C2:'向右复制 1 格到 <b class="c-op">C2</b>：列偏移 <b>+1</b>（A→B，橙色变化），同行复制行号 1 不变，公式变为 <b class="c-op">=B1</b>。',
-      D2:'再向右复制到 <b class="c-op">D2</b>：列偏移 <b>+2</b>（A→C，橙色变化），行号 1 不变，公式变为 <b class="c-op">=C1</b>。',
-      B3:'向下复制 1 格到 <b class="c-op">B3</b>：行偏移 <b>+1</b>（1→2，橙色变化），同列复制列标 A 不变，公式变为 <b class="c-op">=A2</b>。',
-      B4:'向下复制到 <b class="c-op">B4</b>：行偏移 <b>+2</b>（1→3，橙色变化），列标 A 不变，公式变为 <b class="c-op">=A3</b>。'
-    },
-    note:{
-      C2:'列 A→B（橙色变化）；同行复制，行号 1 不变',
-      D2:'列 A→C（橙色变化）；行号 1 不变',
-      B3:'行 1→2（橙色变化）；同列复制，列标 A 不变',
-      B4:'行 1→3（橙色变化）；列标 A 不变'
-    },
-    finalDesc:'相对引用复制完成：向右复制只改列标、向下复制只改行号，公式整体随目标位置平移。验证：C2=B1、D2=C1、B3=A2、B4=A3。'
+      {label:'列标', lock:false},
+      {label:'行号', lock:false}
+    ]
   },
   abs: {
-    ref:'$A$1', title:'绝对引用', subtitle:'列标、行号都被 $ 锁定',
+    title:'绝对引用', subtitle:'列标、行号都被 $ 锁定',
     intro:'<b>绝对引用</b>（如 $A$1）：列标前和行号前都有 $，同时锁定列和行，复制到任何位置公式都不变。',
-    analysisDesc:'拆解 =$A$1：列标、行号两个部分都被 $ 绿色锁定。',
     ana:[
-      {label:'列标', lock:true, val:'A', relText:'', lockText:'$ 锁定 → 复制后列标不动'},
-      {label:'行号', lock:true, val:'1', relText:'', lockText:'$ 锁定 → 复制后行号不动'}
-    ],
-    stepDesc:{
-      C2:'向右复制到 <b class="c-op">C2</b>：列、行都被 $ 锁定，<b>两个部分都不动</b>（绿色锁定），公式仍为 <b class="c-op">=$A$1</b>。',
-      D2:'再向右复制到 <b class="c-op">D2</b>：列、行依旧锁定不动，公式仍为 <b class="c-op">=$A$1</b>。',
-      B3:'向下复制到 <b class="c-op">B3</b>：列、行都不动，公式仍为 <b class="c-op">=$A$1</b>。',
-      B4:'向下复制到 <b class="c-op">B4</b>：列、行都不动，公式仍为 <b class="c-op">=$A$1</b>。'
-    },
-    note:{
-      C2:'列、行均被 $ 锁定，公式不变',
-      D2:'列、行均被 $ 锁定，公式不变',
-      B3:'列、行均被 $ 锁定，公式不变',
-      B4:'列、行均被 $ 锁定，公式不变'
-    },
-    finalDesc:'绝对引用复制完成：无论向右还是向下复制，公式始终 =$A$1，绿色锁定的部分保持不动。'
+      {label:'列标', lock:true},
+      {label:'行号', lock:true}
+    ]
   },
   mixcol: {
-    ref:'$A1', title:'混合引用（列绝对 · 行相对）', subtitle:'列锁死，行偏移',
+    title:'混合引用（列绝对 · 行相对）', subtitle:'列锁死，行偏移',
     intro:'<b>混合引用 $A1</b>：列标前有 $ → 列被锁定；行号前没有 $ → 行相对偏移。',
-    analysisDesc:'拆解 =$A1：列标 $A 绿色锁定，行号 1 橙色随动。',
     ana:[
-      {label:'列标', lock:true, val:'A', relText:'', lockText:'$ 锁定 → 复制后列标始终是 A'},
-      {label:'行号', lock:false, val:'1', relText:'相对 → 向下复制时行号变'}
-    ],
-    stepDesc:{
-      C2:'向右复制到 <b class="c-op">C2</b>：列 $A 锁死不动（绿色）；在同一行内复制，行号 1 未偏移，公式 =<b class="c-op">=$A1</b>。',
-      D2:'向右复制到 <b class="c-op">D2</b>：列 $A 仍锁定不动，行号 1 未偏移，公式 =<b class="c-op">=$A1</b>。',
-      B3:'向下复制到 <b class="c-op">B3</b>：列 $A 不动（绿色锁定）；行偏移 +1：1→2（橙色变化），公式 =<b class="c-op">=$A2</b>。',
-      B4:'向下复制到 <b class="c-op">B4</b>：列 $A 不动；行偏移 +2：1→3（橙色变化），公式 =<b class="c-op">=$A3</b>。'
-    },
-    note:{
-      C2:'列 $A 锁定不动；同行复制，行号 1 未偏移',
-      D2:'列 $A 锁定不动；行号 1 未偏移',
-      B3:'列 $A 锁定不动；行 1→2（橙色变化）',
-      B4:'列 $A 锁定不动；行 1→3（橙色变化）'
-    },
-    finalDesc:'$A1 复制完成：向右复制列标、行号都不变；向下复制列标仍为 $A，行号随之下移。'
+      {label:'列标', lock:true},
+      {label:'行号', lock:false}
+    ]
   },
   mixrow: {
-    ref:'A$1', title:'混合引用（列相对 · 行绝对）', subtitle:'列偏移，行锁死',
+    title:'混合引用（列相对 · 行绝对）', subtitle:'列偏移，行锁死',
     intro:'<b>混合引用 A$1</b>：行号前有 $ → 行被锁定；列标前没有 $ → 列相对偏移。',
-    analysisDesc:'拆解 =A$1：列标 A 橙色随动，行号 $1 绿色锁定。',
     ana:[
-      {label:'列标', lock:false, val:'A', relText:'相对 → 向右复制时列标变'},
-      {label:'行号', lock:true, val:'1', relText:'', lockText:'$ 锁定 → 复制后行号始终是 1'}
-    ],
-    stepDesc:{
-      C2:'向右复制到 <b class="c-op">C2</b>：行 $1 锁死不动（绿色）；列偏移 +1：A→B（橙色变化），公式 =<b class="c-op">=B$1</b>。',
-      D2:'向右复制到 <b class="c-op">D2</b>：行 $1 不动；列偏移 +2：A→C（橙色变化），公式 =<b class="c-op">=C$1</b>。',
-      B3:'向下复制到 <b class="c-op">B3</b>：行 $1 锁死不动（绿色）；在同一列内复制，列标 A 未偏移，公式 =<b class="c-op">=A$1</b>。',
-      B4:'向下复制到 <b class="c-op">B4</b>：行 $1 不动；列标 A 未偏移，公式 =<b class="c-op">=A$1</b>。'
-    },
-    note:{
-      C2:'行 $1 锁定不动；列 A→B（橙色变化）',
-      D2:'行 $1 锁定不动；列 A→C（橙色变化）',
-      B3:'行 $1 锁定不动；同列复制，列标 A 未偏移',
-      B4:'行 $1 锁定不动；列标 A 未偏移'
-    },
-    finalDesc:'A$1 复制完成：向下复制行号、列标都不变；向右复制行号仍为 $1，列标随之右移。'
+      {label:'列标', lock:false},
+      {label:'行号', lock:true}
+    ]
   }
 };
 
@@ -183,12 +151,14 @@ MOD.excel = {
   name:'Excel公式', sub:'相对 · 绝对 · 混合引用复制 · 统计函数与数据类型',
   badge:'表格 · 引用', tag:'表格', cat:'net',
   color:'#22C55E', soft:'#E8FBF0', type:'相对/绝对/混合引用复制 · SUM/AVERAGE/COUNT/COUNTA/MAX/MIN',
-  desc:'演示相对、绝对、混合引用在公式复制时的行列变化；在含数字、文本、逻辑值、空单元格的区域上逐步计算 SUM/AVERAGE/COUNT/COUNTA/MAX/MIN。',
+  desc:'演示相对、绝对、混合引用在公式复制时的行列变化（方向、步数可自选）；在含数字、文本、逻辑值、空单元格的区域上逐步计算 SUM/AVERAGE/COUNT/COUNTA/MAX/MIN。',
   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
-  setDesc:'引用演示固定起点 B2，先向右复制到 C2、D2，再向下复制到 B3、B4；函数演示固定区域 A1:D4。',
-  stageDesc:'橙色=相对/变化部分，绿色=锁定/计入，灰色删除线=忽略；观察复制时引用偏移规律与各函数的计入规则。',
+  setDesc:'在上方选择复制方向（上 / 下 / 左 / 右）与步数（1~3 格）；函数演示固定区域 A1:D4。',
+  stageDesc:'橙色=相对/变化部分，绿色=锁定/计入，灰色虚线=未偏移；观察所选方向上引用的偏移规律与各函数的计入规则。',
   initDesc:'点击「自动演示」，观看公式引用变化或函数逐步判断计入/忽略。',
   currentSub:'ref_rel',
+  /* 用户所选复制方向与步数（默认向右 2 格） */
+  _dir:'right', _steps:2,
   subTabs:[
     {id:'ref_rel', label:'相对引用', method:'行列都偏移'},
     {id:'ref_abs', label:'绝对引用', method:'行列都锁定'},
@@ -196,7 +166,7 @@ MOD.excel = {
     {id:'func',    label:'统计函数与数据类型', method:'六函数逐个判断'}
   ],
   theory(){
-    return `<div class="rule"><b>相对引用</b>（如 A1）：复制时行号和列号都会随目标位置偏移，向右复制列 +1，向下复制行 +1。</div>
+    return `<div class="rule"><b>相对引用</b>（如 A1）：复制时行号和列号都会随目标位置偏移，向右复制列 +1，向下复制行 +1，向左、向上同理反向偏移。</div>
     <div class="rule"><b>绝对引用</b>（如 $A$1）：复制时行号和列号都<b>不变</b>，$ 同时锁定行和列。</div>
     <div class="rule"><b>混合引用 $A1</b>：列绝对、行相对——列锁死不变，行随目标位置偏移。</div>
     <div class="rule"><b>混合引用 A$1</b>：列相对、行绝对——行锁死不变，列随目标位置偏移。</div>
@@ -212,10 +182,29 @@ MOD.excel = {
       return `<div class="inline-setting"><div class="setting"><label>演示区域</label>
         <div class="annot" style="padding:4px 8px">固定区域 <b>A1:D4</b>：数字 10/20/30、文本 abc、逻辑 TRUE、空单元格；依次演示六个函数</div></div></div>`;
     }
-    return `<div class="inline-setting"><div class="setting"><label>复制路径</label>
-      <div class="annot" style="padding:4px 8px">起点 <b>B2</b>：先向右复制到 <b>C2、D2</b>，再向下复制到 <b>B3、B4</b></div></div></div>`;
+    const { dir, N, L } = this._refLayout();
+    const anchor = this.colLetter(L.anchorCol) + L.anchorRow;
+    const targetAddrs = [];
+    for(let k=1; k<=N; k++) targetAddrs.push(this.colLetter(L.tCol(k)) + L.tRow(k));
+    const dirs = [['up','↑','向上'],['down','↓','向下'],['left','←','向左'],['right','→','向右']];
+    const dirBtns = dirs.map(([d,arrow,label])=>
+      `<button type="button" class="xl-dir-btn ${dir===d?'active':''}" data-dir="${d}" title="${label}">${arrow}</button>`).join('');
+    const opts = [1,2,3].map(n=>`<option value="${n}" ${N===n?'selected':''}>${n} 格</option>`).join('');
+    return `<div class="inline-setting"><div class="setting"><label>复制方向</label>
+        <div class="xl-dir-row">${dirBtns}</div></div></div>
+      <div class="inline-setting"><div class="setting"><label>复制步数</label>
+        <select id="excel-steps">${opts}</select></div></div>
+      <div class="inline-setting"><div class="setting"><label>当前路径</label>
+        <div class="annot" style="padding:4px 8px">起点 <b>${anchor}</b>，向${L.label}复制 ${N} 格：${anchor} → ${targetAddrs.join(' → ')}</div></div></div>`;
   },
-  afterSettings(){},
+  afterSettings(){
+    if(this.currentSub === 'func') return;
+    document.querySelectorAll('#settingsRow .xl-dir-btn').forEach(b=>{
+      b.onclick = ()=>{ this._dir = b.dataset.dir; Engine.reload(); };
+    });
+    const sel = $('#excel-steps');
+    if(sel) sel.onchange = ()=>{ this._steps = +sel.value; Engine.reload(); };
+  },
 
   /* ---------- 工具方法 ---------- */
   colLetter(n){ return String.fromCharCode(64 + n); },
@@ -234,6 +223,16 @@ MOD.excel = {
     return `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`;
   },
   fmtNum(v){ return Number.isInteger(v) ? String(v) : v.toFixed(2); },
+
+  /* 读取用户选择的方向与步数，归一化到合法值 */
+  _refLayout(){
+    const dir = ['right','down','left','up'].includes(this._dir) ? this._dir : 'right';
+    const N = [1,2,3].includes(Number(this._steps)) ? Number(this._steps) : 2;
+    return { dir, N, L: DIR_LAYOUT[dir] };
+  },
+  buildRef(colLock, col, rowLock, row){
+    return (colLock ? '$' : '') + col + (rowLock ? '$' : '') + row;
+  },
 
   /* 源公式：按引用类型上色（锁定=绿色锁，相对=橙色） */
   renderRefSource(ref){
@@ -261,21 +260,53 @@ MOD.excel = {
     return col + row;
   },
 
+  /* 单个目标单元格的变化说明（desc=步骤文字，note=汇总表说明） */
+  describeTarget(srcRef, dc, dr, addr, k, L){
+    const p = this.parseRef(srcRef);
+    const newCol = p.colLock ? p.col : this.colLetter(p.col.charCodeAt(0)-64 + dc);
+    const newRow = p.rowLock ? p.row : String(Number(p.row) + dr);
+    const newRef = (p.colLock ? '$' : '') + newCol + (p.rowLock ? '$' : '') + newRow;
+    let colPart, rowPart, noteCol, noteRow;
+    if(p.colLock){
+      colPart = `列 $${p.col} 被 $ 锁定，保持不变（绿色）`;
+      noteCol = `列 $${p.col} 锁定不动`;
+    }else if(dc === 0){
+      colPart = `同一列内复制，列标 ${p.col} 未偏移（灰色）`;
+      noteCol = `同列复制，列标 ${p.col} 未偏移`;
+    }else{
+      colPart = `列偏移 ${dc>0?'+':''}${dc}：${p.col}→${newCol}（橙色变化）`;
+      noteCol = `列 ${p.col}→${newCol}（橙色变化）`;
+    }
+    if(p.rowLock){
+      rowPart = `行 $${p.row} 被 $ 锁定，保持不变（绿色）`;
+      noteRow = `行 $${p.row} 锁定不动`;
+    }else if(dr === 0){
+      rowPart = `同一行内复制，行号 ${p.row} 未偏移（灰色）`;
+      noteRow = `同行复制，行号 ${p.row} 未偏移`;
+    }else{
+      rowPart = `行偏移 ${dr>0?'+':''}${dr}：${p.row}→${newRow}（橙色变化）`;
+      noteRow = `行 ${p.row}→${newRow}（橙色变化）`;
+    }
+    const desc = `向${L.label}复制 ${k} 格到 <b class="c-op">${addr}</b>：${colPart}；${rowPart}，公式变为 <b class="c-op">=${newRef}</b>。`;
+    return { desc, note: `${noteCol}；${noteRow}`, newRef };
+  },
+
   /* ---------- 引用复制舞台 ---------- */
   drawRefStage(o){
-    const { cfg, srcRef, map, visible, phase } = o;
-    const cols = ['A','B','C','D'];
+    const { cfg, srcRef, anchor, L, N, map, visible, phase, targets } = o;
+    const cols = ['A','B','C','D','E'];
+    const targetList = targets.map(t=>t.addr).join('、');
     let html = `<div class="excel-stage">
-      <div class="stage-hd"><span>${cfg.title} · 公式复制</span><span class="state">起点 B2 · 向右 C2/D2 · 向下 B3/B4</span></div>
+      <div class="stage-hd"><span>${cfg.title} · 公式复制</span><span class="state">起点 ${anchor} · 向${L.label}复制 ${N} 格：${targetList}</span></div>
       <div class="step-title"><span class="st-dot"></span>${cfg.subtitle}</div>
-      <div class="xl-grid" style="grid-template-columns:38px repeat(4,1fr)">
+      <div class="xl-grid" style="grid-template-columns:38px repeat(5,1fr)">
         <div class="xl-cell hd"></div>${cols.map(c=>`<div class="xl-cell hd">${c}</div>`).join('')}`;
-    for(let r=1; r<=4; r++){
+    for(let r=1; r<=5; r++){
       html += `<div class="xl-cell hd">${r}</div>`;
-      for(let c=1; c<=4; c++){
+      for(let c=1; c<=5; c++){
         const cell = this.colLetter(c) + r;
         let cls = '', content = '<span style="color:#E2E8F0">·</span>';
-        if(cell === 'B2'){
+        if(cell === anchor){
           cls = 'sel'; content = '=' + this.renderRefSource(srcRef);
         }else if(map[cell]){
           const t = map[cell];
@@ -288,24 +319,37 @@ MOD.excel = {
     html += `</div>`;
 
     const curTarget = Object.values(map).find(t=>t.state === 'cur');
-    html += `<div class="xl-formula">起点 B2 =${this.renderRefSource(srcRef)}`;
+    html += `<div class="xl-formula">起点 ${anchor} =${this.renderRefSource(srcRef)}`;
     if(curTarget) html += ` &nbsp;→&nbsp; ${curTarget.addr} =${this.renderRefTarget(srcRef, curTarget.dc, curTarget.dr)}`;
     html += `</div>`;
 
-    if(phase === 'source') html += this.analysisCard(cfg);
+    if(phase === 'source') html += this.analysisCard(cfg, srcRef, L);
     html += this.refSummaryTable(o, map, visible);
     html += `</div>`;
     $('#stage').innerHTML = html;
   },
 
-  analysisCard(cfg){
-    const rows = cfg.ana.map(a=>{
+  analysisCard(cfg, srcRef, L){
+    const p = this.parseRef(srcRef);
+    const horizontal = L.dc(1) !== 0;
+    const rows = cfg.ana.map((a,i)=>{
+      const isCol = i === 0;
+      const val = isCol ? p.col : p.row;
       const token = a.lock
-        ? `<span class="ref-lock">$${a.val}${this.lockSVG()}</span>`
-        : `<span class="ref-move">${a.val}</span>`;
-      const note = a.lock
-        ? `<span class="ana-note" style="color:#15803D">${a.lockText}</span>`
-        : `<span class="ana-note" style="color:#B45309">${a.relText}</span>`;
+        ? `<span class="ref-lock">$${val}${this.lockSVG()}</span>`
+        : `<span class="ref-move">${val}</span>`;
+      let note;
+      if(a.lock){
+        note = `<span class="ana-note" style="color:#15803D">${isCol ? '$ 锁定 → 复制后列标不动' : '$ 锁定 → 复制后行号不动'}</span>`;
+      }else if(isCol){
+        note = horizontal
+          ? `<span class="ana-note" style="color:#B45309">相对 → 向${L.label}复制时列标变</span>`
+          : `<span class="ana-note" style="color:var(--text-3)">同列复制，列标不偏移</span>`;
+      }else{
+        note = horizontal
+          ? `<span class="ana-note" style="color:var(--text-3)">同行复制，行号不偏移</span>`
+          : `<span class="ana-note" style="color:#B45309">相对 → 向${L.label}复制时行号变</span>`;
+      }
       return `<div class="ana-row"><span class="ana-label">${a.label}</span>${token}${note}</div>`;
     }).join('');
     return `<div class="ana-card">
@@ -314,25 +358,47 @@ MOD.excel = {
   },
 
   refSummaryTable(o, map, visible){
-    let rows = `<tr><td>B2</td><td>原公式（起点）</td><td>=${this.renderRefSource(o.srcRef)}</td><td class="note">复制的起点单元格</td></tr>`;
+    const { srcRef, anchor, L } = o;
+    let rows = `<tr><td>${anchor}</td><td>原公式（起点）</td><td>=${this.renderRefSource(srcRef)}</td><td class="note">复制的起点单元格</td></tr>`;
     Object.values(map).slice(0, visible).forEach(t=>{
-      rows += `<tr><td>${t.addr}</td><td>${t.dir === 'right' ? '向右复制' : '向下复制'}</td><td>=${this.renderRefTarget(o.srcRef, t.dc, t.dr)}</td><td class="note">${o.cfg.note[t.addr]}</td></tr>`;
+      rows += `<tr><td>${t.addr}</td><td>向${L.label}复制 ${t.k} 格</td><td>=${this.renderRefTarget(srcRef, t.dc, t.dr)}</td><td class="note">${t.note}</td></tr>`;
     });
     return `<table class="ref-tbl">
       <thead><tr><th>单元格</th><th>复制方向</th><th>复制后公式</th><th>变化说明</th></tr></thead>
       <tbody>${rows}</tbody></table>`;
   },
 
-  /* ---------- 单个引用类型：源公式 → 向右 C2/D2 → 向下 B3/B4 → 汇总 ---------- */
+  analysisDesc(anchor, srcRef, L){
+    return `先拆解 <b class="c-op">${anchor}</b> 中公式 =${srcRef} 的列标、行号两个部分，判断谁会在本次向${L.label}复制时移动、谁保持不动。`;
+  },
+
+  finalDesc(cfg, anchor, srcRef, targets, L){
+    const p = this.parseRef(srcRef);
+    const parts = [];
+    if(p.colLock) parts.push('列标被 $ 锁定，始终不变');
+    else if(L.dc(1) === 0) parts.push('列标同列复制，不偏移');
+    else parts.push('列标随目标位置横向偏移');
+    if(p.rowLock) parts.push('行号被 $ 锁定，始终不变');
+    else if(L.dr(1) === 0) parts.push('行号同行复制，不偏移');
+    else parts.push('行号随目标位置纵向偏移');
+    const verify = targets.map(t=>`${t.addr}=${t.formula}`).join('、');
+    return `${cfg.title}复制完成：${parts.join('；')}。验证：${verify}。`;
+  },
+
+  /* ---------- 单个引用类型：源公式 → 所选方向逐格复制 → 汇总 ---------- */
   genRefCase(type){
     const cfg = REF_CONFIG[type];
-    const srcRef = cfg.ref;
-    const targets = [
-      {addr:'C2', dc:1, dr:0, dir:'right'},
-      {addr:'D2', dc:2, dr:0, dir:'right'},
-      {addr:'B3', dc:0, dr:1, dir:'down'},
-      {addr:'B4', dc:0, dr:2, dir:'down'}
-    ].map(t=>({...t, formula:this.offsetRef(srcRef, t.dc, t.dr)}));
+    const { N, L } = this._refLayout();
+    const colLock = cfg.ana[0].lock, rowLock = cfg.ana[1].lock;
+    const anchor = this.colLetter(L.anchorCol) + L.anchorRow;
+    const srcRef = this.buildRef(colLock, this.colLetter(L.refCol), rowLock, String(L.refRow));
+    const targets = [];
+    for(let k=1; k<=N; k++){
+      const addr = this.colLetter(L.tCol(k)) + L.tRow(k);
+      const dc = L.dc(k), dr = L.dr(k);
+      const meta = this.describeTarget(srcRef, dc, dr, addr, k, L);
+      targets.push({ addr, dc, dr, k, formula:this.offsetRef(srcRef, dc, dr), desc:meta.desc, note:meta.note });
+    }
 
     const snap = (activeIdx)=>{
       const map = {};
@@ -350,20 +416,20 @@ MOD.excel = {
     const steps = [];
     /* 第一步：原公式 + 引用类型分析 */
     steps.push({
-      desc: cfg.intro + ' ' + cfg.analysisDesc,
-      draw: ()=>{ this.drawRefStage({ cfg, srcRef, map:snap(-1), visible:0, phase:'source' }); }
+      desc: cfg.intro + ' ' + this.analysisDesc(anchor, srcRef, L),
+      draw: ()=>{ this.drawRefStage({ cfg, srcRef, anchor, L, N, targets, map:snap(-1), visible:0, phase:'source' }); }
     });
-    /* 第二、三步：向右逐个复制；第四、五步：向下逐个复制 */
+    /* 逐个方向复制 */
     targets.forEach((t,i)=>{
       steps.push({
-        desc: cfg.stepDesc[t.addr],
-        draw: ()=>{ this.drawRefStage({ cfg, srcRef, map:snap(i), visible:i+1, phase:t.dir }); }
+        desc: t.desc,
+        draw: ()=>{ this.drawRefStage({ cfg, srcRef, anchor, L, N, targets, map:snap(i), visible:i+1, phase:'copy' }); }
       });
     });
-    /* 第六步：汇总完成 */
+    /* 汇总完成 */
     steps.push({
-      desc: cfg.finalDesc,
-      draw: ()=>{ this.drawRefStage({ cfg, srcRef, map:snap(targets.length), visible:targets.length, phase:'done' }); }
+      desc: this.finalDesc(cfg, anchor, srcRef, targets, L),
+      draw: ()=>{ this.drawRefStage({ cfg, srcRef, anchor, L, N, targets, map:snap(targets.length), visible:targets.length, phase:'done' }); }
     });
     return steps;
   },
@@ -525,10 +591,16 @@ MOD.excel = {
     const sub = this.currentSub;
     const info = this.subTabs.find(t=>t.id === sub) || {};
     const labelMap = { ref_rel:'相对引用复制', ref_abs:'绝对引用复制', ref_mix:'混合引用复制', func:'统计函数与数据类型' };
+    let hint = '点击「自动演示」或「下一步」开始推导';
+    if(sub !== 'func'){
+      const { N, L } = this._refLayout();
+      const anchor = this.colLetter(L.anchorCol) + L.anchorRow;
+      hint = `在上方选择复制方向与步数（当前：向${L.label} ${N} 格，起点 ${anchor}），点击「自动演示」开始推导`;
+    }
     $('#stage').innerHTML = `<div class="stage-hd"><span>${labelMap[sub]||'Excel 公式'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:#22C55E">${info.method||''}</b></div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">点击「自动演示」或「下一步」开始推导</div>
+        <div style="font-size:clamp(11px,1.4vw,12.5px)">${hint}</div>
       </div>`;
   },
 

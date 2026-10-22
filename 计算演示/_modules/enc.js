@@ -1,3 +1,22 @@
+
+
+
+
+/* ================================================================
+ * ② 字符编码（ASCII / BCD / 区位码 / 国标码 / 机内码 / 字形码）
+ * ================================================================ */
+/* ================================================================
+ * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
+ * 子页面：ascii · bcd · hanzi · font
+ * ================================================================ */
+/* ================================================================
+ * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
+ * 子页面：ascii · bcd · hanzi · font
+ * ================================================================ */
+/* ================================================================
+ * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
+ * 子页面：ascii · bcd · hanzi · font
+ * ================================================================ */
 /* ================================================================
  * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
  * 子页面：ascii · bcd · hanzi · font
@@ -24,11 +43,11 @@
     .enc-flow .enc-node.locked .enc-nv{color:#CBD5E1}
     .enc-flow .enc-arrow{display:flex;align-items:center;color:#94A3B8;font-size:clamp(16px,2.2vw,22px);font-weight:700}
 
-    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(12px,2vw,20px);margin-bottom:clamp(10px,2vw,16px);position:relative;transition:all .2s}
+    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(9px,1.4vw,14px);margin-bottom:clamp(6px,1.2vw,10px);position:relative;transition:all .2s}
     .enc-card.done{border-color:var(--green);background:linear-gradient(135deg,#F0FDF4,#fff 60%)}
     .enc-card.cur{border-color:var(--orange);background:linear-gradient(135deg,#FFF8EE,#fff 60%);box-shadow:0 6px 20px rgba(245,158,11,.12)}
     .enc-card.locked{opacity:.55;background:#F8FAFC;border-style:dashed}
-    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(8px,1.4vw,12px)}
+    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(5px,.9vw,8px)}
     .enc-card .enc-card-title{font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
     .enc-card .enc-card-sub{font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:600;margin-top:2px}
     .enc-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 12px;font-size:clamp(10px,1.3vw,12.5px);font-weight:700;font-family:var(--mono);white-space:nowrap}
@@ -40,7 +59,7 @@
     .enc-card.done .enc-big{color:#15803D}
     .enc-card.cur .enc-big{color:#B45309}
 
-    .enc-calc{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;line-height:2.1;text-align:center;color:var(--text)}
+    .enc-calc{font-family:var(--mono);font-size:clamp(15px,2vw,20px);font-weight:700;line-height:1.75;text-align:center;color:var(--text)}
     .enc-calc .enc-op{color:#94A3B8;margin:0 6px;font-weight:400}
     .enc-calc .enc-eq{color:var(--accent);margin:0 6px}
     .enc-calc .enc-res{color:#B45309;background:#FFF4DB;border:1.5px solid var(--orange);border-radius:8px;padding:2px 12px}
@@ -49,7 +68,7 @@
     .enc-sub{font-size:clamp(12px,1.6vw,15px);color:var(--text-3);text-align:center;font-family:var(--font);margin-top:4px;line-height:1.7}
 
     /* 二进制大网格（8 位一组） */
-    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(8px,1.4vw,12px) auto}
+    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(5px,1vw,8px) auto}
     .enc-bitgrid .enc-bit{background:#fff;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-family:var(--mono);font-size:clamp(18px,2.8vw,28px);font-weight:800;padding:clamp(8px,1.4vw,12px) 0;color:var(--text-2)}
     .enc-bitgrid .enc-bit.one{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
     .enc-bitgrid .enc-bit.zero{color:#CBD5E1}
@@ -64,6 +83,18 @@
     .enc-tri .enc-card{margin-bottom:0}
     @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
 
+    /* ASCII / 字形码四步卡片 2×2 紧凑网格，避免纵向堆叠溢出 */
+    .enc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(6px,1vw,10px);margin:clamp(4px,.8vw,8px) 0}
+    .enc-grid .enc-card{margin-bottom:0;padding:clamp(8px,1.1vw,12px)}
+    .enc-grid .enc-card-hd{margin-bottom:clamp(4px,.8vw,7px)}
+    .enc-grid .enc-big{margin:clamp(3px,.7vw,6px) 0}
+    .enc-grid .enc-mini{margin:clamp(3px,.7vw,6px) 0;line-height:1.6}
+    .enc-grid .enc-bitgrid{margin:clamp(4px,.9vw,8px) auto}
+    .enc-grid .enc-divrows{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;line-height:1.45;font-size:clamp(11px,1.5vw,13px)}
+    .enc-grid .enc-big{font-size:clamp(16px,2.3vw,22px)}
+    .enc-grid .enc-sub{line-height:1.5}
+    @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
+
     .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
     .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
     .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -75,11 +106,109 @@
     .enc-result-strip{font-family:var(--mono);font-size:clamp(15px,2.3vw,22px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border-radius:12px;padding:clamp(10px,1.6vw,14px) clamp(12px,2vw,18px);text-align:center;margin-top:clamp(8px,1.4vw,12px);border:1px solid #C7D2FE;line-height:1.9;min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(6px,1vw,10px)}
     .enc-result-strip .enc-op{color:#94A3B8;font-weight:400}
     .enc-result-strip.locked{background:#F8FAFC;border:1px dashed var(--border);color:#94A3B8;font-family:var(--font);font-size:clamp(12px,1.6vw,15px);font-weight:600}
-    .enc-mini{font-family:var(--mono);font-size:clamp(14px,2vw,18px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(8px,1.3vw,12px);margin:clamp(6px,1.1vw,10px) 0;line-height:2}
+    .enc-mini{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,9px);margin:clamp(4px,.8vw,7px) 0;line-height:1.65}
     .enc-mini .enc-h{color:var(--text-3);font-size:clamp(10px,1.3vw,12.5px);font-family:var(--font);font-weight:700;margin-bottom:4px}
     .enc-note{display:inline-block;background:#F8FAFC;border:1px dashed var(--border);border-radius:10px;padding:6px 12px;font-size:clamp(12px,1.6vw,15px);color:var(--text-3);font-family:var(--font);margin:6px auto}
     .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
-    .enc-table th,.enc-table td{padding:clamp(7px,1.1vw,11px) clamp(8px,1.4vw,13px);font-size:inherit}
+    .enc-table th,.enc-table td{padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,13px);font-size:inherit}
+    .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
+  </style>`);
+})();
+
+/* ================================================================
+ * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
+ * 子页面：ascii · bcd · hanzi · font
+ * 重构要点：
+ *  1. 步骤覆盖渲染：每一步 draw() 只重绘当前步骤内容，上一步由 Engine 回退重绘
+ *  2. BCD 逐位转换：每步只展示当前位的 8421 权展开，底部进度提示已拼接内容
+ *  3. 区位/国标/机内每步只展示当前正在计算的码，顶部流程节点显示进度
+ *  4. 大屏幕字号放大：计算过程 clamp(16px,2.2vw,22px)，关键数字 clamp(18px,2.8vw,28px)
+ * ================================================================ */
+(function injectEncCSS(){
+  if(document.getElementById('enc-mod-css')) return;
+  document.head.insertAdjacentHTML('beforeend', `
+  <style id="enc-mod-css">
+    /* ---------- 字符编码模块自定义样式 ---------- */
+    .enc-flow{display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;gap:clamp(6px,1vw,10px);margin:clamp(6px,1vw,10px) 0}
+    .enc-flow .enc-node{flex:1 1 130px;max-width:230px;display:flex;flex-direction:column;gap:5px;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:clamp(8px,1.3vw,12px) clamp(10px,1.5vw,14px);transition:all .2s}
+    .enc-flow .enc-node .enc-nl{font-family:var(--font);font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:700;letter-spacing:.3px}
+    .enc-flow .enc-node .enc-nv{font-family:var(--mono);font-size:clamp(16px,2.4vw,24px);font-weight:800;color:var(--text-2);letter-spacing:1px}
+    .enc-flow .enc-node.done{border-color:var(--green);background:var(--green-soft)}
+    .enc-flow .enc-node.done .enc-nv{color:#15803D}
+    .enc-flow .enc-node.cur{border-color:var(--orange);background:#FFF4DB;box-shadow:0 4px 14px rgba(245,158,11,.18)}
+    .enc-flow .enc-node.cur .enc-nv{color:#B45309}
+    .enc-flow .enc-node.locked{opacity:.55}
+    .enc-flow .enc-node.locked .enc-nv{color:#CBD5E1}
+    .enc-flow .enc-arrow{display:flex;align-items:center;color:#94A3B8;font-size:clamp(16px,2.2vw,22px);font-weight:700}
+
+    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(9px,1.4vw,14px);margin-bottom:clamp(6px,1.2vw,10px);position:relative;transition:all .2s}
+    .enc-card.done{border-color:var(--green);background:linear-gradient(135deg,#F0FDF4,#fff 60%)}
+    .enc-card.cur{border-color:var(--orange);background:linear-gradient(135deg,#FFF8EE,#fff 60%);box-shadow:0 6px 20px rgba(245,158,11,.12)}
+    .enc-card.locked{opacity:.55;background:#F8FAFC;border-style:dashed}
+    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(5px,.9vw,8px)}
+    .enc-card .enc-card-title{font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
+    .enc-card .enc-card-sub{font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:600;margin-top:2px}
+    .enc-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 12px;font-size:clamp(10px,1.3vw,12.5px);font-weight:700;font-family:var(--mono);white-space:nowrap}
+    .enc-badge.done{background:var(--green-soft);color:#15803D}
+    .enc-badge.cur{background:var(--orange);color:#fff}
+    .enc-badge.locked{background:#F1F5F9;color:#94A3B8}
+
+    .enc-big{font-family:var(--mono);font-size:clamp(20px,3.4vw,32px);font-weight:800;text-align:center;letter-spacing:2px;color:var(--text);margin:clamp(6px,1.2vw,10px) 0;line-height:1.6}
+    .enc-card.done .enc-big{color:#15803D}
+    .enc-card.cur .enc-big{color:#B45309}
+
+    .enc-calc{font-family:var(--mono);font-size:clamp(15px,2vw,20px);font-weight:700;line-height:1.75;text-align:center;color:var(--text)}
+    .enc-calc .enc-op{color:#94A3B8;margin:0 6px;font-weight:400}
+    .enc-calc .enc-eq{color:var(--accent);margin:0 6px}
+    .enc-calc .enc-res{color:#B45309;background:#FFF4DB;border:1.5px solid var(--orange);border-radius:8px;padding:2px 12px}
+    .enc-card.done .enc-calc .enc-res{color:#15803D;background:#E8FBF0;border-color:var(--green)}
+    .enc-calc-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(6px,1vw,10px);margin:clamp(6px,1.1vw,10px) 0}
+    .enc-sub{font-size:clamp(12px,1.6vw,15px);color:var(--text-3);text-align:center;font-family:var(--font);margin-top:4px;line-height:1.7}
+
+    /* 二进制大网格（8 位一组） */
+    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(5px,1vw,8px) auto}
+    .enc-bitgrid .enc-bit{background:#fff;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-family:var(--mono);font-size:clamp(18px,2.8vw,28px);font-weight:800;padding:clamp(8px,1.4vw,12px) 0;color:var(--text-2)}
+    .enc-bitgrid .enc-bit.one{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+    .enc-bitgrid .enc-bit.zero{color:#CBD5E1}
+    .enc-bitgrid.weight .enc-bit{font-size:clamp(10px,1.4vw,13px);font-weight:700;color:var(--text-3);background:var(--surface-3);border-style:dashed;padding:4px 0}
+    .enc-bitgroup{display:flex;flex-wrap:wrap;gap:clamp(10px,1.8vw,16px);justify-content:center;margin:clamp(8px,1.4vw,12px) 0}
+    .enc-bitgroup .enc-b4{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(4px,.8vw,6px);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,10px);min-width:150px}
+    .enc-bitgroup .enc-b4 .enc-bit{font-size:clamp(16px,2.4vw,24px);padding:clamp(6px,1vw,10px) 0;border-radius:8px}
+    .enc-b4-label{text-align:center;font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);margin-bottom:6px}
+
+    /* 三码节点进度网格样式（保留备用） */
+    .enc-tri{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:clamp(10px,1.8vw,16px);margin:clamp(6px,1.2vw,10px) 0}
+    .enc-tri .enc-card{margin-bottom:0}
+    @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
+
+    /* ASCII / 字形码四步卡片 2×2 紧凑网格，避免纵向堆叠溢出 */
+    .enc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(6px,1vw,10px);margin:clamp(4px,.8vw,8px) 0}
+    .enc-grid .enc-card{margin-bottom:0;padding:clamp(8px,1.1vw,12px)}
+    .enc-grid .enc-card-hd{margin-bottom:clamp(4px,.8vw,7px)}
+    .enc-grid .enc-big{margin:clamp(3px,.7vw,6px) 0}
+    .enc-grid .enc-mini{margin:clamp(3px,.7vw,6px) 0;line-height:1.6}
+    .enc-grid .enc-bitgrid{margin:clamp(4px,.9vw,8px) auto}
+    .enc-grid .enc-divrows{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;line-height:1.45;font-size:clamp(11px,1.5vw,13px)}
+    .enc-grid .enc-big{font-size:clamp(16px,2.3vw,22px)}
+    .enc-grid .enc-sub{line-height:1.5}
+    @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
+
+    .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
+    .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
+    .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+    .enc-chip.done{border-color:var(--green);background:var(--green-soft);color:#15803D}
+    .enc-chip.cur{border-color:var(--orange);background:#FFF4DB;color:#B45309}
+    .enc-chip.empty{color:#CBD5E1;border-style:dashed;background:#F8FAFC}
+
+    .enc-placeholder{text-align:center;color:#94A3B8;font-size:clamp(12px,1.6vw,15px);padding:clamp(12px,2vw,18px) 0;font-family:var(--font)}
+    .enc-result-strip{font-family:var(--mono);font-size:clamp(15px,2.3vw,22px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border-radius:12px;padding:clamp(10px,1.6vw,14px) clamp(12px,2vw,18px);text-align:center;margin-top:clamp(8px,1.4vw,12px);border:1px solid #C7D2FE;line-height:1.9;min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(6px,1vw,10px)}
+    .enc-result-strip .enc-op{color:#94A3B8;font-weight:400}
+    .enc-result-strip.locked{background:#F8FAFC;border:1px dashed var(--border);color:#94A3B8;font-family:var(--font);font-size:clamp(12px,1.6vw,15px);font-weight:600}
+    .enc-mini{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,9px);margin:clamp(4px,.8vw,7px) 0;line-height:1.65}
+    .enc-mini .enc-h{color:var(--text-3);font-size:clamp(10px,1.3vw,12.5px);font-family:var(--font);font-weight:700;margin-bottom:4px}
+    .enc-note{display:inline-block;background:#F8FAFC;border:1px dashed var(--border);border-radius:10px;padding:6px 12px;font-size:clamp(12px,1.6vw,15px);color:var(--text-3);font-family:var(--font);margin:6px auto}
+    .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
+    .enc-table th,.enc-table td{padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,13px);font-size:inherit}
     .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
   </style>`);
 })();

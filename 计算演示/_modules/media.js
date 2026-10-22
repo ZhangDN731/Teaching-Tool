@@ -1,3 +1,22 @@
+
+
+;;;
+
+/* ================================================================
+ * ③ 音视频容量
+ * ================================================================ */
+/* ================================================================
+ * 音视频容量（未压缩文件大小计算）
+ * 子页面：audio · video
+ * ================================================================ */
+/* ================================================================
+ * 音视频容量（未压缩文件大小计算）
+ * 子页面：audio · video
+ * ================================================================ */
+/* ================================================================
+ * 音视频容量（未压缩文件大小计算）
+ * 子页面：audio · video
+ * ================================================================ */
 /* ================================================================
  * 音视频容量（未压缩文件大小计算）
  * 子页面：audio 音频 / video 视频 / image 图像
@@ -7,30 +26,30 @@
 if(!document.getElementById('mod-media-css')){
   document.head.insertAdjacentHTML('beforeend', `<style id="mod-media-css">
     .mm-wrap{display:flex;flex-direction:column;gap:clamp(10px,2vw,16px)}
-    .mm-step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;padding:clamp(10px,1.8vw,16px)}
+    .mm-step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;padding:clamp(6px,1vw,10px)}
     .mm-step.done{opacity:.72;background:var(--surface-2);border-left:4px solid var(--green)}
     .mm-step.cur{border:2px solid var(--orange);background:#FFFCF5;box-shadow:0 4px 18px rgba(245,158,11,.12)}
-    .mm-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,1.4vw,12px);font-weight:700;color:var(--text);font-size:clamp(13px,1.7vw,16px)}
-    .mm-step-hd .mm-idx{display:inline-flex;align-items:center;justify-content:center;width:clamp(22px,2.6vw,28px);height:clamp(22px,2.6vw,28px);border-radius:50%;font-family:var(--mono);font-size:clamp(12px,1.5vw,14px);font-weight:700;background:var(--surface-3);color:var(--text-3);flex:none}
+    .mm-step-hd{display:flex;align-items:center;gap:8px;margin-bottom:clamp(4px,.8vw,6px);font-weight:700;color:var(--text);font-size:clamp(12px,1.5vw,15px)}
+    .mm-step-hd .mm-idx{display:inline-flex;align-items:center;justify-content:center;width:clamp(20px,2.4vw,25px);height:clamp(20px,2.4vw,25px);border-radius:50%;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);font-weight:700;background:var(--surface-3);color:var(--text-3);flex:none}
     .mm-step.cur .mm-step-hd .mm-idx{background:var(--orange);color:#fff}
     .mm-step.done .mm-step-hd .mm-idx{background:var(--green);color:#fff}
     .mm-step-hd .mm-status{margin-left:auto;font-size:clamp(10px,1.2vw,11.5px);font-weight:600}
     .mm-step.done .mm-status{color:var(--green)}
     .mm-step.cur .mm-status{color:var(--orange)}
-    .mm-body{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:1.9;color:var(--text-2)}
-    .mm-num{font-size:clamp(18px,2.8vw,28px);font-weight:800;color:var(--accent)}
+    .mm-body{font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);line-height:1.6;color:var(--text-2)}
+    .mm-num{font-size:clamp(16px,2.4vw,22px);font-weight:800;color:var(--accent)}
     .mm-num.hot{color:var(--orange)}
     .mm-num.g{color:var(--green)}
     .mm-op{color:var(--text-3);margin:0 .35em;font-weight:600}
-    .mm-chips{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);margin:clamp(6px,1vw,10px) 0}
-    .mm-chip{background:var(--surface-3);border:1px solid var(--border);border-radius:10px;padding:clamp(6px,1vw,9px) clamp(10px,1.6vw,14px);font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
-    .mm-chip .mm-chip-l{display:block;font-family:var(--font);font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);font-weight:600;margin-bottom:2px}
+    .mm-chips{display:flex;flex-wrap:wrap;gap:clamp(5px,.9vw,8px);margin:clamp(4px,.8vw,7px) 0}
+    .mm-chip{background:var(--surface-3);border:1px solid var(--border);border-radius:10px;padding:clamp(4px,.8vw,7px) clamp(8px,1.3vw,12px);font-family:var(--mono);font-size:clamp(13px,1.7vw,16px);font-weight:700;color:var(--text)}
+    .mm-chip .mm-chip-l{display:block;font-family:var(--font);font-size:clamp(10px,1.2vw,11.5px);color:var(--text-3);font-weight:600;margin-bottom:1px}
     .mm-chip.done{background:var(--green-soft);border-color:var(--green);color:#15803D}
-    .mm-formula{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:clamp(8px,1.4vw,12px);margin-top:clamp(8px,1.4vw,12px);font-family:var(--font);font-size:clamp(13px,1.8vw,17px);color:var(--text-3);line-height:1.8}
-    .mm-result{margin-top:clamp(10px,1.8vw,14px);font-family:var(--mono);font-size:clamp(16px,2.4vw,24px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border:1px solid #C7D2FE;border-radius:12px;padding:clamp(10px,1.8vw,16px);text-align:center;line-height:1.8}
-    .mm-note{font-family:var(--font);font-size:clamp(12px,1.6vw,14.5px);color:var(--text-3);line-height:1.7;margin-top:6px}
-    .mm-conv{display:flex;flex-direction:column;gap:clamp(6px,1vw,10px);margin:clamp(8px,1.4vw,12px) 0}
-    .mm-conv div{background:#fff;border:1px solid var(--border);border-radius:10px;padding:clamp(6px,1.2vw,10px) clamp(10px,1.6vw,14px);font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:700;color:var(--text-2)}
+    .mm-formula{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:clamp(5px,1vw,8px);margin-top:clamp(5px,.9vw,8px);font-family:var(--font);font-size:clamp(12px,1.6vw,15px);color:var(--text-3);line-height:1.6}
+    .mm-result{margin-top:clamp(6px,1vw,10px);font-family:var(--mono);font-size:clamp(15px,2.1vw,20px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border:1px solid #C7D2FE;border-radius:12px;padding:clamp(6px,1.2vw,10px);text-align:center;line-height:1.5}
+    .mm-note{font-family:var(--font);font-size:clamp(11.5px,1.5vw,13.5px);color:var(--text-3);line-height:1.5;margin-top:3px}
+    .mm-conv{display:flex;flex-direction:column;gap:clamp(4px,.8vw,7px);margin:clamp(5px,.9vw,8px) 0}
+    .mm-conv div{background:#fff;border:1px solid var(--border);border-radius:10px;padding:clamp(4px,.9vw,8px) clamp(8px,1.3vw,12px);font-family:var(--mono);font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text-2);line-height:1.6}
   </style>`);
 }
 

@@ -1,3 +1,24 @@
+
+;;;
+
+/* ================================================================
+ * ⑪ 图 Graph（BFS · DFS 遍历）
+ * ================================================================ */
+/* ================================================================
+ * 图 Graph（广度优先 BFS · 深度优先 DFS）
+ * 按 base 样板重构：subTabs + settingsHTML/afterSettings + initStage
+ *                 + generate/genXxx + 手写动画逐步演示
+ * ================================================================ */
+/* ================================================================
+ * 图 Graph（广度优先 BFS · 深度优先 DFS）
+ * 按 base 样板重构：subTabs + settingsHTML/afterSettings + initStage
+ *                 + generate/genXxx + 手写动画逐步演示
+ * ================================================================ */
+/* ================================================================
+ * 图 Graph（广度优先 BFS · 深度优先 DFS）
+ * 按 base 样板重构：subTabs + settingsHTML/afterSettings + initStage
+ *                 + generate/genXxx + 手写动画逐步演示
+ * ================================================================ */
 /* ================================================================
  * 图 Graph（可视化自定义构建 · BFS · DFS · Dijkstra 最短路径）
  * 构建阶段：输入名称添加顶点，点击两个顶点再添加边（可选权重），支持拖拽
@@ -282,8 +303,9 @@ MOD.graph = {
     html += `<div class="zone-label">访问序列</div>
       <div class="order-rack"><span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">构建完成后点击「开始遍历」，访问序列将显示在这里</span></div>`;
 
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
     this.bindBuildInteractions();
+    Engine.fitStage();
   },
 
   bindBuildInteractions() {
@@ -438,7 +460,7 @@ MOD.graph = {
           ${meta.name}结果：[${visited.join(' · ')}]</div>`;
       }
     }
-    $('#stage').innerHTML = html;
+    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
   },
 
   /* ================= 步骤生成 ================= */
