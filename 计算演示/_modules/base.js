@@ -44,6 +44,38 @@
   .base-stage .rev-arrow .ra-bottom{color:#22C55E;font-weight:700}
   .base-stage .two-col{align-items:stretch}
   .base-stage .two-col>div{min-width:min(100%,220px)}
+  /* ===== 十转二：三列对齐网格（除法行 ↔ 倒排箭头 ↔ 二进制位） ===== */
+  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(8px,1.5vw,14px) 0}
+  .base-stage .d2b-col{display:flex;flex-direction:column;gap:4px}
+  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(36px,5vw,48px);padding:2px 6px;border-radius:6px;font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+  .base-stage .d2b-row.done{background:var(--green-soft);color:#15803D}
+  .base-stage .d2b-row.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
+  .base-stage .d2b-row.empty{color:#CBD5E1}
+  .base-stage .d2b-arrow{display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0;min-width:clamp(60px,9vw,80px)}
+  .base-stage .d2b-arrow .arr-label{font-size:clamp(10px,1.3vw,12px);font-weight:700;text-align:center;line-height:1.3}
+  .base-stage .d2b-arrow .arr-label.top{color:#B45309}
+  .base-stage .d2b-arrow .arr-label.bottom{color:#15803D}
+  .base-stage .d2b-arrow .arr-line{flex:1;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.5vw,22px);color:var(--accent);font-weight:800;writing-mode:vertical-rl;letter-spacing:2px}
+  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:6px;min-height:clamp(36px,5vw,48px);border-radius:6px;font-family:var(--mono);font-size:clamp(16px,2.5vw,22px);font-weight:800}
+  .base-stage .d2b-bit.done{background:var(--green-soft);color:#15803D}
+  .base-stage .d2b-bit.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
+  .base-stage .d2b-bit.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
+  .base-stage .d2b-bit .bit-label{font-size:clamp(9px,1.1vw,11px);font-weight:600;color:var(--text-3);font-family:var(--font)}
+  .base-stage .d2b-bit.cur .bit-label{color:#FFF7E6}
+  .base-stage .d2b-result{text-align:center;margin-top:clamp(10px,2vw,16px);font-family:var(--mono);font-size:clamp(18px,2.8vw,26px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(8px,1.5vw,12px);white-space:nowrap}
+  /* ===== 二转八/十六：分组换算纵向累加列表 ===== */
+  .base-stage .b2g-list{display:flex;flex-direction:column;gap:clamp(8px,1.4vw,12px);max-width:680px;margin:clamp(6px,1.2vw,10px) auto}
+  .base-stage .b2g-row{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.2vw,12px);flex-wrap:wrap;font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;border-radius:12px;padding:clamp(8px,1.3vw,12px) clamp(12px,1.8vw,16px);border:1.5px solid var(--border)}
+  .base-stage .b2g-row.done{background:var(--green-soft);border-color:var(--green);color:#15803D}
+  .base-stage .b2g-row.cur{background:#FFF4DB;border-color:var(--orange);color:#B45309;box-shadow:0 4px 14px rgba(245,158,11,.18)}
+  .base-stage .b2g-row.empty{color:#CBD5E1;border-style:dashed;background:#F8FAFC}
+  .base-stage .b2g-row .b2g-no{font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);background:#fff;border:1px solid var(--border);border-radius:999px;padding:2px 12px;white-space:nowrap}
+  .base-stage .b2g-row.done .b2g-no{color:#15803D;border-color:#BFE9CF}
+  .base-stage .b2g-row.cur .b2g-no{color:#B45309;border-color:var(--orange)}
+  .base-stage .b2g-row .op{color:#94A3B8;font-weight:400}
+  .base-stage .b2g-row .res{color:var(--accent)}
+  .base-stage .b2g-row.done .res{color:#15803D}
+  .base-stage .b2g-row.cur .res{color:#B45309}
   `;
   document.head.insertAdjacentHTML('beforeend', `<style id="base-module-css">${css}</style>`);
 })();
@@ -301,94 +333,95 @@ MOD.base = {
           <div class="annot" style="display:block">每一行格式：<b>被除数 ÷ 2 = 商 … 余数</b>；先从上到下收集余数，最后再逆序读取。</div>`);
       }});
 
-    /* 3. 逐次除法：所有竖式行同屏展示，已完成绿色、当前橙色、未操作灰色 */
+    /* 三列对齐网格渲染：phase='div' 除法阶段(curIdx=当前除法序号) / 'rev' 倒排阶段(curIdx=倒排序号k) / 'done' 完成。
+       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐。 */
+    const renderGrid = (phase, curIdx)=>{
+      const leftRows = allRows.map((rd,j)=>{
+        let state='done', badge='';
+        if(phase==='div'){
+          state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
+        }else if(phase==='rev'){
+          const rowIdx = R-1-curIdx;
+          state = j===rowIdx?'cur' : 'done';
+          if(j>=rowIdx) badge = `<span class="dv-rank ${j===rowIdx?'cur':''}">${this._rankName(R-1-j,R)}</span>`;
+        }else{
+          badge = `<span class="dv-rank">${this._rankName(R-1-j,R)}</span>`;
+        }
+        const show = phase!=='div' || j<=curIdx;
+        const n = show?rd.n:'?', q = show?rd.q:'?', r = show?rd.r:'?';
+        return `<div class="d2b-row ${state}"><span>${n} ÷ 2 = ${q} … 余 ${r}</span>${badge}</div>`;
+      }).join('');
+      const rightBits = allRows.map((rd,j)=>{
+        let state, label;
+        if(phase==='div'){
+          state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
+          label = `第 ${j+1} 个余数`;
+        }else if(phase==='rev'){
+          const rowIdx = R-1-curIdx;
+          state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
+          label = j>=rowIdx ? this._rankName(R-1-j,R) : '待标注';
+        }else{
+          state='done';
+          label = this._rankName(R-1-j,R);
+        }
+        const show = phase!=='div' || j<=curIdx;
+        const r = show?rd.r:'?';
+        return `<div class="d2b-bit ${state}"><span>${r}</span><span class="bit-label">${label}</span></div>`;
+      }).join('');
+      return `<div class="d2b-grid">
+        <div class="d2b-col">${leftRows}</div>
+        <div class="d2b-arrow">
+          <div class="arr-label top">最低位<br>（第一个余数）</div>
+          <div class="arr-line">↑ 从下往上倒排 ↑</div>
+          <div class="arr-label bottom">最高位<br>（最后一个余数）</div>
+        </div>
+        <div class="d2b-col">${rightBits}</div>
+      </div>`;
+    };
+
+    /* 3. 逐次除法：所有除法行同屏展示，已完成绿色、当前橙色、未操作灰色；左右两列逐行对齐 */
     for(let i=0;i<R;i++){
       const idx = i;
-      steps.push({desc:`<b>${allRows[idx].n}</b> ÷ 2 = <b>${allRows[idx].q}</b>，余数 <b class="c-op">${allRows[idx].r}</b>（第 ${idx+1} 个被收集的余数）`,
+      steps.push({desc:`<b>${allRows[idx].n}</b> ÷ 2 = <b>${allRows[idx].q}</b>，余数 <b class="c-op">${allRows[idx].r}</b>（第 ${idx+1} 个被收集的余数，位于竖式最上面一行方向）`,
         draw:()=>{
-          const rowsHtml = allRows.map((rd,j)=>{
-            const state = j<idx?'done' : j===idx?'cur' : 'empty';
-            return `<div class="dv-row ${state} ${j<=idx?'write-in':''}" style="${j<=idx?`animation-delay:${j*0.05}s`:''}">
-              <span class="dv-num">${j<=idx?rd.n:'?'}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${j<=idx?rd.q:'?'}</span><span class="dv-rem">${j<=idx?rd.r:'?'}</span>
-            </div>`;
-          }).join('');
           const rack = rems.slice(0,idx+1).map((r,j)=>`<span class="chip o write-in" style="animation-delay:${j*0.06}s">${r}</span>`).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${R} 次除法`)}
             <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
-            <div class="two-col">
-              <div><div class="div-vertical">${rowsHtml}</div></div>
-              <div>
-                <div class="annot" style="margin-bottom:10px"><b>余数收集区</b>（先收集 → 后收集，顺序暂存）</div>
-                <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
-              </div>
-            </div>`);
+            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>余数收集区</b>（先收集 → 后收集，顺序暂存，最后需倒排读取）</div>
+            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
+            ${renderGrid('div',idx)}`);
         }});
     }
 
     /* 4. 倒排阶段：从最下面一行（最后收集的余数）开始，自下而上依次标注位序 */
     for(let k=0;k<R;k++){
       const rowIdx = R-1-k;
-      steps.push({desc:`逆序读取：第 <b>${k+1}</b> 个读出的余数是竖式最下面的 <b>${allRows[rowIdx].r}</b>，对应 <b class="c-op">${this._rankName(k,R)}</b>。`,
+      steps.push({desc:`逆序读取：第 <b>${k+1}</b> 个读出的余数是竖式最下面未读的 <b>${allRows[rowIdx].r}</b>，对应 <b class="c-op">${this._rankName(k,R)}</b>。`,
         draw:()=>{
-          const rowsHtml = allRows.map((rd,j)=>{
-            const isMarked = j >= rowIdx;
-            const isCur = j === rowIdx;
-            let badge = '';
-            if(isMarked){
-              badge = `<span class="dv-rank ${isCur?'cur':''}">${this._rankName(R-1-j, R)}</span>`;
-            }
-            return `<div class="dv-row ${isCur?'cur':'done'}">
-              <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>${badge}
-            </div>`;
-          }).join('');
           const readRack = [];
           for(let t=0;t<=k;t++) readRack.push(rems[R-1-t]);
           const rackHtml = readRack.map((r,t)=>`<span class="grp ${t===k?'cur':'done'} write-in" style="animation-delay:${t*0.08}s">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,'逆序读取')}
             <div class="step-title"><span class="st-dot"></span>余数从下往上读（最高位 → 最低位）</div>
-            <div class="two-col">
-              <div><div class="div-vertical">${rowsHtml}</div></div>
-              <div class="rev-arrow">
-                <div class="ra-top">最低位<br>（第一个余数）</div>
-                <div class="ra-mid">↑</div>
-                <div class="ra-bottom">最高位<br>（最后一个余数）</div>
-              </div>
-              <div>
-                <div class="annot" style="margin-bottom:10px"><b>逆序读取区</b>（最高位 → 最低位）</div>
-                <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rackHtml}</div>
-              </div>
-            </div>`);
+            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>逆序读取区</b>（最高位 → 最低位，已读出的余数）</div>
+            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+            ${renderGrid('rev',k)}`);
         }});
     }
 
-    /* 5. 完成：倒排标注 + 结果框 */
+    /* 5. 完成：倒排标注 + 底部结果条 */
     steps.push({desc:`余数逆序排列：${rems.slice().reverse().join('')}，即 <b class="c-op">${ans}</b>₂。`,
       draw:()=>{
-        const rowsHtml = allRows.map((rd,j)=>{
-          return `<div class="dv-row done">
-            <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>
-            <span class="dv-rank">${this._rankName(R-1-j, R)}</span>
-          </div>`;
-        }).join('');
         const rackHtml = rems.slice().reverse().map((r,t)=>`<span class="grp done">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
           <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="two-col">
-            <div><div class="div-vertical">${rowsHtml}</div></div>
-            <div class="rev-arrow">
-              <div class="ra-top">最低位<br>（第一个余数）</div>
-              <div class="ra-mid">↑</div>
-              <div class="ra-bottom">最高位<br>（最后一个余数）</div>
-            </div>
-            <div>
-              <div class="annot" style="margin-bottom:10px"><b>二进制结果</b>（最高位 → 最低位）</div>
-              <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rackHtml}</div>
-            </div>
-          </div>
-          <div class="write-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
+          <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>二进制结果</b>（最高位 → 最低位）</div>
+          <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+          ${renderGrid('done',-1)}
+          <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
     return steps;
   },
@@ -422,20 +455,27 @@ MOD.base = {
 
     for(let i=0;i<groups.length;i++){
       const idx = i;
-      steps.push({desc:`第 ${i+1} 组 <b class="c-op">${groups[idx]}</b> = ${groupVals[idx]} → ${B[dstB]}数码 <b class="c-op">${groupDigits[idx]}</b>`,
+      steps.push({desc:`第 ${i+1} 组 <b class="c-op">${groups[idx]}</b> = ${groupVals[idx]} → ${B[dstB]}数码 <b class="c-op">${groupDigits[idx]}</b>；已完成各组换算过程保留同屏。`,
         draw:()=>{
+          /* 纵向累加列表：已完成组绿色完整换算，当前组橙色高亮，未操作组灰色占位，新组在下方出现 */
+          const groupRows = groups.map((g,j)=>{
+            const st = j<idx?'done':j===idx?'cur':'empty';
+            const v = j<=idx?groupVals[j]:'?';
+            const d = j<=idx?groupDigits[j]:'?';
+            return `<div class="b2g-row ${st} write-in" style="animation-delay:${j*0.08}s">
+              <span class="b2g-no">第 ${j+1} 组</span>
+              <span class="term">${g}</span><span class="op">=</span>
+              <span class="term">${v}</span><span class="op">→</span>
+              <span class="term res">${d}</span>
+            </div>`;
+          }).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${groups.length} 组`)}
             <div style="text-align:center">
-              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}">${g}</span>`).join('')}</div>
-              <div class="annot" style="margin:clamp(12px,2.2vw,18px) 0">↓ 逐组换算 ↓</div>
-              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}" style="${j>=idx?'opacity:.35':''}">${j<=idx?groupDigits[j]:'?'}</span>`).join('')}</div>
-              <div class="exp-inline" style="display:inline-flex;align-items:center;gap:8px;margin-top:clamp(12px,2.2vw,18px)">
-                <span class="term ${idx===0?'cur':'done'}">${groups[idx]}</span><span class="op">=</span>
-                <span class="term cur">${groupVals[idx]}</span><span class="op">→</span>
-                <span class="term cur">${groupDigits[idx]}</span>
-              </div>
-            </div>`);
+              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}" ${j>idx?'style="opacity:.35"':''}>${g}</span>`).join('')}</div>
+              <div class="annot" style="margin:clamp(10px,1.8vw,14px) 0">↓ 逐组换算（已完成组保留同屏，新组在下方出现）↓</div>
+            </div>
+            <div class="b2g-list">${groupRows}</div>`);
         }});
     }
 

@@ -1027,6 +1027,88 @@ function randDigits(b,len){ let s=''; for(let i=0;i<len;i++) s+=DIGITS[randInt(0
   document.head.insertAdjacentHTML('beforeend', `<style id="base-module-css">${css}</style>`);
 })();
 
+/* ================================================================
+ * ① 进制转换（仅保留 6 种转换：二 ↔ 十 · 二 ↔ 八 · 二 ↔ 十六）
+ * 子页面：bin2dec 二转十（按权展开）/ dec2bin 十转二（除基取余·逆序）
+ *         bin2oct 二转八（三位分组）/ oct2bin 八转二（逐位展开）
+ *         bin2hex 二转十六（四位分组）/ hex2bin 十六转二（逐位展开）
+ * 复用全局辅助：B, DIGITS, toBase, fromBase, randDigits, randInt, $, $$, esc
+ * ================================================================ */
+
+/* ---------- 本模块大屏幕样式覆盖（作用域限定在 .base-stage，不影响其他模块） ---------- */
+(function injectBaseCss(){
+  if(document.getElementById('base-module-css')) return;
+  const css = `
+  .base-stage{font-family:var(--font)}
+  .base-stage .stage-hd{font-size:clamp(12px,1.6vw,15px);margin-bottom:clamp(10px,1.8vw,16px)}
+  .base-stage .step-title{font-size:clamp(13px,1.8vw,16px);padding:5px 14px;margin-bottom:clamp(12px,2.2vw,18px)}
+  /* 竖式除法：计算过程字号放大、行间距加大 */
+  .base-stage .div-vertical{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);line-height:2.1;padding:6px 10px}
+  .base-stage .div-vertical .dv-row{margin:clamp(8px,1.6vw,12px) 0;white-space:normal}
+  .base-stage .div-vertical .dv-row.empty{opacity:.32;color:#94A3B8}
+  .base-stage .div-vertical .dv-row.done{opacity:.85}
+  .base-stage .div-vertical .dv-row.done .dv-num,.base-stage .div-vertical .dv-row.done .dv-q{color:#15803D}
+  .base-stage .div-vertical .dv-row.done .dv-rem{color:#16A34A}
+  .base-stage .div-vertical .dv-num,.base-stage .div-vertical .dv-q{font-size:clamp(18px,2.8vw,28px);min-width:2.1em}
+  .base-stage .div-vertical .dv-rem{font-size:clamp(18px,2.8vw,28px)}
+  .base-stage .div-vertical .dv-rem::before{font-size:.6em}
+  .base-stage .dv-rank{margin-left:1em;font-size:clamp(12px,1.6vw,15px);font-weight:700;color:#15803D;background:#E8FBF0;border:1px solid #BFE9CF;border-radius:8px;padding:2px 10px;white-space:nowrap}
+  .base-stage .dv-rank.cur{color:#B45309;background:#FFF4DB;border-color:#F59E0B}
+  /* 按权展开表：单元格加大内边距 */
+  .base-stage .exp-table{font-size:clamp(12px,1.6vw,16px);margin:clamp(10px,1.8vw,14px) 0}
+  .base-stage .exp-table th,.base-stage .exp-table td{padding:clamp(11px,1.8vw,15px) clamp(12px,1.8vw,18px);font-size:clamp(13px,1.8vw,17px)}
+  .base-stage .exp-inline{font-size:clamp(16px,2.2vw,22px);padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px);margin:clamp(12px,2.2vw,18px) 0;line-height:1.8}
+  .base-stage .exp-inline .res{color:var(--accent);font-weight:700;margin-left:4px}
+  /* 分组框 */
+  .base-stage .group-box{font-size:clamp(18px,2.8vw,28px);gap:clamp(8px,1.4vw,12px);margin:clamp(10px,1.8vw,14px) 0;flex-wrap:wrap;justify-content:center}
+  .base-stage .group-box .grp{padding:clamp(7px,1.3vw,11px) clamp(13px,2vw,18px);font-size:clamp(18px,2.8vw,28px)}
+  .base-stage .group-box .grp .grp-label{top:-20px;font-size:.6em}
+  /* 结果框 */
+  .base-stage .write-result{font-size:clamp(18px,2.8vw,28px);padding:clamp(11px,1.8vw,16px) clamp(14px,2.2vw,22px);margin-top:clamp(14px,2.6vw,20px);letter-spacing:1px}
+  .base-stage .annot{font-size:clamp(13px,1.8vw,17px);line-height:1.7;padding:clamp(8px,1.4vw,12px) clamp(12px,1.8vw,16px)}
+  /* 逆序读取箭头条 */
+  .base-stage .rev-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono);font-size:clamp(12px,1.6vw,15px);padding:0 clamp(6px,1.2vw,10px)}
+  .base-stage .rev-arrow .ra-top{color:#94A3B8;font-weight:700}
+  .base-stage .rev-arrow .ra-mid{color:#22C55E;font-size:clamp(22px,3.2vw,30px);font-weight:700;line-height:1.1}
+  .base-stage .rev-arrow .ra-bottom{color:#22C55E;font-weight:700}
+  .base-stage .two-col{align-items:stretch}
+  .base-stage .two-col>div{min-width:min(100%,220px)}
+  /* ===== 十转二：三列对齐网格（除法行 ↔ 倒排箭头 ↔ 二进制位） ===== */
+  .base-stage .d2b-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(8px,1.5vw,14px);align-items:stretch;margin:clamp(8px,1.5vw,14px) 0}
+  .base-stage .d2b-col{display:flex;flex-direction:column;gap:4px}
+  .base-stage .d2b-row{display:flex;align-items:center;min-height:clamp(36px,5vw,48px);padding:2px 6px;border-radius:6px;font-family:var(--mono);font-size:clamp(14px,2vw,18px);font-weight:700;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+  .base-stage .d2b-row.done{background:var(--green-soft);color:#15803D}
+  .base-stage .d2b-row.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
+  .base-stage .d2b-row.empty{color:#CBD5E1}
+  .base-stage .d2b-arrow{display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0;min-width:clamp(60px,9vw,80px)}
+  .base-stage .d2b-arrow .arr-label{font-size:clamp(10px,1.3vw,12px);font-weight:700;text-align:center;line-height:1.3}
+  .base-stage .d2b-arrow .arr-label.top{color:#B45309}
+  .base-stage .d2b-arrow .arr-label.bottom{color:#15803D}
+  .base-stage .d2b-arrow .arr-line{flex:1;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.5vw,22px);color:var(--accent);font-weight:800;writing-mode:vertical-rl;letter-spacing:2px}
+  .base-stage .d2b-bit{display:flex;align-items:center;justify-content:center;gap:6px;min-height:clamp(36px,5vw,48px);border-radius:6px;font-family:var(--mono);font-size:clamp(16px,2.5vw,22px);font-weight:800}
+  .base-stage .d2b-bit.done{background:var(--green-soft);color:#15803D}
+  .base-stage .d2b-bit.cur{background:var(--orange);color:#fff;transform:scale(1.02)}
+  .base-stage .d2b-bit.empty{color:#CBD5E1;background:#F8FAFC;border:1px dashed var(--border)}
+  .base-stage .d2b-bit .bit-label{font-size:clamp(9px,1.1vw,11px);font-weight:600;color:var(--text-3);font-family:var(--font)}
+  .base-stage .d2b-bit.cur .bit-label{color:#FFF7E6}
+  .base-stage .d2b-result{text-align:center;margin-top:clamp(10px,2vw,16px);font-family:var(--mono);font-size:clamp(18px,2.8vw,26px);font-weight:800;color:var(--accent);background:var(--surface-3);border-radius:10px;padding:clamp(8px,1.5vw,12px);white-space:nowrap}
+  /* ===== 二转八/十六：分组换算纵向累加列表 ===== */
+  .base-stage .b2g-list{display:flex;flex-direction:column;gap:clamp(8px,1.4vw,12px);max-width:680px;margin:clamp(6px,1.2vw,10px) auto}
+  .base-stage .b2g-row{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.2vw,12px);flex-wrap:wrap;font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;border-radius:12px;padding:clamp(8px,1.3vw,12px) clamp(12px,1.8vw,16px);border:1.5px solid var(--border)}
+  .base-stage .b2g-row.done{background:var(--green-soft);border-color:var(--green);color:#15803D}
+  .base-stage .b2g-row.cur{background:#FFF4DB;border-color:var(--orange);color:#B45309;box-shadow:0 4px 14px rgba(245,158,11,.18)}
+  .base-stage .b2g-row.empty{color:#CBD5E1;border-style:dashed;background:#F8FAFC}
+  .base-stage .b2g-row .b2g-no{font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);background:#fff;border:1px solid var(--border);border-radius:999px;padding:2px 12px;white-space:nowrap}
+  .base-stage .b2g-row.done .b2g-no{color:#15803D;border-color:#BFE9CF}
+  .base-stage .b2g-row.cur .b2g-no{color:#B45309;border-color:var(--orange)}
+  .base-stage .b2g-row .op{color:#94A3B8;font-weight:400}
+  .base-stage .b2g-row .res{color:var(--accent)}
+  .base-stage .b2g-row.done .res{color:#15803D}
+  .base-stage .b2g-row.cur .res{color:#B45309}
+  `;
+  document.head.insertAdjacentHTML('beforeend', `<style id="base-module-css">${css}</style>`);
+})();
+
 /* ---------- 输入约束配置（key 对应子页面 id） ---------- */
 const BASE_INPUT_SPEC = {
   bin2dec: {kind:'bin',  base:2,  label:'二进制',   chars:'0、1',      max:8,  ph:'如 1011',    re:/^[01]+$/},
@@ -1280,94 +1362,95 @@ MOD.base = {
           <div class="annot" style="display:block">每一行格式：<b>被除数 ÷ 2 = 商 … 余数</b>；先从上到下收集余数，最后再逆序读取。</div>`);
       }});
 
-    /* 3. 逐次除法：所有竖式行同屏展示，已完成绿色、当前橙色、未操作灰色 */
+    /* 三列对齐网格渲染：phase='div' 除法阶段(curIdx=当前除法序号) / 'rev' 倒排阶段(curIdx=倒排序号k) / 'done' 完成。
+       左列第 j 行 ↔ 右列第 j 行，统一 min-height + gap，grid align-items:stretch 保证严格对齐。 */
+    const renderGrid = (phase, curIdx)=>{
+      const leftRows = allRows.map((rd,j)=>{
+        let state='done', badge='';
+        if(phase==='div'){
+          state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
+        }else if(phase==='rev'){
+          const rowIdx = R-1-curIdx;
+          state = j===rowIdx?'cur' : 'done';
+          if(j>=rowIdx) badge = `<span class="dv-rank ${j===rowIdx?'cur':''}">${this._rankName(R-1-j,R)}</span>`;
+        }else{
+          badge = `<span class="dv-rank">${this._rankName(R-1-j,R)}</span>`;
+        }
+        const show = phase!=='div' || j<=curIdx;
+        const n = show?rd.n:'?', q = show?rd.q:'?', r = show?rd.r:'?';
+        return `<div class="d2b-row ${state}"><span>${n} ÷ 2 = ${q} … 余 ${r}</span>${badge}</div>`;
+      }).join('');
+      const rightBits = allRows.map((rd,j)=>{
+        let state, label;
+        if(phase==='div'){
+          state = j<curIdx?'done' : j===curIdx?'cur' : 'empty';
+          label = `第 ${j+1} 个余数`;
+        }else if(phase==='rev'){
+          const rowIdx = R-1-curIdx;
+          state = j>rowIdx?'done' : j===rowIdx?'cur' : 'empty';
+          label = j>=rowIdx ? this._rankName(R-1-j,R) : '待标注';
+        }else{
+          state='done';
+          label = this._rankName(R-1-j,R);
+        }
+        const show = phase!=='div' || j<=curIdx;
+        const r = show?rd.r:'?';
+        return `<div class="d2b-bit ${state}"><span>${r}</span><span class="bit-label">${label}</span></div>`;
+      }).join('');
+      return `<div class="d2b-grid">
+        <div class="d2b-col">${leftRows}</div>
+        <div class="d2b-arrow">
+          <div class="arr-label top">最低位<br>（第一个余数）</div>
+          <div class="arr-line">↑ 从下往上倒排 ↑</div>
+          <div class="arr-label bottom">最高位<br>（最后一个余数）</div>
+        </div>
+        <div class="d2b-col">${rightBits}</div>
+      </div>`;
+    };
+
+    /* 3. 逐次除法：所有除法行同屏展示，已完成绿色、当前橙色、未操作灰色；左右两列逐行对齐 */
     for(let i=0;i<R;i++){
       const idx = i;
-      steps.push({desc:`<b>${allRows[idx].n}</b> ÷ 2 = <b>${allRows[idx].q}</b>，余数 <b class="c-op">${allRows[idx].r}</b>（第 ${idx+1} 个被收集的余数）`,
+      steps.push({desc:`<b>${allRows[idx].n}</b> ÷ 2 = <b>${allRows[idx].q}</b>，余数 <b class="c-op">${allRows[idx].r}</b>（第 ${idx+1} 个被收集的余数，位于竖式最上面一行方向）`,
         draw:()=>{
-          const rowsHtml = allRows.map((rd,j)=>{
-            const state = j<idx?'done' : j===idx?'cur' : 'empty';
-            return `<div class="dv-row ${state} ${j<=idx?'write-in':''}" style="${j<=idx?`animation-delay:${j*0.05}s`:''}">
-              <span class="dv-num">${j<=idx?rd.n:'?'}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${j<=idx?rd.q:'?'}</span><span class="dv-rem">${j<=idx?rd.r:'?'}</span>
-            </div>`;
-          }).join('');
           const rack = rems.slice(0,idx+1).map((r,j)=>`<span class="chip o write-in" style="animation-delay:${j*0.06}s">${r}</span>`).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${R} 次除法`)}
             <div class="step-title"><span class="st-dot"></span>竖式除法（基数 = 2）</div>
-            <div class="two-col">
-              <div><div class="div-vertical">${rowsHtml}</div></div>
-              <div>
-                <div class="annot" style="margin-bottom:10px"><b>余数收集区</b>（先收集 → 后收集，顺序暂存）</div>
-                <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
-              </div>
-            </div>`);
+            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>余数收集区</b>（先收集 → 后收集，顺序暂存，最后需倒排读取）</div>
+            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rack||'<span style="color:#CBD5E1;font-family:var(--mono);font-size:clamp(14px,2vw,18px)">（暂无）</span>'}</div>
+            ${renderGrid('div',idx)}`);
         }});
     }
 
     /* 4. 倒排阶段：从最下面一行（最后收集的余数）开始，自下而上依次标注位序 */
     for(let k=0;k<R;k++){
       const rowIdx = R-1-k;
-      steps.push({desc:`逆序读取：第 <b>${k+1}</b> 个读出的余数是竖式最下面的 <b>${allRows[rowIdx].r}</b>，对应 <b class="c-op">${this._rankName(k,R)}</b>。`,
+      steps.push({desc:`逆序读取：第 <b>${k+1}</b> 个读出的余数是竖式最下面未读的 <b>${allRows[rowIdx].r}</b>，对应 <b class="c-op">${this._rankName(k,R)}</b>。`,
         draw:()=>{
-          const rowsHtml = allRows.map((rd,j)=>{
-            const isMarked = j >= rowIdx;
-            const isCur = j === rowIdx;
-            let badge = '';
-            if(isMarked){
-              badge = `<span class="dv-rank ${isCur?'cur':''}">${this._rankName(R-1-j, R)}</span>`;
-            }
-            return `<div class="dv-row ${isCur?'cur':'done'}">
-              <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>${badge}
-            </div>`;
-          }).join('');
           const readRack = [];
           for(let t=0;t<=k;t++) readRack.push(rems[R-1-t]);
           const rackHtml = readRack.map((r,t)=>`<span class="grp ${t===k?'cur':'done'} write-in" style="animation-delay:${t*0.08}s">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,'逆序读取')}
             <div class="step-title"><span class="st-dot"></span>余数从下往上读（最高位 → 最低位）</div>
-            <div class="two-col">
-              <div><div class="div-vertical">${rowsHtml}</div></div>
-              <div class="rev-arrow">
-                <div class="ra-top">最低位<br>（第一个余数）</div>
-                <div class="ra-mid">↑</div>
-                <div class="ra-bottom">最高位<br>（最后一个余数）</div>
-              </div>
-              <div>
-                <div class="annot" style="margin-bottom:10px"><b>逆序读取区</b>（最高位 → 最低位）</div>
-                <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rackHtml}</div>
-              </div>
-            </div>`);
+            <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>逆序读取区</b>（最高位 → 最低位，已读出的余数）</div>
+            <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+            ${renderGrid('rev',k)}`);
         }});
     }
 
-    /* 5. 完成：倒排标注 + 结果框 */
+    /* 5. 完成：倒排标注 + 底部结果条 */
     steps.push({desc:`余数逆序排列：${rems.slice().reverse().join('')}，即 <b class="c-op">${ans}</b>₂。`,
       draw:()=>{
-        const rowsHtml = allRows.map((rd,j)=>{
-          return `<div class="dv-row done">
-            <span class="dv-num">${rd.n}</span><span class="dv-op">÷</span><span class="dv-num">2</span><span class="dv-eq">=</span><span class="dv-q">${rd.q}</span><span class="dv-rem">${rd.r}</span>
-            <span class="dv-rank">${this._rankName(R-1-j, R)}</span>
-          </div>`;
-        }).join('');
         const rackHtml = rems.slice().reverse().map((r,t)=>`<span class="grp done">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
           <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="two-col">
-            <div><div class="div-vertical">${rowsHtml}</div></div>
-            <div class="rev-arrow">
-              <div class="ra-top">最低位<br>（第一个余数）</div>
-              <div class="ra-mid">↑</div>
-              <div class="ra-bottom">最高位<br>（最后一个余数）</div>
-            </div>
-            <div>
-              <div class="annot" style="margin-bottom:10px"><b>二进制结果</b>（最高位 → 最低位）</div>
-              <div class="group-box" style="flex-wrap:wrap;justify-content:flex-start;min-height:48px">${rackHtml}</div>
-            </div>
-          </div>
-          <div class="write-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
+          <div class="annot" style="margin-bottom:clamp(6px,1vw,10px)"><b>二进制结果</b>（最高位 → 最低位）</div>
+          <div class="group-box" style="flex-wrap:wrap;justify-content:center;min-height:clamp(36px,5vw,48px)">${rackHtml}</div>
+          ${renderGrid('done',-1)}
+          <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
     return steps;
   },
@@ -1401,20 +1484,27 @@ MOD.base = {
 
     for(let i=0;i<groups.length;i++){
       const idx = i;
-      steps.push({desc:`第 ${i+1} 组 <b class="c-op">${groups[idx]}</b> = ${groupVals[idx]} → ${B[dstB]}数码 <b class="c-op">${groupDigits[idx]}</b>`,
+      steps.push({desc:`第 ${i+1} 组 <b class="c-op">${groups[idx]}</b> = ${groupVals[idx]} → ${B[dstB]}数码 <b class="c-op">${groupDigits[idx]}</b>；已完成各组换算过程保留同屏。`,
         draw:()=>{
+          /* 纵向累加列表：已完成组绿色完整换算，当前组橙色高亮，未操作组灰色占位，新组在下方出现 */
+          const groupRows = groups.map((g,j)=>{
+            const st = j<idx?'done':j===idx?'cur':'empty';
+            const v = j<=idx?groupVals[j]:'?';
+            const d = j<=idx?groupDigits[j]:'?';
+            return `<div class="b2g-row ${st} write-in" style="animation-delay:${j*0.08}s">
+              <span class="b2g-no">第 ${j+1} 组</span>
+              <span class="term">${g}</span><span class="op">=</span>
+              <span class="term">${v}</span><span class="op">→</span>
+              <span class="term res">${d}</span>
+            </div>`;
+          }).join('');
           $('#stage').innerHTML = this._stage(`
             ${this._head(label,`第 ${idx+1}/${groups.length} 组`)}
             <div style="text-align:center">
-              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}">${g}</span>`).join('')}</div>
-              <div class="annot" style="margin:clamp(12px,2.2vw,18px) 0">↓ 逐组换算 ↓</div>
-              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}" style="${j>=idx?'opacity:.35':''}">${j<=idx?groupDigits[j]:'?'}</span>`).join('')}</div>
-              <div class="exp-inline" style="display:inline-flex;align-items:center;gap:8px;margin-top:clamp(12px,2.2vw,18px)">
-                <span class="term ${idx===0?'cur':'done'}">${groups[idx]}</span><span class="op">=</span>
-                <span class="term cur">${groupVals[idx]}</span><span class="op">→</span>
-                <span class="term cur">${groupDigits[idx]}</span>
-              </div>
-            </div>`);
+              <div class="group-box">${groups.map((g,j)=>`<span class="grp ${j<idx?'done':j===idx?'cur':''}" ${j>idx?'style="opacity:.35"':''}>${g}</span>`).join('')}</div>
+              <div class="annot" style="margin:clamp(10px,1.8vw,14px) 0">↓ 逐组换算（已完成组保留同屏，新组在下方出现）↓</div>
+            </div>
+            <div class="b2g-list">${groupRows}</div>`);
         }});
     }
 
@@ -1523,6 +1613,7 @@ MOD.base = {
 };
 
 
+
 /* ================================================================
  * ② 字符编码（ASCII / BCD / 区位码 / 国标码 / 机内码 / 字形码）
  * ================================================================ */
@@ -1624,6 +1715,92 @@ MOD.base = {
   </style>`);
 })();
 
+/* ================================================================
+ * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
+ * 子页面：ascii · bcd · hanzi · font
+ * 重构要点：
+ *  1. 步骤累加渲染：每一步 draw() 重绘“已完成 + 当前”完整状态，上一步可回退
+ *  2. BCD 固定骨架 + 累积补位，消除整屏重置导致的抖动/跳脱
+ *  3. 区位/国标/机内三码卡片同屏，当前步骤高亮
+ *  4. 大屏幕字号放大：计算过程 clamp(16px,2.2vw,22px)，关键数字 clamp(18px,2.8vw,28px)
+ * ================================================================ */
+(function injectEncCSS(){
+  if(document.getElementById('enc-mod-css')) return;
+  document.head.insertAdjacentHTML('beforeend', `
+  <style id="enc-mod-css">
+    /* ---------- 字符编码模块自定义样式 ---------- */
+    .enc-flow{display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;gap:clamp(6px,1vw,10px);margin:clamp(6px,1vw,10px) 0}
+    .enc-flow .enc-node{flex:1 1 130px;max-width:230px;display:flex;flex-direction:column;gap:5px;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:clamp(8px,1.3vw,12px) clamp(10px,1.5vw,14px);transition:all .2s}
+    .enc-flow .enc-node .enc-nl{font-family:var(--font);font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:700;letter-spacing:.3px}
+    .enc-flow .enc-node .enc-nv{font-family:var(--mono);font-size:clamp(16px,2.4vw,24px);font-weight:800;color:var(--text-2);letter-spacing:1px}
+    .enc-flow .enc-node.done{border-color:var(--green);background:var(--green-soft)}
+    .enc-flow .enc-node.done .enc-nv{color:#15803D}
+    .enc-flow .enc-node.cur{border-color:var(--orange);background:#FFF4DB;box-shadow:0 4px 14px rgba(245,158,11,.18)}
+    .enc-flow .enc-node.cur .enc-nv{color:#B45309}
+    .enc-flow .enc-node.locked{opacity:.55}
+    .enc-flow .enc-node.locked .enc-nv{color:#CBD5E1}
+    .enc-flow .enc-arrow{display:flex;align-items:center;color:#94A3B8;font-size:clamp(16px,2.2vw,22px);font-weight:700}
+
+    .enc-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:clamp(12px,2vw,20px);margin-bottom:clamp(10px,2vw,16px);position:relative;transition:all .2s}
+    .enc-card.done{border-color:var(--green);background:linear-gradient(135deg,#F0FDF4,#fff 60%)}
+    .enc-card.cur{border-color:var(--orange);background:linear-gradient(135deg,#FFF8EE,#fff 60%);box-shadow:0 6px 20px rgba(245,158,11,.12)}
+    .enc-card.locked{opacity:.55;background:#F8FAFC;border-style:dashed}
+    .enc-card .enc-card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:clamp(8px,1.4vw,12px)}
+    .enc-card .enc-card-title{font-size:clamp(14px,1.9vw,18px);font-weight:700;color:var(--text)}
+    .enc-card .enc-card-sub{font-size:clamp(11px,1.4vw,13px);color:var(--text-3);font-weight:600;margin-top:2px}
+    .enc-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 12px;font-size:clamp(10px,1.3vw,12.5px);font-weight:700;font-family:var(--mono);white-space:nowrap}
+    .enc-badge.done{background:var(--green-soft);color:#15803D}
+    .enc-badge.cur{background:var(--orange);color:#fff}
+    .enc-badge.locked{background:#F1F5F9;color:#94A3B8}
+
+    .enc-big{font-family:var(--mono);font-size:clamp(20px,3.4vw,32px);font-weight:800;text-align:center;letter-spacing:2px;color:var(--text);margin:clamp(6px,1.2vw,10px) 0;line-height:1.6}
+    .enc-card.done .enc-big{color:#15803D}
+    .enc-card.cur .enc-big{color:#B45309}
+
+    .enc-calc{font-family:var(--mono);font-size:clamp(16px,2.2vw,22px);font-weight:700;line-height:2.1;text-align:center;color:var(--text)}
+    .enc-calc .enc-op{color:#94A3B8;margin:0 6px;font-weight:400}
+    .enc-calc .enc-eq{color:var(--accent);margin:0 6px}
+    .enc-calc .enc-res{color:#B45309;background:#FFF4DB;border:1.5px solid var(--orange);border-radius:8px;padding:2px 12px}
+    .enc-card.done .enc-calc .enc-res{color:#15803D;background:#E8FBF0;border-color:var(--green)}
+    .enc-calc-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(6px,1vw,10px);margin:clamp(6px,1.1vw,10px) 0}
+    .enc-sub{font-size:clamp(12px,1.6vw,15px);color:var(--text-3);text-align:center;font-family:var(--font);margin-top:4px;line-height:1.7}
+
+    /* 二进制大网格（8 位一组） */
+    .enc-bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(4px,.9vw,8px);max-width:580px;margin:clamp(8px,1.4vw,12px) auto}
+    .enc-bitgrid .enc-bit{background:#fff;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-family:var(--mono);font-size:clamp(18px,2.8vw,28px);font-weight:800;padding:clamp(8px,1.4vw,12px) 0;color:var(--text-2)}
+    .enc-bitgrid .enc-bit.one{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+    .enc-bitgrid .enc-bit.zero{color:#CBD5E1}
+    .enc-bitgrid.weight .enc-bit{font-size:clamp(10px,1.4vw,13px);font-weight:700;color:var(--text-3);background:var(--surface-3);border-style:dashed;padding:4px 0}
+    .enc-bitgroup{display:flex;flex-wrap:wrap;gap:clamp(10px,1.8vw,16px);justify-content:center;margin:clamp(8px,1.4vw,12px) 0}
+    .enc-bitgroup .enc-b4{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(4px,.8vw,6px);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(6px,1vw,10px);min-width:150px}
+    .enc-bitgroup .enc-b4 .enc-bit{font-size:clamp(16px,2.4vw,24px);padding:clamp(6px,1vw,10px) 0;border-radius:8px}
+    .enc-b4-label{text-align:center;font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);margin-bottom:6px}
+
+    /* 三码同屏卡片网格 */
+    .enc-tri{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:clamp(10px,1.8vw,16px);margin:clamp(6px,1.2vw,10px) 0}
+    .enc-tri .enc-card{margin-bottom:0}
+    @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
+
+    .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
+    .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
+    .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+    .enc-chip.done{border-color:var(--green);background:var(--green-soft);color:#15803D}
+    .enc-chip.cur{border-color:var(--orange);background:#FFF4DB;color:#B45309}
+    .enc-chip.empty{color:#CBD5E1;border-style:dashed;background:#F8FAFC}
+
+    .enc-placeholder{text-align:center;color:#94A3B8;font-size:clamp(12px,1.6vw,15px);padding:clamp(12px,2vw,18px) 0;font-family:var(--font)}
+    .enc-result-strip{font-family:var(--mono);font-size:clamp(15px,2.3vw,22px);font-weight:800;color:var(--accent);background:linear-gradient(135deg,#EEF3FF,#E0F2FE);border-radius:12px;padding:clamp(10px,1.6vw,14px) clamp(12px,2vw,18px);text-align:center;margin-top:clamp(8px,1.4vw,12px);border:1px solid #C7D2FE;line-height:1.9;min-height:clamp(46px,7vw,64px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(6px,1vw,10px)}
+    .enc-result-strip .enc-op{color:#94A3B8;font-weight:400}
+    .enc-result-strip.locked{background:#F8FAFC;border:1px dashed var(--border);color:#94A3B8;font-family:var(--font);font-size:clamp(12px,1.6vw,15px);font-weight:600}
+    .enc-mini{font-family:var(--mono);font-size:clamp(14px,2vw,18px);color:var(--text-2);background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:clamp(8px,1.3vw,12px);margin:clamp(6px,1.1vw,10px) 0;line-height:2}
+    .enc-mini .enc-h{color:var(--text-3);font-size:clamp(10px,1.3vw,12.5px);font-family:var(--font);font-weight:700;margin-bottom:4px}
+    .enc-note{display:inline-block;background:#F8FAFC;border:1px dashed var(--border);border-radius:10px;padding:6px 12px;font-size:clamp(12px,1.6vw,15px);color:var(--text-3);font-family:var(--font);margin:6px auto}
+    .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
+    .enc-table th,.enc-table td{padding:clamp(7px,1.1vw,11px) clamp(8px,1.4vw,13px);font-size:inherit}
+    .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
+  </style>`);
+})();
+
 MOD.enc = {
   name:'字符编码', sub:'ASCII · BCD · 区位码国标码机内码 · 字形码',
   badge:'编码 · 转换', tag:'编码', cat:'bit',
@@ -1635,7 +1812,7 @@ MOD.enc = {
   initDesc:'点击「自动演示」或「下一步」，观看字符编码的逐步推导过程。',
   currentSub:'ascii',
   subTabs:[
-    {id:'ascii',label:'ASCII码值',method:'字符→十进制→8位二进制→十六进制'},
+    {id:'ascii',label:'ASCII码值',method:'字符→8位二进制→十进制→十六进制'},
     {id:'bcd',label:'BCD编码',method:'逐位4位二进制·累积拼接'},
     {id:'hanzi',label:'区位→国标→机内',method:'三码同屏·+2020H·+8080H'},
     {id:'font',label:'字形码容量',method:'点数→字节→总容量'}
@@ -1718,7 +1895,7 @@ MOD.enc = {
   _lockedInner(text){
     return `<div class="enc-placeholder">${text||'等待本步骤计算…'}</div>`;
   },
-  /* ========== ① ASCII：字符 → 十进制 → 8位二进制（计算机存储）→ 十六进制 ========== */
+  /* ========== ① ASCII：字符 → 8位二进制（计算机存储）→ 十进制 → 十六进制 ========== */
   genAscii(){
     const customEl=$('#e-ascii-custom');
     const custom=customEl?customEl.value.trim():'';
@@ -1749,48 +1926,54 @@ MOD.enc = {
     const rows=[]; let temp=code;
     if(temp===0) rows.push({n:0,q:0,r:'0'});
     while(temp>0){ const q=Math.floor(temp/2),r=temp%2; rows.push({n:temp,q,r}); temp=q; }
-    /* 码表片段（前后各 3 个） */
-    const tableStart=Math.max(32,code-3), tableEnd=Math.min(126,code+3);
-    const tableRows=[];
-    for(let c=tableStart;c<=tableEnd;c++) tableRows.push({ch:String.fromCharCode(c),code:c,isCur:c===code});
+    /* 按权展开：每一位 × 对应位权 */
+    const contribs=bin.split('').map((b,i)=>+b*weights[i]);
+    const terms=bin.split('').map((b,i)=>`${b}×${weights[i]}`);
 
-    const stateLabels=['输入字符','查表 · 十进制','计算机存储 · 二进制','十六进制 · 完成'];
+    const stateLabels=['输入字符','计算机存储 · 二进制','二进制 → 十进制','十六进制 · 完成'];
     const steps=[];
 
-    /* 卡片渲染器：cur 为当前步骤序号（0..3），已完成卡片保留同屏 */
+    /* 卡片渲染器：cur 为当前步骤序号（0..3），已完成卡片保留同屏。
+       链路顺序：字符 → 8位二进制（计算机存储）→ 十进制 → 十六进制 */
     const renderCards=(cur)=>{
       /* 卡片 0：字符 */
       const c0=this._card(this._state(0,cur),'① 输入字符','待查询的字符',
         `<div class="enc-big" style="font-size:clamp(28px,5vw,42px)">“${esc(ch)}”</div>
-         <div class="enc-sub">沿 字符 → 十进制 → 二进制 → 十六进制 链路逐步推导</div>`);
-      /* 卡片 1：十进制码值 */
+         <div class="enc-sub">沿 字符 → 二进制 → 十进制 → 十六进制 链路逐步推导</div>`);
+      /* 卡片 1：8 位二进制（计算机存储）—— 直接查 ASCII 表得到存储码 */
       let c1;
       if(cur>=1){
-        const tableHtml=`<table class="exp-table enc-table">
-          <tr><th>字符</th>${tableRows.map(r=>`<th class="${r.isCur?'cur':''}">${r.ch===' '?'␣':esc(r.ch)}</th>`).join('')}</tr>
-          <tr><th>十进制</th>${tableRows.map(r=>`<td class="${r.isCur?'cur':r.code<code?'done':''}">${r.code}</td>`).join('')}</tr>
-        </table>`;
-        c1=this._card(this._state(1,cur),'② 查 ASCII 码表 · 十进制','字符对应的十进制码值',
-          `<div class="enc-big">${code}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>
-           ${tableHtml}
-           <div style="text-align:center"><span class="enc-note">常见对照：A=65，a=97，0=48；本字符查表得 <b style="color:var(--accent)">${code}</b></span></div>`);
-      }else{
-        c1=this._card('locked','② 查 ASCII 码表 · 十进制','字符对应的十进制码值',this._lockedInner());
-      }
-      /* 卡片 2：8 位二进制（计算机存储） */
-      let c2;
-      if(cur>=2){
         const weightRow=weights.map(w=>`<div class="enc-bit">${w}</div>`).join('');
         const bitRow=bin.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('');
         const divRows=rows.map(rd=>`<div>${rd.n} ÷ 2 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
-        c2=this._card(this._state(2,cur),'③ 8 位二进制 · 计算机存储','1 字节 = 8 位二进制',
+        c1=this._card(this._state(1,cur),'② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
           `<div class="enc-bitgrid weight">${weightRow}</div>
            <div class="enc-bitgrid">${bitRow}</div>
-           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出）</div>${divRows}</div>
+           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出，补足 8 位）</div>${divRows}</div>
            <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>
            <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”</div>`);
       }else{
-        c2=this._card('locked','③ 8 位二进制 · 计算机存储','1 字节 = 8 位二进制',this._lockedInner());
+        c1=this._card('locked','② 8 位二进制 · 计算机存储','1 字节 = 8 位二进制',this._lockedInner());
+      }
+      /* 卡片 2：二进制 → 十进制（按权展开求和，展示完整计算过程） */
+      let c2;
+      if(cur>=2){
+        const tableHtml=`<table class="exp-table enc-table">
+          <tr><th>位权</th>${weights.map(w=>`<th>${w}</th>`).join('')}</tr>
+          <tr><th>二进制位</th>${bin.split('').map(b=>`<td class="${b==='1'?'done':'empty'}">${b}</td>`).join('')}</tr>
+          <tr><th>贡献</th>${contribs.map(c=>`<td class="${c?'done':'empty'}">${c}</td>`).join('')}</tr>
+        </table>`;
+        const calc=`<div class="enc-calc" style="flex-wrap:wrap;justify-content:center;display:flex;gap:clamp(6px,1vw,10px)">
+          ${terms.map((t,i)=>`<span>${t}</span>${i<terms.length-1?'<span class="enc-op">+</span>':''}`).join('')}
+          <span class="enc-eq">=</span><span class="enc-res">${code}</span>
+        </div>`;
+        c2=this._card(this._state(2,cur),'③ 二进制 → 十进制 · 按权展开','每一位 × 对应位权，再把所有贡献相加',
+          `${tableHtml}
+           ${calc}
+           <div class="enc-big">${code}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>
+           <div class="enc-sub">按权展开求和得十进制码值 <b style="color:var(--accent)">${code}</b>（对照 ASCII 表：${esc(ch)} = ${code}）</div>`);
+      }else{
+        c2=this._card('locked','③ 二进制 → 十进制 · 按权展开','每一位 × 位权再相加',this._lockedInner());
       }
       /* 卡片 3：十六进制 */
       let c3;
@@ -1808,42 +1991,42 @@ MOD.enc = {
       return c0+c1+c2+c3;
     };
 
-    /* 步骤 0：字符 */
-    steps.push({desc:`写出待查询字符 <b class="c-op">“${esc(ch)}”</b>，沿 <b>字符 → 十进制 → 二进制 → 十六进制</b> 链路逐步推导。`,
+    /* 步骤 0：输入字符 */
+    steps.push({desc:`写出待查询字符 <b class="c-op">“${esc(ch)}”</b>，沿 <b>字符 → 二进制 → 十进制 → 十六进制</b> 链路逐步推导。`,
       draw:()=>{
         const cur=0;
         const flow=[this._flowNode('字符',`“${esc(ch)}”`,this._state(0,cur)),
           `<span class="enc-arrow">→</span>`,
-          this._flowNode('十进制','',this._state(1,cur)),`<span class="enc-arrow">→</span>`,
-          this._flowNode('8位二进制','',this._state(2,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('8位二进制','',this._state(1,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('十进制','',this._state(2,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
           ${renderCards(cur)}
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
-    /* 步骤 1：十进制 */
-    steps.push({desc:`查 ASCII 码表：字符 <b class="c-op">${esc(ch)}</b> 对应的十进制码值 = <b class="c-op">${code}</b>。`,
+    /* 步骤 1：查 ASCII 表得到 8 位二进制存储码（计算机存储） */
+    steps.push({desc:`计算机中字符以 <b>8 位二进制（1 字节）</b>存储；查 ASCII 码表，字符 <b class="c-op">${esc(ch)}</b> 的存储码为 <b class="c-op">${bin}</b>。`,
       draw:()=>{
         const cur=1;
         const flow=[this._flowNode('字符',`“${esc(ch)}”`,this._state(0,cur)),
           `<span class="enc-arrow">→</span>`,
-          this._flowNode('十进制',code,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
-          this._flowNode('8位二进制','',this._state(2,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('8位二进制',bin,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('十进制','',this._state(2,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
           ${renderCards(cur)}
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
-    /* 步骤 2：8 位二进制（计算机存储） */
-    steps.push({desc:`十进制 <b class="c-op">${code}</b> 连续除 2 取余、余数<b>从下往上逆序</b>读出，补足 8 位得 <b class="c-op">${bin}</b>；这就是计算机中存储该字符的二进制形式（1 字节）。`,
+    /* 步骤 2：二进制 → 十进制（按权展开求和，完整过程） */
+    steps.push({desc:`二进制按权展开转十进制：${terms.join(' + ')} = <b class="c-op">${code}</b>。`,
       draw:()=>{
         const cur=2;
         const flow=[this._flowNode('字符',`“${esc(ch)}”`,this._state(0,cur)),
           `<span class="enc-arrow">→</span>`,
-          this._flowNode('十进制',code,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
-          this._flowNode('8位二进制',bin,this._state(2,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('8位二进制',bin,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('十进制',code,this._state(2,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
@@ -1851,18 +2034,18 @@ MOD.enc = {
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
     /* 步骤 3：十六进制 + 完整链路 */
-    steps.push({desc:`二进制按 4 位一组转换为十六进制：${highNib}→<b class="c-op">${hex[0]}</b>，${lowNib}→<b class="c-op">${hex[1]}</b>，得 <b class="c-op">${hex}H</b>。完整链路：“${esc(ch)}” = ${code}<sub>10</sub> = ${bin}<sub>2</sub> = ${hex}H。`,
+    steps.push({desc:`二进制按 4 位一组转换为十六进制：${highNib}→<b class="c-op">${hex[0]}</b>，${lowNib}→<b class="c-op">${hex[1]}</b>，得 <b class="c-op">${hex}H</b>。完整链路：“${esc(ch)}” = ${bin}<sub>2</sub> = ${code}<sub>10</sub> = ${hex}H。`,
       draw:()=>{
         const cur=3;
         const flow=[this._flowNode('字符',`“${esc(ch)}”`,this._state(0,cur)),
           `<span class="enc-arrow">→</span>`,
-          this._flowNode('十进制',code,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
-          this._flowNode('8位二进制',bin,this._state(2,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('8位二进制',bin,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
+          this._flowNode('十进制',code,this._state(2,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十六进制',`${hex}H`,this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
           ${renderCards(cur)}
-          <div class="enc-result-strip">“${esc(ch)}” <span class="enc-op">=</span> ${code}<sub>10</sub> <span class="enc-op">=</span> ${bin}<sub>2</sub> <span class="enc-op">=</span> ${hex}H <span class="enc-op">（1 字节）</span></div>`;
+          <div class="enc-result-strip">“${esc(ch)}” <span class="enc-op">=</span> ${bin}<sub>2</sub> <span class="enc-op">=</span> ${code}<sub>10</sub> <span class="enc-op">=</span> ${hex}H <span class="enc-op">（1 字节）</span></div>`;
       }});
     return steps;
   },
@@ -2191,6 +2374,7 @@ MOD.enc = {
     }
   }
 };
+
 ;;;
 
 /* ================================================================
