@@ -2679,7 +2679,7 @@ MOD.excel = {
   },
 
   /* ---------- 统计函数：数据网格 ---------- */
-  drawFuncGrid(data, curIdx, funcName, result, done){
+  drawFuncGrid(data, curIdx, funcName, result, done, calcHTML){
     let html = `<div class="stage-hd"><span>${funcName} 函数</span><span class="state">A1:A${data.length}</span></div>
       <div class="step-title"><span class="st-dot"></span>${funcName} 逐步求值 · 数据区域 A1:A${data.length}</div>`;
     html += `<div class="xl-grid" style="grid-template-columns:34px repeat(${data.length},1fr)">`;
@@ -2687,6 +2687,7 @@ MOD.excel = {
     html += `<div class="xl-cell hd">1</div>` + data.map((v,i)=>`<div class="xl-cell ${i<curIdx?'done':i===curIdx?'cur':''} ${i===curIdx?'write-in':''}">${v}</div>`).join('');
     html += `</div>`;
     html += `<div class="xl-formula">=${funcName}(A1:A${data.length})${result ? ` = <b style="color:#86EFAC" class="write-in">${result}</b>` : ''}</div>`;
+    if(calcHTML) html += calcHTML;
     if(done) html += `<div class="write-result">${funcName}(A1:A${data.length}) = ${result}</div>`;
     $('#stage').innerHTML = html;
   },
@@ -2706,54 +2707,136 @@ MOD.excel = {
     const data = datasets[f];
     const range = 'A1:A' + data.length;
     const steps = [];
+
+    /* 计算过程卡片辅助：生成带步骤序号的累加/比较行 */
+    const procLine = (idx, total, text, isCur)=>`
+      <div class="cp-sum-line" style="margin-bottom:5px;${isCur?'background:#FFF4DB;border-color:var(--orange)':''}">
+        <span style="color:var(--text-3);font-size:.85em">${idx+1}.</span> ${text}
+      </div>`;
+
     // 1. 函数与数据区域
-    steps.push({ desc:`函数 =<b class="c-op">${f}(${range})</b>，数据区域 ${range} = [${data.join(', ')}]。`,
-      draw:()=>{ this.drawFuncGrid(data, -1, f, '', false); }});
+    steps.push({ desc:`函数 =<b class="c-op">${f}(${range})</b>，数据区域 ${range} = [${data.join(', ')}]，共 ${data.length} 个值。`,
+      draw:()=>{ this.drawFuncGrid(data, -1, f, '', false,
+        `<div class="calc-process"><div class="cp-label">待计算数据</div>
+          <div class="cp-sum-line">[${data.join(', ')}] · 共 ${data.length} 个数</div></div>`); }});
+
     if(f === 'SUM'){
       let acc = 0;
+      const history = [];
       data.forEach((v,i)=>{
+        const oldAcc = acc;
         acc += v;
+        history.push({old:oldAcc, add:v, new:acc});
         const snap = acc;
-        steps.push({ desc:`第 ${i+1} 个值 <b class="c-op">${v}</b>：累计 ${snap - v} + ${v} = <b class="c-op">${snap}</b>`,
-          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false); }});
+        const calcHTML = `<div class="calc-process">
+          <div class="cp-label">逐步累加过程（第 ${i+1}/${data.length} 步）</div>
+          ${history.map((h,j)=>procLine(j, data.length,
+            `${h.old} <span class="op">+</span> ${h.add} <span class="eq">=</span> <span class="sum">${h.new}</span>`, j===i)).join('')}
+        </div>`;
+        steps.push({ desc:`第 ${i+1} 个值 <b class="c-op">${v}</b>：累计 ${oldAcc} + ${v} = <b class="c-op">${snap}</b>`,
+          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false, calcHTML); }});
       });
+      const finalCalc = `<div class="calc-process">
+        <div class="cp-label">完整求和式</div>
+        <div class="cp-sum-line">${data.join(' + ')} <span class="eq">=</span> <span class="sum">${acc}</span></div>
+      </div>`;
       steps.push({ desc:`SUM 求和结果 = <b class="c-op">${acc}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(acc), true); }});
+        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(acc), true, finalCalc); }});
+
     }else if(f === 'AVERAGE'){
       const sum = data.reduce((a,b)=>a+b,0);
       const avg = sum / data.length;
-      steps.push({ desc:`先求和：${data.join(' + ')} = <b class="c-op">${sum}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, data.length, f, sum + '（和）', false); }});
+      // 2. 逐步求和
+      let acc = 0;
+      const sumHistory = [];
+      data.forEach((v,i)=>{
+        const oldAcc = acc;
+        acc += v;
+        sumHistory.push({old:oldAcc, add:v, new:acc});
+      });
+      const sumCalc = `<div class="calc-process">
+        <div class="cp-label">第一步：求和（${data.length} 个数相加）</div>
+        ${sumHistory.map((h,j)=>procLine(j, data.length,
+          `${h.old} <span class="op">+</span> ${h.add} <span class="eq">=</span> <span class="sum">${h.new}</span>`, j===data.length-1)).join('')}
+        <div class="cp-sum-line" style="margin-top:6px;background:#EEF3FF">
+          总和 = <span style="color:var(--accent);font-weight:700">${sum}</span>
+        </div>
+      </div>`;
+      steps.push({ desc:`先求和：${data.join(' + ')} = <b class="c-op">${sum}</b>（共 ${data.length} 个数相加）`,
+        draw:()=>{ this.drawFuncGrid(data, data.length, f, sum + '（和）', false, sumCalc); }});
+      // 3. 除以个数
+      const divCalc = `<div class="calc-process">
+        <div class="cp-label">第二步：求平均值 = 总和 ÷ 数据个数</div>
+        <div class="cp-sum-line" style="margin-bottom:6px">
+          总和 <span class="eq">=</span> <span style="color:var(--accent);font-weight:700">${sum}</span>
+        </div>
+        <div class="cp-sum-line" style="margin-bottom:6px">
+          数据个数 <span class="eq">=</span> <span style="color:var(--accent);font-weight:700">${data.length}</span>
+        </div>
+        <div class="cp-sum-line" style="background:#FFF4DB">
+          ${sum} <span class="op">÷</span> ${data.length} <span class="eq">=</span> <span class="sum">${avg.toFixed(2)}</span>
+        </div>
+      </div>`;
       steps.push({ desc:`再除以个数 ${data.length}：${sum} ÷ ${data.length} = <b class="c-op">${avg.toFixed(2)}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, data.length, f, avg.toFixed(2), true); }});
+        draw:()=>{ this.drawFuncGrid(data, data.length, f, avg.toFixed(2), true, divCalc); }});
+
     }else if(f === 'MAX'){
       let mx = data[0];
+      const cmpHistory = [{val:data[0], result:data[0], note:'初始值'}];
       steps.push({ desc:`初始最大值 = 第一个值 <b class="c-op">${data[0]}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, 0, f, String(mx), false); }});
+        draw:()=>{ this.drawFuncGrid(data, 0, f, String(mx), false,
+          `<div class="calc-process"><div class="cp-label">第 1 步：初始最大值</div>
+            <div class="cp-sum-line">max = <span class="sum">${data[0]}</span>（取第一个值）</div></div>`); }});
       for(let i=1; i<data.length; i++){
         const oldMx = mx;
         const bigger = data[i] > oldMx;
         if(bigger) mx = data[i];
+        cmpHistory.push({val:data[i], compared:oldMx, result:mx, bigger});
         const snap = mx;
+        const calcHTML = `<div class="calc-process">
+          <div class="cp-label">逐步比较（第 ${i+1}/${data.length} 步）</div>
+          ${cmpHistory.slice(1).map((h,j)=>procLine(j, data.length,
+            `max(${h.compared}, ${h.val}) <span class="eq">=</span> <span class="sum">${h.result}</span>${h.bigger?' <span style="color:var(--orange);font-size:.8em">↑ 更新</span>':' <span style="color:var(--text-3);font-size:.8em">保持</span>'}`,
+            j===i-1)).join('')}
+        </div>`;
         steps.push({ desc:`比较 ${data[i]} 与当前最大 ${oldMx}：${bigger ? `<b class="c-op">${data[i]} 更大，更新最大值为 ${data[i]}</b>` : `${data[i]} 不更大，保持 ${oldMx}`}`,
-          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false); }});
+          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false, calcHTML); }});
       }
+      const finalCalc = `<div class="calc-process">
+        <div class="cp-label">比较过程汇总</div>
+        <div class="cp-sum-line">max(${data.join(', ')}) <span class="eq">=</span> <span class="sum">${mx}</span></div>
+      </div>`;
       steps.push({ desc:`MAX 最大值 = <b class="c-op">${mx}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(mx), true); }});
-    }else{
+        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(mx), true, finalCalc); }});
+
+    }else{ // MIN
       let mn = data[0];
+      const cmpHistory = [{val:data[0], result:data[0], note:'初始值'}];
       steps.push({ desc:`初始最小值 = 第一个值 <b class="c-op">${data[0]}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, 0, f, String(mn), false); }});
+        draw:()=>{ this.drawFuncGrid(data, 0, f, String(mn), false,
+          `<div class="calc-process"><div class="cp-label">第 1 步：初始最小值</div>
+            <div class="cp-sum-line">min = <span class="sum">${data[0]}</span>（取第一个值）</div></div>`); }});
       for(let i=1; i<data.length; i++){
         const oldMn = mn;
         const smaller = data[i] < oldMn;
         if(smaller) mn = data[i];
+        cmpHistory.push({val:data[i], compared:oldMn, result:mn, smaller});
         const snap = mn;
+        const calcHTML = `<div class="calc-process">
+          <div class="cp-label">逐步比较（第 ${i+1}/${data.length} 步）</div>
+          ${cmpHistory.slice(1).map((h,j)=>procLine(j, data.length,
+            `min(${h.compared}, ${h.val}) <span class="eq">=</span> <span class="sum">${h.result}</span>${h.smaller?' <span style="color:var(--orange);font-size:.8em">↓ 更新</span>':' <span style="color:var(--text-3);font-size:.8em">保持</span>'}`,
+            j===i-1)).join('')}
+        </div>`;
         steps.push({ desc:`比较 ${data[i]} 与当前最小 ${oldMn}：${smaller ? `<b class="c-op">${data[i]} 更小，更新最小值为 ${data[i]}</b>` : `${data[i]} 不更小，保持 ${oldMn}`}`,
-          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false); }});
+          draw:()=>{ this.drawFuncGrid(data, i, f, String(snap), false, calcHTML); }});
       }
+      const finalCalc = `<div class="calc-process">
+        <div class="cp-label">比较过程汇总</div>
+        <div class="cp-sum-line">min(${data.join(', ')}) <span class="eq">=</span> <span class="sum">${mn}</span></div>
+      </div>`;
       steps.push({ desc:`MIN 最小值 = <b class="c-op">${mn}</b>`,
-        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(mn), true); }});
+        draw:()=>{ this.drawFuncGrid(data, data.length, f, String(mn), true, finalCalc); }});
     }
     return steps;
   },
