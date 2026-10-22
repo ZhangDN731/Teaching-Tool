@@ -1,7 +1,7 @@
 /* ================================================================
  * 音视频容量（未压缩文件大小计算）
  * 子页面：audio 音频 / video 视频 / image 图像
- * 步骤累加展示：每一步渲染已完成步骤（绿色/灰色）+ 当前步骤（橙色高亮）
+ * 步骤覆盖展示：每一步只渲染当前步骤内容（橙色高亮），历史步骤由「上一步」回退重绘
  * 采样率支持 Hz / kHz / MHz 单位切换，内部统一归一化为 Hz 计算
  * ================================================================ */
 if(!document.getElementById('mod-media-css')){
@@ -41,7 +41,7 @@ MOD.media = {
   desc:'根据时长、采样率、位深、声道、帧率与分辨率等参数，逐步代入公式计算未压缩音视频文件的容量并换算单位；采样率支持 Hz/kHz/MHz 自定义单位。',
   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></svg>',
   setDesc:'',
-  stageDesc:'橙色=当前正在代入的步骤，绿色=已完成步骤，已完成内容保留在画布上逐步累加；关键数字放大显示。',
+  stageDesc:'每步只显示当前计算内容，点击「上一步」可回看之前步骤；关键数字放大显示。',
   initDesc:'点击「自动演示」或「下一步」，一步步代入公式算出文件容量。',
   currentSub:'audio',
   subTabs:[
@@ -158,22 +158,23 @@ MOD.media = {
     }
     return out.join('');
   },
-  /* 累加步骤画布：blocks 为 {title, desc, body} 数组；第 i 步渲染 0..i */
-  _renderAccum(label, statePrefix, blocks, i){
+  /* 覆盖式步骤画布：blocks 为 {title, desc, body} 数组；第 i 步只渲染当前步骤，历史步骤由 Engine 回退重绘 */
+  _renderStep(label, statePrefix, blocks, i){
+    const bk=blocks[i];
     $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${statePrefix} 第 ${i+1}/${blocks.length} 步</span></div>
       <div class="mm-wrap">
-        ${blocks.slice(0,i+1).map((bk,j)=>`
-          <div class="mm-step ${j<i?'done':j===i?'cur':''} ${j===i?'write-in':''}">
-            <div class="mm-step-hd"><span class="mm-idx">${j+1}</span>${bk.title}
-              <span class="mm-status">${j<i?'已完成':j===i?'进行中':'待计算'}</span></div>
-            <div class="mm-body">${bk.body(j===i)}</div>
-          </div>`).join('')}
+        <div class="mm-step cur write-in">
+          <div class="mm-step-hd"><span class="mm-idx">${i+1}</span>${bk.title}
+            <span class="mm-status">进行中</span></div>
+          <div class="mm-note" style="margin-bottom:clamp(6px,1vw,10px)">${bk.desc}</div>
+          <div class="mm-body">${bk.body()}</div>
+        </div>
       </div>`;
   },
   _stepsFromBlocks(label, statePrefix, blocks){
     return blocks.map((bk,i)=>({
       desc:bk.desc,
-      draw:()=>this._renderAccum(label, statePrefix, blocks, i)
+      draw:()=>this._renderStep(label, statePrefix, blocks, i)
     }));
   },
 

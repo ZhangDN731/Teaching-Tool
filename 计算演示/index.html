@@ -1663,9 +1663,9 @@ MOD.base = {
  * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
  * 子页面：ascii · bcd · hanzi · font
  * 重构要点：
- *  1. 步骤累加渲染：每一步 draw() 重绘“已完成 + 当前”完整状态，上一步可回退
- *  2. BCD 固定骨架 + 累积补位，消除整屏重置导致的抖动/跳脱
- *  3. 区位/国标/机内三码卡片同屏，当前步骤高亮
+ *  1. 步骤覆盖渲染：每一步 draw() 只重绘当前步骤内容，上一步由 Engine 回退重绘
+ *  2. BCD 逐位转换：每步只展示当前位的 8421 权展开，底部进度提示已拼接内容
+ *  3. 区位/国标/机内每步只展示当前正在计算的码，顶部流程节点显示进度
  *  4. 大屏幕字号放大：计算过程 clamp(16px,2.2vw,22px)，关键数字 clamp(18px,2.8vw,28px)
  * ================================================================ */
 (function injectEncCSS(){
@@ -1720,7 +1720,7 @@ MOD.base = {
     .enc-bitgroup .enc-b4 .enc-bit{font-size:clamp(16px,2.4vw,24px);padding:clamp(6px,1vw,10px) 0;border-radius:8px}
     .enc-b4-label{text-align:center;font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);margin-bottom:6px}
 
-    /* 三码同屏卡片网格 */
+    /* 三码节点进度网格样式（保留备用） */
     .enc-tri{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:clamp(10px,1.8vw,16px);margin:clamp(6px,1.2vw,10px) 0}
     .enc-tri .enc-card{margin-bottom:0}
     @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
@@ -1761,9 +1761,9 @@ MOD.base = {
  * 字符编码（ASCII / BCD / 区位码→国标码→机内码 / 字形码容量）
  * 子页面：ascii · bcd · hanzi · font
  * 重构要点：
- *  1. 步骤累加渲染：每一步 draw() 重绘“已完成 + 当前”完整状态，上一步可回退
- *  2. BCD 固定骨架 + 累积补位，消除整屏重置导致的抖动/跳脱
- *  3. 区位/国标/机内三码卡片同屏，当前步骤高亮
+ *  1. 步骤覆盖渲染：每一步 draw() 只重绘当前步骤内容，上一步由 Engine 回退重绘
+ *  2. BCD 逐位转换：每步只展示当前位的 8421 权展开，底部进度提示已拼接内容
+ *  3. 区位/国标/机内每步只展示当前正在计算的码，顶部流程节点显示进度
  *  4. 大屏幕字号放大：计算过程 clamp(16px,2.2vw,22px)，关键数字 clamp(18px,2.8vw,28px)
  * ================================================================ */
 (function injectEncCSS(){
@@ -1818,7 +1818,7 @@ MOD.base = {
     .enc-bitgroup .enc-b4 .enc-bit{font-size:clamp(16px,2.4vw,24px);padding:clamp(6px,1vw,10px) 0;border-radius:8px}
     .enc-b4-label{text-align:center;font-family:var(--font);font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--text-3);margin-bottom:6px}
 
-    /* 三码同屏卡片网格 */
+    /* 三码节点进度网格样式（保留备用） */
     .enc-tri{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:clamp(10px,1.8vw,16px);margin:clamp(6px,1.2vw,10px) 0}
     .enc-tri .enc-card{margin-bottom:0}
     @media (min-width:768px){ .enc-tri{grid-template-columns:repeat(3,1fr)} }
@@ -1859,16 +1859,16 @@ MOD.enc = {
   name:'字符编码', sub:'ASCII · BCD · 区位码国标码机内码 · 字形码',
   badge:'编码 · 转换', tag:'编码', cat:'bit',
   color:'#8B5CF6', soft:'#F3EEFF', type:'ASCII · BCD · 区位码 · 国标码 · 机内码 · 字形码',
-  desc:'涵盖 ASCII 码值查询、BCD 编码、汉字区位码→国标码→机内码转换、字形码容量计算；步骤累加演示，转换链路与三码结果同屏可见。',
+  desc:'涵盖 ASCII 码值查询、BCD 编码、汉字区位码→国标码→机内码转换、字形码容量计算；每步只展示当前计算环节，点击上一步可回看。',
   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7M16 15l5 5M16 20l5-5"/></svg>',
   setDesc:'',
-  stageDesc:'橙色=当前计算项，绿色=已完成结果；已完成步骤保留同屏，新步骤逐步累加显示。',
+  stageDesc:'每步只显示当前计算内容，点击「上一步」可回看之前步骤；顶部流程节点显示当前进度。',
   initDesc:'点击「自动演示」或「下一步」，观看字符编码的逐步推导过程。',
   currentSub:'ascii',
   subTabs:[
     {id:'ascii',label:'ASCII码值',method:'字符→8位二进制→十进制→十六进制'},
-    {id:'bcd',label:'BCD编码',method:'逐位4位二进制·累积拼接'},
-    {id:'hanzi',label:'区位→国标→机内',method:'三码同屏·+2020H·+8080H'},
+    {id:'bcd',label:'BCD编码',method:'逐位4位二进制·逐步拼接'},
+    {id:'hanzi',label:'区位→国标→机内',method:'区位→国标→机内·+2020H·+8080H'},
     {id:'font',label:'字形码容量',method:'点数→字节→总容量'}
   ],
   theory(){
@@ -1928,15 +1928,14 @@ MOD.enc = {
     ['e-ascii-custom','e-bcd-custom','e-hanzi-q','e-hanzi-w','e-font-count'].forEach(bindInput);
   },
   /* ---------- 内部辅助 ---------- */
-  /* j < cur → done；j === cur → cur；j > cur → locked */
+  /* 流程节点进度：j < cur → done；j === cur → cur；j > cur → locked */
   _state(j,cur){ return j<cur?'done':j===cur?'cur':'locked'; },
   _badgeText(st){ return st==='done'?'已完成':st==='cur'?'当前计算':'待计算'; },
-  /* 链路节点（顶部流程条） */
+  /* 链路节点（顶部流程条，仅用于显示进度，不承载详细内容） */
   _flowNode(sub,value,st){
     return `<div class="enc-node ${st}"><span class="enc-nl">${sub}</span><span class="enc-nv">${value||'—'}</span></div>`;
   },
-  /* 步骤卡片外壳；locked 时渲染占位内容。
-     注意：入场动画只挂在徽章等小装饰上，整卡不依赖动画透明度，避免后台冻结时整卡不可见。 */
+  /* 步骤卡片外壳（覆盖式：每步只渲染当前卡片，当前=cur，最后一步=done） */
   _card(st,title,sub,inner){
     return `<div class="enc-card ${st}">
       <div class="enc-card-hd">
@@ -1945,9 +1944,6 @@ MOD.enc = {
       </div>
       ${inner}
     </div>`;
-  },
-  _lockedInner(text){
-    return `<div class="enc-placeholder">${text||'等待本步骤计算…'}</div>`;
   },
   /* ========== ① ASCII：字符 → 8位二进制（计算机存储）→ 十进制 → 十六进制 ========== */
   genAscii(){
@@ -1987,60 +1983,52 @@ MOD.enc = {
     const stateLabels=['输入字符','计算机存储 · 二进制','二进制 → 十进制','十六进制 · 完成'];
     const steps=[];
 
-    /* 卡片渲染器：cur 为当前步骤序号（0..3），已完成卡片保留同屏。
+    /* 卡片渲染器：cur 为当前步骤序号（0..3），覆盖式只渲染当前步骤卡片。
        链路顺序：字符 → 8位二进制（计算机存储）→ 十进制 → 十六进制 */
-    const renderCards=(cur)=>{
+    const renderCard=(cur)=>{
       /* 卡片 0：字符 */
-      const c0=this._card(this._state(0,cur),'① 输入字符','待查询的字符',
-        `<div class="enc-big" style="font-size:clamp(28px,5vw,42px)">“${esc(ch)}”</div>
-         <div class="enc-sub">沿 字符 → 二进制 → 十进制 → 十六进制 链路逐步推导</div>`);
+      if(cur===0){
+        return this._card('cur','① 输入字符','待查询的字符',
+          `<div class="enc-big" style="font-size:clamp(28px,5vw,42px)">“${esc(ch)}”</div>
+           <div class="enc-sub">沿 字符 → 二进制 → 十进制 → 十六进制 链路逐步推导</div>`);
+      }
       /* 卡片 1：8 位二进制（计算机存储）—— 直接查 ASCII 表得到存储码 */
-      let c1;
-      if(cur>=1){
+      if(cur===1){
+        const weightRow=weights.map(w=>`<div class="enc-bit">${w}</div>`).join('');
         const bitRow=bin.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('');
-        const divRows=rows.map(rd=>`<span>${rd.n} ÷2=${rd.q} <span style="color:var(--orange);font-weight:700">余${rd.r}</span></span>`).join('');
-        c1=this._card(this._state(1,cur),'② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
-          `<div class="enc-bitgrid">${bitRow}</div>
-           <div class="enc-mini enc-divlist"><div class="enc-h">除 2 取余 · 余数逆序读出，补足 8 位</div><div class="enc-divrows">${divRows}</div></div>
-           <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>`);
-      }else{
-        c1=this._card('locked','② 8 位二进制 · 计算机存储','1 字节 = 8 位二进制',this._lockedInner());
+        const divRows=rows.map(rd=>`<div>${rd.n} ÷ 2 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
+        return this._card('cur','② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
+          `<div class="enc-bitgrid weight">${weightRow}</div>
+           <div class="enc-bitgrid">${bitRow}</div>
+           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出，补足 8 位）</div>${divRows}</div>
+           <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>
+           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”</div>`);
       }
       /* 卡片 2：二进制 → 十进制（按权展开求和，展示完整计算过程） */
-      let c2;
-      if(cur>=2){
+      if(cur===2){
         const tableHtml=`<table class="exp-table enc-table">
           <tr><th>位权</th>${weights.map(w=>`<th>${w}</th>`).join('')}</tr>
           <tr><th>二进制位</th>${bin.split('').map(b=>`<td class="${b==='1'?'done':'empty'}">${b}</td>`).join('')}</tr>
           <tr><th>贡献</th>${contribs.map(c=>`<td class="${c?'done':'empty'}">${c}</td>`).join('')}</tr>
         </table>`;
-        const activeTerms=terms.filter((_,i)=>bin[i]==='1');
         const calc=`<div class="enc-calc" style="flex-wrap:wrap;justify-content:center;display:flex;gap:clamp(6px,1vw,10px)">
-          ${activeTerms.map((t,i)=>`<span>${t}</span>${i<activeTerms.length-1?'<span class="enc-op">+</span>':''}`).join('')}
+          ${terms.map((t,i)=>`<span>${t}</span>${i<terms.length-1?'<span class="enc-op">+</span>':''}`).join('')}
           <span class="enc-eq">=</span><span class="enc-res">${code}</span>
         </div>`;
-        c2=this._card(this._state(2,cur),'③ 二进制 → 十进制 · 按权展开','每一位 × 对应位权，再把所有贡献相加',
+        return this._card('cur','③ 二进制 → 十进制 · 按权展开','每一位 × 对应位权，再把所有贡献相加',
           `${tableHtml}
            ${calc}
            <div class="enc-big">${code}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>
-           <div class="enc-sub">对照 ASCII 表：${esc(ch)} = ${code}</div>`);
-      }else{
-        c2=this._card('locked','③ 二进制 → 十进制 · 按权展开','每一位 × 位权再相加',this._lockedInner());
+           <div class="enc-sub">按权展开求和得十进制码值 <b style="color:var(--accent)">${code}</b>（对照 ASCII 表：${esc(ch)} = ${code}）</div>`);
       }
       /* 卡片 3：十六进制 */
-      let c3;
-      if(cur>=3){
-        c3=this._card('done','④ 转换为十六进制','4 位二进制 = 1 位十六进制',
-          `<div class="enc-bitgroup">
-             <div><div class="enc-b4-label">高 4 位</div><div class="enc-b4">${highNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
-             <div><div class="enc-b4-label">低 4 位</div><div class="enc-b4">${lowNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
-           </div>
-           <div class="enc-calc">${highNib} 组 → <span class="enc-res">${hex[0]}</span> <span class="enc-op">·</span> ${lowNib} 组 → <span class="enc-res">${hex[1]}</span></div>
-           <div class="enc-big">${hex}H<sub style="font-size:.45em;color:var(--text-3)">十六进制</sub></div>`);
-      }else{
-        c3=this._card('locked','④ 转换为十六进制','4 位二进制 = 1 位十六进制',this._lockedInner());
-      }
-      return `<div class="enc-grid">${c0}${c1}${c2}${c3}</div>`;
+      return this._card('done','④ 转换为十六进制','4 位二进制 = 1 位十六进制',
+        `<div class="enc-bitgroup">
+           <div><div class="enc-b4-label">高 4 位</div><div class="enc-b4">${highNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
+           <div><div class="enc-b4-label">低 4 位</div><div class="enc-b4">${lowNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
+         </div>
+         <div class="enc-calc">${highNib} 组 → <span class="enc-res">${hex[0]}</span> <span class="enc-op">·</span> ${lowNib} 组 → <span class="enc-res">${hex[1]}</span></div>
+         <div class="enc-big">${hex}H<sub style="font-size:.45em;color:var(--text-3)">十六进制</sub></div>`);
     };
 
     /* 步骤 0：输入字符 */
@@ -2054,7 +2042,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
     /* 步骤 1：查 ASCII 表得到 8 位二进制存储码（计算机存储） */
@@ -2068,7 +2056,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
     /* 步骤 2：二进制 → 十进制（按权展开求和，完整过程） */
@@ -2082,7 +2070,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
       }});
     /* 步骤 3：十六进制 + 完整链路 */
@@ -2096,13 +2084,13 @@ MOD.enc = {
           this._flowNode('十六进制',`${hex}H`,this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip">“${esc(ch)}” <span class="enc-op">=</span> ${bin}<sub>2</sub> <span class="enc-op">=</span> ${code}<sub>10</sub> <span class="enc-op">=</span> ${hex}H <span class="enc-op">（1 字节）</span></div>`;
       }});
     return steps;
   },
 
-  /* ========== ② BCD：十进制数逐位转 4 位二进制（累积式渲染，骨架固定防抖动） ========== */
+  /* ========== ② BCD：十进制数逐位转 4 位二进制（覆盖式渲染，每步只显示当前位） ========== */
   genBcd(){
     const customEl=$('#e-bcd-custom');
     const custom=customEl?customEl.value.trim():'';
@@ -2121,54 +2109,39 @@ MOD.enc = {
     const label='BCD 编码';
     const steps=[];
 
-    /* 固定骨架渲染：intro=题目步；digitIdx=-1 表示尚未开始；final=完成步 */
+    /* 覆盖式渲染：intro=题目步；digitIdx=-1 尚未开始；final=完成步。每步只展示当前位，不保留历史位表格 */
     const render=(intro,digitIdx,finalDone)=>{
-      /* 源数字行（始终存在，稳定布局） */
+      /* 源数字行（题目提示） */
       const sourceRow=`<div class="enc-chip-row">
         <span class="enc-sub" style="margin-right:6px">十进制数</span>
         ${digits.map(d=>`<span class="enc-chip src">${d}</span>`).join('')}
       </div>`;
-      /* 对照表（骨架固定，未来位显示 ?） */
-      const table=`<table class="exp-table enc-table" style="max-width:520px">
-        <tr><th>十进制位</th>${digits.map(d=>`<th>${d}</th>`).join('')}</tr>
-        <tr><th>BCD（4位）</th>${digits.map((d,j)=>{
-          const st=digitIdx<0?'empty':j<digitIdx?'done':j===digitIdx?'cur':'empty';
-          return `<td class="${st}">${digitIdx>=0&&j<=digitIdx?bits[j]:'?'}</td>`;
-        }).join('')}</tr>
-      </table>`;
-      /* 累积展开区：已完成位保留同屏，当前位橙色高亮，未来位占位 */
-      let expList;
-      if(digitIdx<0){
-        expList=`<div class="enc-placeholder">逐位转换中…（每位十进制数按 8421 权展开为 4 位二进制）</div>`;
-      }else{
-        expList=digits.map((d,j)=>{
-          const st=j<digitIdx?'done':j===digitIdx?'cur':'locked';
-          if(st==='locked') return '';
-          const aw=active[j];
-          return `<div class="enc-mini">
-            <div class="enc-h">第 ${j+1} 位「${d}」· 8421 权展开</div>
-            <div class="enc-calc-row">${weights.map(w=>`<span class="enc-chip ${aw.includes(w)?'cur':'empty'}" style="font-size:clamp(13px,1.8vw,17px);padding:4px 12px">${w}</span>`).join('')}</div>
-            <div class="enc-calc-row">${bits[j].split('').map(b=>`<span class="enc-chip ${b==='1'?'cur':'empty'}" style="font-size:clamp(14px,2vw,19px);padding:4px 12px">${b}</span>`).join('')}</div>
-            <div class="enc-calc">${aw.length?aw.join(' + '):'0'} <span class="enc-eq">=</span> <span class="enc-res">${d}</span> <span class="enc-op">→</span> <span class="enc-res">${bits[j]}</span></div>
-          </div>`;
-        }).join('');
+      /* 题目步：编码规则说明 */
+      if(intro){
+        return sourceRow + `
+          ${this._card('cur','编码规则','每位十进制数用 4 位二进制表示（8421 权：8、4、2、1）',
+            `<div class="enc-sub">接下来逐位转换：每一位十进制数按 8421 权展开，得到对应的 4 位二进制，再依次拼接成 BCD 码。</div>`)}
+          <div class="enc-result-strip locked">拼接结果将在最后一步汇总显示</div>`;
       }
-      /* 累积拼接行：已完成分组保留，未来分组占位 */
-      const snapshot=`<div class="enc-chip-row" style="margin-top:10px">
-        <span class="enc-sub" style="margin-right:6px">BCD 拼接</span>
-        ${digits.map((d,j)=>{
-          const st=digitIdx<0?'empty':j<digitIdx?'done':j===digitIdx?'cur':'empty';
-          return `<span class="enc-chip ${st}">${digitIdx>=0&&j<=digitIdx?bits[j]:'????'}</span>`;
-        }).join('')}
-      </div>`;
-      /* 结果条（预留高度，未完成时占位） */
-      let strip;
+      /* 完成步：最终拼接结果 */
       if(finalDone){
-        strip=`<div class="enc-result-strip">${num}<sub>十进制</sub> <span class="enc-op">=</span> ${bcd}<sub>BCD</sub> <span class="enc-op">（${N}×4 = ${N*4} 位 = ${Math.ceil(N*4/8)} 字节）</span></div>`;
-      }else{
-        strip=`<div class="enc-result-strip locked">拼接结果将在最后一步汇总显示</div>`;
+        return sourceRow + `
+          ${this._card('done','拼接完成',`全部 ${N} 位十进制数已转换为 BCD 码`,
+            `<div class="enc-chip-row">${digits.map((d,j)=>`<span class="enc-chip done">${d} → ${bits[j]}</span>`).join('')}</div>`)}
+          <div class="enc-result-strip">${num}<sub>十进制</sub> <span class="enc-op">=</span> ${bcd}<sub>BCD</sub> <span class="enc-op">（${N}×4 = ${N*4} 位 = ${Math.ceil(N*4/8)} 字节）</span></div>`;
       }
-      return sourceRow+table+expList+snapshot+strip;
+      /* 逐位转换步：只展示当前位的 8421 权展开 + 4 位二进制，底部进度提示已拼接内容 */
+      const d=digits[digitIdx], aw=active[digitIdx], b=bits[digitIdx];
+      const doneBits=bits.slice(0,digitIdx+1);
+      return sourceRow + `
+        ${this._card('cur',`第 ${digitIdx+1} 位「${d}」· 8421 权展开`,`当前位转换过程（共 ${N} 位）`,
+          `<div class="enc-calc-row">${weights.map(w=>`<span class="enc-chip ${aw.includes(w)?'cur':'empty'}" style="font-size:clamp(13px,1.8vw,17px);padding:4px 12px">${w}</span>`).join('')}</div>
+           <div class="enc-calc-row">${b.split('').map(bit=>`<span class="enc-chip ${bit==='1'?'cur':'empty'}" style="font-size:clamp(14px,2vw,19px);padding:4px 12px">${bit}</span>`).join('')}</div>
+           <div class="enc-calc">${aw.length?aw.join(' + '):'0'} <span class="enc-eq">=</span> <span class="enc-res">${d}</span> <span class="enc-op">→</span> <span class="enc-res">${b}</span></div>`)}
+        <div class="enc-chip-row" style="margin-top:10px">
+          <span class="enc-sub" style="margin-right:6px">已拼接</span>
+          ${doneBits.map((bb,j)=>`<span class="enc-chip ${j===digitIdx?'cur':'done'}">${bb}</span>`).join('')}
+        </div>`;
     };
 
     /* 步骤 0：输入十进制数 */
@@ -2178,14 +2151,14 @@ MOD.enc = {
           <div class="step-title"><span class="st-dot"></span>待编码的十进制数 · 逐位转换</div>
           ${render(true,-1,false)}`;
       }});
-    /* 步骤 1..N：逐位转换（累积保留） */
+    /* 步骤 1..N：逐位转换（每步只显示当前位） */
     digits.forEach((d,i)=>{
       const snap=bits.slice(0,i+1).join('');
       const aw=active[i];
       steps.push({desc:`第 ${i+1} 位 <b class="c-op">${d}</b>：${aw.length?aw.join(' + '):'0'} = ${d} → 4 位二进制 <b class="c-op">${bits[i]}</b>；已拼接 = <b class="c-op">${snap}</b>。`,
         draw:()=>{
           $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">第 ${i+1}/${N} 位编码</span></div>
-            <div class="step-title"><span class="st-dot"></span>逐位编码（8421 权展开，已完成位保留显示）</div>
+            <div class="step-title"><span class="st-dot"></span>逐位编码（8421 权展开，当前位橙色高亮）</div>
             ${render(false,i,false)}`;
         }});
     });
@@ -2193,13 +2166,13 @@ MOD.enc = {
     steps.push({desc:`拼接完成：<b class="c-op">${num}</b><sub>十进制</sub> = <b class="c-op">${bcd}</b><sub>BCD</sub>，共 ${N}×4 = <b>${N*4}</b> 位二进制，占 <b>${Math.ceil(N*4/8)}</b> 字节存储。`,
       draw:()=>{
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">拼接完成</span></div>
-          <div class="step-title"><span class="st-dot"></span>编码结果（全部位数保留同屏）</div>
+          <div class="step-title"><span class="st-dot"></span>编码结果（最终拼接）</div>
           ${render(false,N-1,true)}`;
       }});
     return steps;
   },
 
-  /* ========== ③ 区位码 → 国标码 → 机内码（三码卡片同屏，步骤累加） ========== */
+  /* ========== ③ 区位码 → 国标码 → 机内码（覆盖式，每步只显示当前码） ========== */
   genHanzi(){
     const qEl=$('#e-hanzi-q'), wEl=$('#e-hanzi-w');
     const qCustom=qEl?qEl.value.trim():'';
@@ -2227,12 +2200,17 @@ MOD.enc = {
     const divHtml=rows=>rows.map(rd=>`<div>${rd.n} ÷ 16 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
     const steps=[];
 
-    /* 三码卡片渲染：cur=0 区位 / 1 国标 / 2 机内；未到达卡片锁定占位 */
-    const renderCards=(cur)=>{
-      /* 卡片 A：区位码 */
-      let cA;
-      if(cur>=0){
-        cA=this._card(this._state(0,cur),'区位码','GB2312 中的位置 · 十进制',
+    /* 三码流程节点（顶部进度条，只显示进度，不承载详细内容） */
+    const flow=(cur)=>[
+      this._flowNode('区位码',weiCode,this._state(0,cur)),`<span class="enc-arrow">→</span>`,
+      this._flowNode('国标码',`${gbQ}${gbW}H`,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
+      this._flowNode('机内码',`${neiQ}${neiW}H`,this._state(2,cur))
+    ].join('');
+
+    /* 卡片渲染：cur=0 区位 / 1 国标 / 2 机内；覆盖式只渲染当前正在计算的码 */
+    const renderCard=(cur)=>{
+      if(cur===0){
+        return this._card('cur','区位码','GB2312 中的位置 · 十进制',
           `<div class="enc-calc-row">
              <span class="enc-chip src">区号 ${qh}</span>
              <span class="enc-chip src">位号 ${wh}</span>
@@ -2244,32 +2222,19 @@ MOD.enc = {
            <div class="enc-calc">区 ${qh}₁₀ <span class="enc-op">=</span> <span class="enc-res">${qhHex}H</span></div>
            <div class="enc-calc">位 ${wh}₁₀ <span class="enc-op">=</span> <span class="enc-res">${whHex}H</span></div>
            <div class="enc-big">区位码 ${weiCode}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>`);
-      }else{
-        cA=this._card('locked','区位码','GB2312 中的位置 · 十进制',this._lockedInner());
       }
-      /* 卡片 B：国标码 */
-      let cB;
-      if(cur>=1){
-        cB=this._card(this._state(1,cur),'国标码','区位码 + 2020H（区、位分别 +20H）',
+      if(cur===1){
+        return this._card('cur','国标码','区位码 + 2020H（区、位分别 +20H）',
           `<div class="enc-calc">区 ${qhHex}H <span class="enc-op">+ 20H</span> <span class="enc-eq">=</span> <span class="enc-res">${gbQ}H</span></div>
            <div class="enc-calc">位 ${whHex}H <span class="enc-op">+ 20H</span> <span class="enc-eq">=</span> <span class="enc-res">${gbW}H</span></div>
            <div class="enc-big">国标码 ${gbQ}${gbW}H</div>
            <div class="enc-sub">国标码 = 区位码 + 2020H</div>`);
-      }else{
-        cB=this._card('locked','国标码','区位码 + 2020H',this._lockedInner('等待“区位码 + 2020H”计算…'));
       }
-      /* 卡片 C：机内码 */
-      let cC;
-      if(cur>=2){
-        cC=this._card('done','机内码','国标码 + 8080H（区、位分别 +80H）',
-          `<div class="enc-calc">区 ${gbQ}H <span class="enc-op">+ 80H</span> <span class="enc-eq">=</span> <span class="enc-res">${neiQ}H</span></div>
-           <div class="enc-calc">位 ${gbW}H <span class="enc-op">+ 80H</span> <span class="enc-eq">=</span> <span class="enc-res">${neiW}H</span></div>
-           <div class="enc-big">机内码 ${neiQ}${neiW}H</div>
-           <div class="enc-sub">计算机内部存储汉字使用机内码 · 占 2 字节</div>`);
-      }else{
-        cC=this._card('locked','机内码','国标码 + 8080H',this._lockedInner('等待“国标码 + 8080H”计算…'));
-      }
-      return `<div class="enc-tri">${cA}${cB}${cC}</div>`;
+      return this._card('done','机内码','国标码 + 8080H（区、位分别 +80H）',
+        `<div class="enc-calc">区 ${gbQ}H <span class="enc-op">+ 80H</span> <span class="enc-eq">=</span> <span class="enc-res">${neiQ}H</span></div>
+         <div class="enc-calc">位 ${gbW}H <span class="enc-op">+ 80H</span> <span class="enc-eq">=</span> <span class="enc-res">${neiW}H</span></div>
+         <div class="enc-big">机内码 ${neiQ}${neiW}H</div>
+         <div class="enc-sub">计算机内部存储汉字使用机内码 · 占 2 字节</div>`);
     };
 
     /* 步骤 0：区位码 */
@@ -2277,32 +2242,32 @@ MOD.enc = {
       draw:()=>{
         const cur=0;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">区位码 ${qh} ${wh}</span></div>
-          <div class="step-title"><span class="st-dot"></span>已知区位码（十进制 → 十六进制）· 三码同屏对比</div>
-          ${renderCards(cur)}
-          <div class="enc-result-strip locked">国标码、机内码将在后续步骤依次累加显示</div>`;
+          <div class="enc-flow">${flow(cur)}</div>
+          ${renderCard(cur)}
+          <div class="enc-result-strip locked">国标码、机内码将在后续步骤显示</div>`;
       }});
-    /* 步骤 1：+2020H 得国标码（保留区位码卡片） */
+    /* 步骤 1：+2020H 得国标码 */
     steps.push({desc:`国标码 = 区位码 + 2020H：区 ${qhHex}H + 20H = <b class="c-op">${gbQ}H</b>，位 ${whHex}H + 20H = <b class="c-op">${gbW}H</b>，国标码为 <b class="c-op">${gbQ}${gbW}H</b>。`,
       draw:()=>{
         const cur=1;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+2020H · 国标码</span></div>
-          <div class="step-title"><span class="st-dot"></span>求国标码（区位码卡片保留同屏）</div>
-          ${renderCards(cur)}
+          <div class="enc-flow">${flow(cur)}</div>
+          ${renderCard(cur)}
           <div class="enc-result-strip">区位码 ${weiCode} <span class="enc-op">→</span> 国标码 ${gbQ}${gbW}H <span class="enc-op">→</span> <span class="enc-chip empty" style="font-size:inherit;padding:2px 12px">机内码 待计算</span></div>`;
       }});
-    /* 步骤 2：+8080H 得机内码（前两码卡片保留同屏） */
+    /* 步骤 2：+8080H 得机内码 + 完整链路 */
     steps.push({desc:`机内码 = 国标码 + 8080H：区 ${gbQ}H + 80H = <b class="c-op">${neiQ}H</b>，位 ${gbW}H + 80H = <b class="c-op">${neiW}H</b>；汉字在机内占 <b>2 字节</b>。完整链路：区位码 ${weiCode} → 国标码 ${gbQ}${gbW}H → 机内码 ${neiQ}${neiW}H。`,
       draw:()=>{
         const cur=2;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">+8080H · 机内码</span></div>
-          <div class="step-title"><span class="st-dot"></span>求机内码（区位码、国标码卡片均保留同屏）</div>
-          ${renderCards(cur)}
+          <div class="enc-flow">${flow(cur)}</div>
+          ${renderCard(cur)}
           <div class="enc-result-strip">区位码 ${weiCode} <span class="enc-op">→</span> 国标码 ${gbQ}${gbW}H <span class="enc-op">→</span> 机内码 ${neiQ}${neiW}H <span class="enc-op">（2 字节）</span></div>`;
       }});
     return steps;
   },
 
-  /* ========== ④ 字形码容量：规格 → 总点数 → 字节数 → 总容量（步骤累加） ========== */
+  /* ========== ④ 字形码容量：规格 → 总点数 → 字节数 → 总容量（覆盖式，每步只显示当前计算） ========== */
   genFont(){
     const elSize=$('#e-font-size'), elCount=$('#e-font-count');
     let size=elSize?+elSize.value:16;
@@ -2319,45 +2284,33 @@ MOD.enc = {
     const label='字形码容量';
     const steps=[];
 
-    const renderCards=(cur)=>{
+    const renderCard=(cur)=>{
       /* 卡片 0：已知参数 */
-      const c0=this._card(this._state(0,cur),'① 已知参数','点阵规格 · 汉字数量',
-        cur>=0
-          ?`<div class="enc-chip-row">
+      if(cur===0){
+        return this._card('cur','① 已知参数','点阵规格 · 汉字数量',
+          `<div class="enc-chip-row">
               <span class="enc-chip src">${w} × ${h} 点阵</span>
               <span class="enc-chip src">${count} 个汉字</span>
             </div>
-            <div class="enc-sub">点阵中每个点用 1 位二进制表示</div>`
-          :this._lockedInner());
+            <div class="enc-sub">点阵中每个点用 1 位二进制表示</div>`);
+      }
       /* 卡片 1：总点数 */
-      let c1;
-      if(cur>=1){
-        c1=this._card(this._state(1,cur),'② 计算每字总点数','宽 × 高 = 点数',
+      if(cur===1){
+        return this._card('cur','② 计算每字总点数','宽 × 高 = 点数',
           `<div class="enc-calc">${w} <span class="enc-op">×</span> ${h} <span class="enc-eq">=</span> <span class="enc-res">${bits} 点</span></div>
            <div class="enc-sub">每个汉字的点阵总点数 = ${w} × ${h} = ${bits} 点</div>`);
-      }else{
-        c1=this._card('locked','② 计算每字总点数','宽 × 高 = 点数',this._lockedInner());
       }
       /* 卡片 2：字节数 */
-      let c2;
-      if(cur>=2){
-        c2=this._card(this._state(2,cur),'③ 换算每字字节数','点数 ÷ 8（1 字节 = 8 位）',
+      if(cur===2){
+        return this._card('cur','③ 换算每字字节数','点数 ÷ 8（1 字节 = 8 位）',
           `<div class="enc-calc">${bits} <span class="enc-op">÷ 8</span> <span class="enc-eq">=</span> <span class="enc-res">${bytes} 字节/字</span></div>
            <div class="enc-sub">每字占用 ${bytes} 字节存储</div>`);
-      }else{
-        c2=this._card('locked','③ 换算每字字节数','点数 ÷ 8',this._lockedInner());
       }
       /* 卡片 3：总容量 */
-      let c3;
-      if(cur>=3){
-        c3=this._card('done','④ 字库总存储容量','每字字节数 × 汉字数量',
-          `<div class="enc-calc">${bytes} <span class="enc-op">×</span> ${count} <span class="enc-eq">=</span> <span class="enc-res">${total.toLocaleString()} B</span></div>
-           <div class="enc-calc">${total.toLocaleString()} B <span class="enc-op">÷ 1024 ≈</span> <span class="enc-res">${kb.toFixed(1)} KB</span></div>
-           <div class="enc-sub">1 KB = 1024 B</div>`);
-      }else{
-        c3=this._card('locked','④ 字库总存储容量','每字字节数 × 汉字数量',this._lockedInner());
-      }
-      return `<div class="enc-grid">${c0}${c1}${c2}${c3}</div>`;
+      return this._card('done','④ 字库总存储容量','每字字节数 × 汉字数量',
+        `<div class="enc-calc">${bytes} <span class="enc-op">×</span> ${count} <span class="enc-eq">=</span> <span class="enc-res">${total.toLocaleString()} B</span></div>
+         <div class="enc-calc">${total.toLocaleString()} B <span class="enc-op">÷ 1024 ≈</span> <span class="enc-res">${kb.toFixed(1)} KB</span></div>
+         <div class="enc-sub">1 KB = 1024 B</div>`);
     };
 
     /* 步骤 0：已知参数 */
@@ -2365,8 +2318,8 @@ MOD.enc = {
       draw:()=>{
         const cur=0;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${w}×${h} 点阵 · ${count} 字</span></div>
-          <div class="step-title"><span class="st-dot"></span>已知参数（后续步骤逐步累加保留）</div>
-          ${renderCards(cur)}
+          <div class="step-title"><span class="st-dot"></span>已知参数</div>
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">总容量结果将在最后一步汇总显示</div>`;
       }});
     /* 步骤 1：总点数 */
@@ -2375,7 +2328,7 @@ MOD.enc = {
         const cur=1;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">每字总点数</span></div>
           <div class="step-title"><span class="st-dot"></span>计算每字占用点数</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">总容量结果将在最后一步汇总显示</div>`;
       }});
     /* 步骤 2：每字字节数 */
@@ -2384,7 +2337,7 @@ MOD.enc = {
         const cur=2;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">每字字节数</span></div>
           <div class="step-title"><span class="st-dot"></span>点数 ÷ 8 换算为字节</div>
-          ${renderCards(cur)}
+          ${renderCard(cur)}
           <div class="enc-result-strip locked">总容量结果将在最后一步汇总显示</div>`;
       }});
     /* 步骤 3：总容量 */
@@ -2392,8 +2345,8 @@ MOD.enc = {
       draw:()=>{
         const cur=3;
         $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">完成</span></div>
-          <div class="step-title"><span class="st-dot"></span>字库总容量（前三步结果均保留同屏）</div>
-          ${renderCards(cur)}
+          <div class="step-title"><span class="st-dot"></span>字库总容量</div>
+          ${renderCard(cur)}
           <div class="enc-result-strip">${w}×${h} 点阵 × ${count} 字 = ${total.toLocaleString()} B ≈ ${kb.toFixed(1)} KB</div>`;
       }});
     return steps;
@@ -2447,14 +2400,12 @@ MOD.enc = {
 /* ================================================================
  * 音视频容量（未压缩文件大小计算）
  * 子页面：audio 音频 / video 视频 / image 图像
- * 步骤累加展示：每一步渲染已完成步骤（绿色/灰色）+ 当前步骤（橙色高亮）
+ * 步骤覆盖展示：每一步只渲染当前步骤内容（橙色高亮），历史步骤由「上一步」回退重绘
  * 采样率支持 Hz / kHz / MHz 单位切换，内部统一归一化为 Hz 计算
  * ================================================================ */
 if(!document.getElementById('mod-media-css')){
   document.head.insertAdjacentHTML('beforeend', `<style id="mod-media-css">
-    .mm-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(5px,.9vw,9px)}
-    .mm-step.wide{grid-column:span 2}
-    @media (max-width:900px){ .mm-wrap{grid-template-columns:1fr} }
+    .mm-wrap{display:flex;flex-direction:column;gap:clamp(10px,2vw,16px)}
     .mm-step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;padding:clamp(6px,1vw,10px)}
     .mm-step.done{opacity:.72;background:var(--surface-2);border-left:4px solid var(--green)}
     .mm-step.cur{border:2px solid var(--orange);background:#FFFCF5;box-shadow:0 4px 18px rgba(245,158,11,.12)}
@@ -2489,7 +2440,7 @@ MOD.media = {
   desc:'根据时长、采样率、位深、声道、帧率与分辨率等参数，逐步代入公式计算未压缩音视频文件的容量并换算单位；采样率支持 Hz/kHz/MHz 自定义单位。',
   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></svg>',
   setDesc:'',
-  stageDesc:'橙色=当前正在代入的步骤，绿色=已完成步骤，已完成内容保留在画布上逐步累加；关键数字放大显示。',
+  stageDesc:'每步只显示当前计算内容，点击「上一步」可回看之前步骤；关键数字放大显示。',
   initDesc:'点击「自动演示」或「下一步」，一步步代入公式算出文件容量。',
   currentSub:'audio',
   subTabs:[
@@ -2606,22 +2557,23 @@ MOD.media = {
     }
     return out.join('');
   },
-  /* 累加步骤画布：blocks 为 {title, desc, body} 数组；第 i 步渲染 0..i */
-  _renderAccum(label, statePrefix, blocks, i){
+  /* 覆盖式步骤画布：blocks 为 {title, desc, body} 数组；第 i 步只渲染当前步骤，历史步骤由 Engine 回退重绘 */
+  _renderStep(label, statePrefix, blocks, i){
+    const bk=blocks[i];
     $('#stage').innerHTML=`<div class="stage-hd"><span>${label}</span><span class="state">${statePrefix} 第 ${i+1}/${blocks.length} 步</span></div>
       <div class="mm-wrap">
-        ${blocks.slice(0,i+1).map((bk,j)=>`
-          <div class="mm-step ${j<i?'done':j===i?'cur':''} ${j===i?'write-in':''} ${(j===0||j===blocks.length-1)?'wide':''}">
-            <div class="mm-step-hd"><span class="mm-idx">${j+1}</span>${bk.title}
-              <span class="mm-status">${j<i?'已完成':j===i?'进行中':'待计算'}</span></div>
-            <div class="mm-body">${bk.body(j===i)}</div>
-          </div>`).join('')}
+        <div class="mm-step cur write-in">
+          <div class="mm-step-hd"><span class="mm-idx">${i+1}</span>${bk.title}
+            <span class="mm-status">进行中</span></div>
+          <div class="mm-note" style="margin-bottom:clamp(6px,1vw,10px)">${bk.desc}</div>
+          <div class="mm-body">${bk.body()}</div>
+        </div>
       </div>`;
   },
   _stepsFromBlocks(label, statePrefix, blocks){
     return blocks.map((bk,i)=>({
       desc:bk.desc,
-      draw:()=>this._renderAccum(label, statePrefix, blocks, i)
+      draw:()=>this._renderStep(label, statePrefix, blocks, i)
     }));
   },
 
