@@ -90,8 +90,8 @@ h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-cli
   position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;
   padding:2px 7px;border-radius:999px;letter-spacing:.3px;
 }
-.card .tag.local{background:var(--accent-soft);color:var(--accent)}
-.card .tag.ext{background:rgba(56,189,248,.1);color:#0284C7}
+.card .tag.public{background:var(--accent-soft);color:var(--accent)}
+.card .tag.private{background:rgba(239,68,68,.1);color:#DC2626}
 .card .tag.lock-tag{background:rgba(245,158,11,.1);color:#B45309}
 
 /* 验证码弹窗 */
@@ -160,16 +160,16 @@ footer .power{font-weight:600;color:var(--text-2)}
   <!-- 过滤标签 -->
   <div class="filters">
     <button class="filter-btn active" data-filter="all">全部</button>
-    <button class="filter-btn" data-filter="local">本地工具</button>
-    <button class="filter-btn" data-filter="ext">在线工具</button>
+    <button class="filter-btn" data-filter="public">公开</button>
+    <button class="filter-btn" data-filter="private">私密</button>
   </div>
 
   <!-- 工具网格 -->
   <div class="grid" id="toolGrid">
 
     <!-- 点名系统 -->
-    <a class="card" data-type="local" href="点名系统/index.html">
-      <span class="tag local">本地</span>
+    <a class="card" data-type="public" href="点名系统/index.html">
+      <span class="tag public">公开</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -186,8 +186,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 座位编排 -->
-    <a class="card" data-type="local" href="座位编排/index.html">
-      <span class="tag local">本地</span>
+    <a class="card" data-type="private" href="座位编排/index.html">
+      <span class="tag private">私密</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -204,8 +204,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 排课表系统 -->
-    <a class="card" data-type="local" href="排课表/index.html">
-      <span class="tag local">本地</span>
+    <a class="card" data-type="private" href="排课表/index.html">
+      <span class="tag private">私密</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
@@ -222,8 +222,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 课堂互动大厅 -->
-    <a class="card" data-type="local" href="课堂互动/小游戏大厅.html">
-      <span class="tag local">本地</span>
+    <a class="card" data-type="public" href="课堂互动/小游戏大厅.html">
+      <span class="tag public">公开</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
@@ -240,8 +240,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 计算演示 -->
-    <a class="card" data-type="local" href="计算演示/index.html">
-      <span class="tag local">本地</span>
+    <a class="card" data-type="private" href="计算演示/index.html">
+      <span class="tag private">私密</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H6l6 7-6 7h12"/></svg>
@@ -258,8 +258,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 成绩分析（外链） -->
-    <a class="card" data-type="ext" href="https://zhangdn731.github.io/lqxqcjfx/" target="_blank" rel="noopener">
-      <span class="tag ext">在线</span>
+    <a class="card" data-type="public" href="https://zhangdn731.github.io/lqxqcjfx/" target="_blank" rel="noopener">
+      <span class="tag public">公开</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
@@ -276,8 +276,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 课堂回放 -->
-    <a class="card" data-type="ext" href="https://4007138678.share.123pan.cn/123pan/TeWowh-EXeFd" target="_blank" rel="noopener">
-      <span class="tag ext">在线</span>
+    <a class="card" data-type="private" href="https://4007138678.share.123pan.cn/123pan/TeWowh-EXeFd" target="_blank" rel="noopener">
+      <span class="tag private">私密</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
@@ -294,7 +294,7 @@ footer .power{font-weight:600;color:var(--text-2)}
     </a>
 
     <!-- 信息技术题库（验证码） -->
-    <div class="card" data-type="ext" onclick="openQuizModal()" style="cursor:pointer">
+    <div class="card" data-type="private" onclick="openQuizModal()" style="cursor:pointer">
       <span class="tag lock-tag">需验证</span>
       <div class="top">
         <div class="icon-box">
@@ -312,8 +312,8 @@ footer .power{font-weight:600;color:var(--text-2)}
     </div>
 
     <!-- 单招信息汇总 -->
-    <a class="card" data-type="ext" href="https://link.wtturl.cn/?target=https%3A%2F%2Fzhangdn731.github.io%2FAdmission_Info%2F&scene=im&aid=582478&lang=zh" target="_blank" rel="noopener">
-      <span class="tag ext">在线</span>
+    <a class="card" data-type="public" href="https://link.wtturl.cn/?target=https%3A%2F%2Fzhangdn731.github.io%2FAdmission_Info%2F&scene=im&aid=582478&lang=zh" target="_blank" rel="noopener">
+      <span class="tag public">公开</span>
       <div class="top">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
