@@ -96,6 +96,7 @@
     @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
 
     .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
+    .enc-chip-row.spread{justify-content:space-evenly}
     .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
     .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
     .enc-chip.done{border-color:var(--green);background:var(--green-soft);color:#15803D}
@@ -112,6 +113,15 @@
     .enc-table{font-family:var(--mono);font-size:clamp(15px,2.2vw,22px);margin:clamp(6px,1.2vw,10px) auto;max-width:560px}
     .enc-table th,.enc-table td{padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,13px);font-size:inherit}
     .enc-table th.cur{background:#FFF4DB;color:#B45309;font-weight:800}
+    /* ---------- ASCII 最终步：左右两栏，提高宽高比，矮屏也能铺满 ---------- */
+    .enc-final-grid{display:flex;flex-wrap:nowrap;gap:clamp(10px,1.5vw,18px);align-items:stretch;flex:1;min-height:0}
+    .enc-final-grid>.enc-col{flex:1 1 0;min-width:0;display:flex}
+    .enc-final-grid>.enc-col.wide{flex:1.2 1 0}
+    .enc-final-grid .enc-card{margin-bottom:0;flex:1;min-width:0}
+    .enc-final-result{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.3vw,14px);flex:1;text-align:center}
+    .enc-final-result .fr-hex{font-family:var(--mono);font-size:clamp(30px,5.2vw,48px);font-weight:800;color:#15803D;line-height:1.05;letter-spacing:1px}
+    .enc-final-result .fr-line{font-family:var(--mono);font-size:clamp(14px,2vw,20px);font-weight:700;color:var(--text-2);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:clamp(5px,.9vw,9px);line-height:1.7}
+    .enc-final-result .fr-line .enc-op{color:#94A3B8;font-weight:400}
   </style>`);
 })();
 
@@ -194,6 +204,7 @@
     @media (max-width:960px){ .enc-grid{grid-template-columns:1fr} }
 
     .enc-chip-row{display:flex;flex-wrap:wrap;gap:clamp(6px,1vw,10px);justify-content:center;margin:clamp(6px,1.1vw,10px) 0}
+    .enc-chip-row.spread{justify-content:space-evenly}
     .enc-chip{font-family:var(--mono);font-size:clamp(15px,2.1vw,21px);font-weight:800;border-radius:10px;padding:clamp(6px,1vw,10px) clamp(12px,1.8vw,18px);border:1.5px solid var(--border);background:#fff;color:var(--text-2)}
     .enc-chip.src{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
     .enc-chip.done{border-color:var(--green);background:var(--green-soft);color:#15803D}
@@ -377,14 +388,13 @@ MOD.enc = {
            <div class="enc-big">${code}<sub style="font-size:.45em;color:var(--text-3)">十进制</sub></div>
            <div class="enc-sub">按权展开求和得十进制码值 <b style="color:var(--accent)">${code}</b>（对照 ASCII 表：${esc(ch)} = ${code}）</div>`);
       }
-      /* 卡片 3：十六进制 */
+      /* 卡片 3：十六进制（分组换算；大结果在最终步右栏） */
       return this._card('done','④ 转换为十六进制','4 位二进制 = 1 位十六进制',
         `<div class="enc-bitgroup">
            <div><div class="enc-b4-label">高 4 位</div><div class="enc-b4">${highNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
            <div><div class="enc-b4-label">低 4 位</div><div class="enc-b4">${lowNib.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('')}</div></div>
          </div>
-         <div class="enc-calc">${highNib} 组 → <span class="enc-res">${hex[0]}</span> <span class="enc-op">·</span> ${lowNib} 组 → <span class="enc-res">${hex[1]}</span></div>
-         <div class="enc-big">${hex}H<sub style="font-size:.45em;color:var(--text-3)">十六进制</sub></div>`);
+         <div class="enc-calc">${highNib} 组 → <span class="enc-res">${hex[0]}</span> <span class="enc-op">·</span> ${lowNib} 组 → <span class="enc-res">${hex[1]}</span></div>`);
     };
 
     /* 步骤 0：输入字符 */
@@ -435,10 +445,18 @@ MOD.enc = {
           this._flowNode('8位二进制',bin,this._state(1,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十进制',code,this._state(2,cur)),`<span class="enc-arrow">→</span>`,
           this._flowNode('十六进制',`${hex}H`,this._state(3,cur))].join('');
+        const resultCard=this._card('done','最终结果','字符编码完整链路',
+          `<div class="enc-final-result">
+             <div class="fr-hex">${hex}H</div>
+             <div class="fr-line">“${esc(ch)}” <span class="enc-op">=</span> ${bin}<sub>2</sub> <span class="enc-op">=</span> ${code}<sub>10</sub> <span class="enc-op">=</span> ${hex}H</div>
+             <div class="enc-note">1 字节（8 位）存储</div>
+           </div>`);
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip">“${esc(ch)}” <span class="enc-op">=</span> ${bin}<sub>2</sub> <span class="enc-op">=</span> ${code}<sub>10</sub> <span class="enc-op">=</span> ${hex}H <span class="enc-op">（1 字节）</span></div>`;
+          <div class="enc-final-grid">
+            <div class="enc-col wide">${renderCard(cur)}</div>
+            <div class="enc-col">${resultCard}</div>
+          </div>`;
       }});
     return steps;
   },
@@ -480,7 +498,7 @@ MOD.enc = {
       if(finalDone){
         return sourceRow + `
           ${this._card('done','拼接完成',`全部 ${N} 位十进制数已转换为 BCD 码`,
-            `<div class="enc-chip-row">${digits.map((d,j)=>`<span class="enc-chip done">${d} → ${bits[j]}</span>`).join('')}</div>`)}
+            `<div class="enc-chip-row spread">${digits.map((d,j)=>`<span class="enc-chip done">${d} → ${bits[j]}</span>`).join('')}</div>`)}
           <div class="enc-result-strip">${num}<sub>十进制</sub> <span class="enc-op">=</span> ${bcd}<sub>BCD</sub> <span class="enc-op">（${N}×4 = ${N*4} 位 = ${Math.ceil(N*4/8)} 字节）</span></div>`;
       }
       /* 逐位转换步：只展示当前位的 8421 权展开 + 4 位二进制，底部进度提示已拼接内容 */
