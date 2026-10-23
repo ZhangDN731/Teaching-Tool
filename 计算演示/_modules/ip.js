@@ -136,15 +136,15 @@ MOD.ip = {
     return `<div class="calc-process">
       <div class="cp-label">位权展开求和（从左到右位权：128 → 1）</div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-        <span style="width:34px;font-size:clamp(9px,1.1vw,10.5px);color:var(--text-3);font-weight:700;text-align:right;flex:none">位权</span>
+        <span style="width:44px;font-size:clamp(12px,1.5vw,14px);color:var(--text-3);font-weight:700;text-align:right;flex:none">位权</span>
         <div class="bin-grid" style="flex:1">${weightRow}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-        <span style="width:34px;font-size:clamp(9px,1.1vw,10.5px);color:var(--text-3);font-weight:700;text-align:right;flex:none">二进制</span>
+        <span style="width:44px;font-size:clamp(12px,1.5vw,14px);color:var(--text-3);font-weight:700;text-align:right;flex:none">二进制</span>
         <div class="bin-grid" style="flex:1">${bitRow}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <span style="width:34px;font-size:clamp(9px,1.1vw,10.5px);color:var(--text-3);font-weight:700;text-align:right;flex:none">取值</span>
+        <span style="width:44px;font-size:clamp(12px,1.5vw,14px);color:var(--text-3);font-weight:700;text-align:right;flex:none">取值</span>
         <div class="bin-grid" style="flex:1">${valRow}</div>
       </div>
       <div class="cp-sum-line">${sumExpr} <span class="eq">=</span> <span class="sum">${sum}</span></div>
@@ -295,6 +295,11 @@ MOD.ip = {
       draw:()=>{
         $('#stage').innerHTML = `<div class="stage-hd"><span>${label}</span><span class="state">完成</span></div>
           ${this.ipRow(arr,-1,'',true)}
+          <div class="ip-info">
+            <div class="ii"><div class="ii-hd">类别范围（第一段）</div><div class="ii-val">${cat.range}</div></div>
+            <div class="ii"><div class="ii-hd">默认子网掩码</div><div class="ii-val">${cat.mask}</div></div>
+            <div class="ii"><div class="ii-hd">网络前缀</div><div class="ii-val">${cat.prefix}</div></div>
+          </div>
           <div class="write-result">${str} → ${cat.key} 类 · 默认掩码 ${cat.mask}${cat.prefix!=='—'?` (${cat.prefix})`:''}</div>`;
       }});
     return steps;
@@ -549,7 +554,7 @@ MOD.ip = {
     $('#stage').innerHTML = `<div class="stage-hd"><span>${labelMap[sub]||'IP 与子网'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:#06B6D4">${info.method||''}</b></div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">点击「自动演示」或「下一步」开始手写推导</div>
+        <div style="font-size:clamp(13px,1.6vw,15px)">点击「自动演示」或「下一步」开始手写推导</div>
       </div>`;
   },
   generate(){

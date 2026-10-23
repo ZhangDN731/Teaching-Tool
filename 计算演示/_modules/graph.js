@@ -65,30 +65,22 @@ MOD.graph = {
 
   settingsHTML() {
     return `
-      <div class="settings-row">
+      <div class="settings-row" style="flex-wrap:wrap;gap:6px 10px">
         <div class="inline-setting"><div class="setting"><label>顶点名称</label>
-          <input type="text" id="gf-v" placeholder="如 E" style="width:clamp(80px,12vw,110px)"></div></div>
+          <input type="text" id="gf-v" placeholder="如 E" style="width:clamp(70px,9vw,100px)"></div></div>
         <div class="inline-setting"><button class="btn primary" id="gf-addv">添加顶点</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
         <div class="inline-setting"><div class="setting"><label>边权重（可空）</label>
-          <input type="number" id="gf-w" placeholder="如 3" style="width:clamp(80px,12vw,110px)"></div></div>
+          <input type="number" id="gf-w" placeholder="如 3" style="width:clamp(70px,9vw,100px)"></div></div>
         <div class="inline-setting"><button class="btn" id="gf-adde">连接选中两顶点</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
-        <div class="inline-setting"><div class="setting"><label>顶点 1</label>
-          <input type="text" id="gf-a" placeholder="如 A" style="width:clamp(70px,10vw,100px)"></div></div>
-        <div class="inline-setting"><div class="setting"><label>顶点 2</label>
-          <input type="text" id="gf-b" placeholder="如 D" style="width:clamp(70px,10vw,100px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>顶点1</label>
+          <input type="text" id="gf-a" placeholder="A" style="width:clamp(56px,7vw,80px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>顶点2</label>
+          <input type="text" id="gf-b" placeholder="D" style="width:clamp(56px,7vw,80px)"></div></div>
         <div class="inline-setting"><div class="setting"><label>权重</label>
-          <input type="number" id="gf-w2" placeholder="可空" style="width:clamp(64px,9vw,96px)"></div></div>
+          <input type="number" id="gf-w2" placeholder="空" style="width:clamp(52px,6vw,72px)"></div></div>
         <div class="inline-setting"><button class="btn" id="gf-pair">按名称加边</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
-        <div class="inline-setting"><div class="setting"><label>遍历起点</label><select id="gf-start" style="min-width:80px"></select></div></div>
-        <div class="inline-setting"><div class="setting"><label>终点（最短路径）</label><select id="gf-end" style="min-width:80px"></select></div></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
+        <div class="inline-setting"><div class="setting"><label>起点</label><select id="gf-start" style="min-width:64px"></select></div></div>
+        <div class="inline-setting"><div class="setting"><label>终点</label><select id="gf-end" style="min-width:64px"></select></div></div>
         <div class="inline-setting"><button class="btn" id="gf-preset">示例图</button></div>
         <div class="inline-setting"><button class="btn ghost" id="gf-clear">清空画布</button></div>
         <div class="inline-setting"><button class="btn primary" id="gf-startbtn">开始遍历</button></div>
@@ -268,7 +260,7 @@ MOD.graph = {
     html += `<div class="step-title" style="margin-bottom:8px;padding:4px 10px;line-height:1.3">
       <span class="st-dot"></span>依次点击两个顶点选中端点，再点击「连接选中两顶点」；可拖拽顶点调整位置</div>`;
     html += `<div class="svg-box" style="margin-bottom:8px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:640px">`;
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%">`;
 
     g.edges.forEach(e => {
       const a = this.node(e.a), b = this.node(e.b);
@@ -348,12 +340,12 @@ MOD.graph = {
     const g = this._g;
     const pathSet = opts.pathKeys || new Set();
 
-    let html = `<div class="stage-hd" style="margin-bottom:6px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
+    let head = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
       <span>无向图 · ${meta.name}</span><span class="state">${vis.size}/${g.nodes.length}</span></div>`;
-    html += `<div class="step-title" style="margin-bottom:8px;padding:4px 10px;line-height:1.3">
+    head += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
       <span class="st-dot"></span>${done ? '遍历完成' : '顶点访问状态'}</div>`;
-    html += `<div class="svg-box" style="margin-bottom:8px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:640px">`;
+    let svg = `<div class="svg-box" style="margin-bottom:0;display:flex;justify-content:center;background:var(--surface-2);flex:1;min-height:0;overflow:hidden">
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">`;
 
     g.edges.forEach(e => {
       const a = this.node(e.a), b = this.node(e.b);
@@ -364,10 +356,10 @@ MOD.graph = {
       if (inPath) { stroke = '#22C55E'; width = 6; }
       else if (isCur) { stroke = '#F59E0B'; width = 5; }
       else if (both) { stroke = '#22C55E'; }
-      html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"/>`;
+      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"/>`;
       if (e.w != null && e.w !== '') {
         const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-        html += `<g transform="translate(${mx},${my})">
+        svg += `<g transform="translate(${mx},${my})">
           <rect x="-20" y="-15" width="40" height="26" rx="10" fill="#fff" stroke="${inPath ? '#22C55E' : '#CBD5E1'}" stroke-width="1.5"/>
           <text text-anchor="middle" y="4" font-size="clamp(12px,1.5vw,14px)" font-weight="700" fill="${inPath ? '#16A34A' : '#334155'}">${esc(e.w)}</text></g>`;
       }
@@ -385,64 +377,75 @@ MOD.graph = {
         waiting: { f: '#E0F2FE', s: '#38BDF8', t: '#0369A1' }
       }[state];
       if (state === 'cur')
-        html += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
-      if (g.start === n.id) html += `<text x="${n.x}" y="${n.y - 40}" text-anchor="middle" font-size="13" font-weight="700" fill="#4F6BFF">起点</text>`;
-      if (meta.kind === 'path' && g.end === n.id && g.end !== g.start) html += `<text x="${n.x}" y="${n.y - 40}" text-anchor="end" font-size="13" font-weight="700" fill="#8B5CF6" dx="18">终点</text>`;
-      html += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
-      html += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.id)}</text>`;
+        svg += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
+      if (g.start === n.id) svg += `<text x="${n.x}" y="${n.y - 40}" text-anchor="middle" font-size="13" font-weight="700" fill="#4F6BFF">起点</text>`;
+      if (meta.kind === 'path' && g.end === n.id && g.end !== g.start) svg += `<text x="${n.x}" y="${n.y - 40}" text-anchor="end" font-size="13" font-weight="700" fill="#8B5CF6" dx="18">终点</text>`;
+      svg += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
+      svg += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.id)}</text>`;
     });
-    html += `</svg></div>`;
+    svg += `</svg></div>`;
 
+    let side = '';
     if (!done && meta.kind !== 'path') {
-      html += `<div class="exp-inline" style="margin:4px 0 8px;padding:4px 10px;line-height:1.6">`;
+      side += `<div class="exp-inline" style="margin:0 0 6px;padding:6px 10px;line-height:1.5">`;
       if (curId == null) {
-        html += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
+        side += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
       } else {
-        html += `<span class="op">${meta.ds}操作</span><span class="term cur">${meta.opVerb} ${esc(curId)}</span>`;
-        if (opts.extra) html += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
+        side += `<span class="op">${meta.ds}操作</span><span class="term cur">${meta.opVerb} ${esc(curId)}</span>`;
+        if (opts.extra) side += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
       }
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:8px">`;
+    side += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:6px;flex-wrap:wrap">`;
     if (visited.length === 0) {
-      html += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
+      side += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
     } else {
       visited.forEach((id, i) => {
         const cls = done ? 'chip-done' : (id === curId ? 'chip-cur' : 'chip-done');
-        html += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(id)}</span>`;
+        side += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(id)}</span>`;
       });
     }
-    html += `</div>`;
+    side += `</div>`;
 
     if (meta.kind === 'bfs' || meta.kind === 'dfs') {
-      html += `<div class="zone-label">${meta.dsLabel}</div>
-        <div class="queue-area" style="min-height:34px;padding:8px 10px 6px;gap:6px;overflow:visible;margin-bottom:8px">`;
-      if (waiting.length === 0) html += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空${meta.ds}）</span>`;
+      side += `<div class="zone-label">${meta.dsLabel}</div>
+        <div class="queue-area" style="min-height:24px;padding:4px 8px;gap:5px;overflow:visible;margin-bottom:6px;flex-wrap:wrap">`;
+      if (waiting.length === 0) side += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空${meta.ds}）</span>`;
       else waiting.forEach((id, i) => {
         const mark = meta.kind === 'bfs'
           ? (i === 0 ? '头' : (i === waiting.length - 1 ? '尾' : ''))
           : (i === waiting.length - 1 ? '顶' : '');
         const tag = mark ? `<span style="font-size:10px;color:#fff;margin-left:3px;font-weight:700">${mark}</span>` : '';
         const topStyle = meta.kind === 'dfs' && i === waiting.length - 1 ? 'background:#8B5CF6;border:1.5px solid #8B5CF6;' : '';
-        html += `<span class="chip cy write-in" style="padding:4px 10px;font-size:clamp(12px,1.6vw,14px);${topStyle}animation-delay:${i * 0.08}s">${esc(id)}${tag}</span>`;
+        side += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);${topStyle}animation-delay:${i * 0.08}s">${esc(id)}${tag}</span>`;
       });
-      html += `</div>`;
+      side += `</div>`;
     }
 
     if (meta.kind === 'path' && opts.dist) {
-      html += `<div class="zone-label">距离表（当前最短估计距离）</div>
-        <div class="tbl-wrap" style="margin-bottom:8px;overflow-x:auto"><table class="tbl" style="table-layout:fixed">
+      if (done) {
+        side += `<div class="zone-label">最终最短距离</div><div class="order-rack" style="margin-bottom:4px;flex-wrap:wrap;gap:5px">`;
+        g.nodes.forEach(n => {
+          const d = opts.dist[n.id];
+          const onPath = opts.path && opts.path.includes(n.id);
+          side += `<span class="order-chip ${onPath?'chip-cur':'chip-done'}" style="font-size:clamp(12px,1.6vw,14px)">${esc(n.id)}：${d === Infinity ? '∞' : d}</span>`;
+        });
+        side += `</div>`;
+      } else {
+        side += `<div class="zone-label">距离表（当前最短估计距离）</div>
+        <div class="tbl-wrap" style="margin-bottom:4px;overflow:hidden"><table class="tbl" style="table-layout:fixed;font-size:13px;width:100%">
         <thead><tr><th style="width:34%">顶点</th><th style="width:33%">距离</th><th style="width:33%">状态</th></tr></thead><tbody>`;
-      g.nodes.forEach(n => {
-        const d = opts.dist[n.id];
-        const stText = vis.has(n.id) ? '已确定' : (d === Infinity ? '待访问' : '候选');
-        html += `<tr><td>${esc(n.id)}</td><td>${d === Infinity ? '∞' : d}</td><td>${stText}</td></tr>`;
-      });
-      html += `</tbody></table></div>`;
+        g.nodes.forEach(n => {
+          const d = opts.dist[n.id];
+          const stText = vis.has(n.id) ? '已确定' : (d === Infinity ? '待访问' : '候选');
+          side += `<tr><td>${esc(n.id)}</td><td>${d === Infinity ? '∞' : d}</td><td>${stText}</td></tr>`;
+        });
+        side += `</tbody></table></div>`;
+      }
     }
 
-    html += `<div class="legend" style="margin-top:6px;line-height:1.8;font-size:clamp(11px,1.4vw,13px)">
+    side += `<div class="legend" style="margin-top:2px;line-height:1.6;font-size:clamp(12.5px,1.6vw,14.5px)">
       <span style="color:#94A3B8">● 未访问</span>　<span style="color:#F59E0B">● 当前</span>
       <span style="color:#22C55E">● 已访问</span>${meta.kind !== 'path' ? `　<span style="color:#38BDF8">● ${meta.ds}中待访问</span>` : '　<span style="color:#22C55E">● 最短路径</span>'}
     </div>`;
@@ -450,17 +453,25 @@ MOD.graph = {
     if (done) {
       if (meta.kind === 'path') {
         if (opts.path && opts.path.length) {
-          html += `<div class="write-result" style="margin-top:8px;padding:6px 14px;line-height:1.6;font-size:clamp(13px,1.8vw,16px)">
-            最短路径 ${esc(g.start)} → ${esc(g.end)}：<b class="c-op">${opts.path.join(' → ')}</b>，总权重 = <b class="c-op">${opts.total}</b></div>`;
+          side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.5;font-size:clamp(13px,1.8vw,16px);text-align:center;white-space:nowrap">
+            <div style="font-weight:700;margin-bottom:2px">最短路径 ${esc(g.start)} → ${esc(g.end)}</div>
+            <div style="font-size:clamp(14px,2vw,18px)"><b class="c-op">${opts.path.join(' → ')}</b>　·　总权重 <b class="c-op">${opts.total}</b></div></div>`;
         } else {
-          html += `<div class="write-result" style="margin-top:8px;padding:6px 14px;line-height:1.6;font-size:clamp(13px,1.8vw,16px)">从 ${esc(g.start)} 无法到达 ${esc(g.end)}</div>`;
+          side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.4;font-size:clamp(13px,1.8vw,16px);text-align:center">从 ${esc(g.start)} 无法到达 ${esc(g.end)}</div>`;
         }
       } else {
-        html += `<div class="write-result" style="margin-top:8px;padding:6px 14px;line-height:1.6;font-size:clamp(13px,1.8vw,16px)">
+        side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.4;font-size:clamp(13px,1.8vw,16px)">
           ${meta.name}结果：[${visited.join(' · ')}]</div>`;
       }
     }
-    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
+
+    $('#stage').innerHTML = `<div class="graph-stage" style="display:flex;flex-direction:column;height:100%">
+      ${head}
+      <div style="display:flex;gap:clamp(10px,1.6vw,16px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1.5 1 0;min-width:0;display:flex;flex-direction:column">${svg}</div>
+        <div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden">${side}</div>
+      </div>
+    </div>`;
   },
 
   /* ================= 步骤生成 ================= */

@@ -206,7 +206,7 @@ MOD.tree = {
       <span>自定义二叉树 · 构建中</span><span class="state">${t.nodes.length} 个节点</span></div>`;
     html += `<div class="step-title" style="margin-bottom:8px;padding:4px 10px;line-height:1.3"><span class="st-dot"></span>点击圆形节点可选中，再输入名称添加子节点</div>`;
     html += `<div class="svg-box" style="margin-bottom:8px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:640px">`;
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%">`;
 
     t.nodes.forEach(n => {
       [n.left, n.right].forEach(c => {
@@ -260,19 +260,19 @@ MOD.tree = {
     const queue = opts.queue || [], vis = new Set(visited);
     const t = this._t;
 
-    let html = `<div class="stage-hd" style="margin-bottom:6px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
+    let head = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
       <span>二叉树 · ${meta.name}</span><span class="state">${vis.size}/${t.nodes.length}</span></div>`;
-    html += `<div class="step-title" style="margin-bottom:8px;padding:4px 10px;line-height:1.3">
+    head += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
       <span class="st-dot"></span>${done ? '遍历完成' : '节点访问状态'}</div>`;
-    html += `<div class="svg-box" style="margin-bottom:8px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:640px">`;
+    let svg = `<div class="svg-box" style="margin-bottom:0;display:flex;justify-content:center;background:var(--surface-2);flex:1;min-height:0;overflow:hidden">
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">`;
 
     t.nodes.forEach(n => {
       [n.left, n.right].forEach(c => {
         if (c == null) return;
         const m = this.findNode(c);
         const both = vis.has(n.id) && vis.has(c);
-        html += `<line x1="${n.x}" y1="${n.y}" x2="${m.x}" y2="${m.y}"
+        svg += `<line x1="${n.x}" y1="${n.y}" x2="${m.x}" y2="${m.y}"
           stroke="${both ? '#22C55E' : '#E2E8F0'}" stroke-width="3" stroke-linecap="round"/>`;
       });
     });
@@ -289,58 +289,66 @@ MOD.tree = {
         queued: { f: '#E0F2FE', s: '#38BDF8', t: '#0369A1' }
       }[state];
       if (state === 'cur')
-        html += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
-      html += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
-      html += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.label)}</text>`;
+        svg += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
+      svg += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
+      svg += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.label)}</text>`;
     });
-    html += `</svg></div>`;
+    svg += `</svg></div>`;
 
+    let side = '';
     if (!done) {
-      html += `<div class="exp-inline" style="margin:4px 0 8px;padding:4px 10px;line-height:1.6">`;
+      side += `<div class="exp-inline" style="margin:0 0 6px;padding:6px 10px;line-height:1.5">`;
       if (curId == null) {
-        html += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
+        side += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
       } else {
         const node = this.findNode(curId);
-        html += `<span class="op">当前操作</span><span class="term cur">访问 ${esc(node.label)}</span>`;
-        if (opts.role) html += `<span class="op">· ${opts.role}</span>`;
-        if (opts.extra) html += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
+        side += `<span class="op">当前</span><span class="term cur">访问 ${esc(node.label)}</span>`;
+        if (opts.role) side += `<span class="op">· ${opts.role}</span>`;
+        if (opts.extra) side += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
       }
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:8px">`;
+    side += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:6px;flex-wrap:wrap">`;
     if (visited.length === 0) {
-      html += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
+      side += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
     } else {
       visited.forEach((id, i) => {
         const n = this.findNode(id);
         const cls = done ? 'chip-done' : (id === curId ? 'chip-cur' : 'chip-done');
-        html += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
+        side += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
       });
     }
-    html += `</div>`;
+    side += `</div>`;
 
     if (meta.kind === 'level') {
-      html += `<div class="zone-label">队列（队首 → 队尾）</div>
-        <div class="queue-area" style="min-height:34px;padding:8px 10px 6px;gap:6px;overflow:visible;margin-bottom:8px">`;
-      if (queue.length === 0) html += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空队列）</span>`;
+      side += `<div class="zone-label">队列（队首 → 队尾）</div>
+        <div class="queue-area" style="min-height:24px;padding:4px 8px;gap:5px;overflow:visible;margin-bottom:6px;flex-wrap:wrap">`;
+      if (queue.length === 0) side += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空队列）</span>`;
       else queue.forEach((id, i) => {
         const n = this.findNode(id);
-        html += `<span class="chip cy write-in" style="padding:4px 10px;font-size:clamp(12px,1.6vw,14px);animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
+        side += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
       });
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="legend" style="margin-top:6px;line-height:1.8;font-size:clamp(11px,1.4vw,13px)">
+    side += `<div class="legend" style="margin-top:2px;line-height:1.6;font-size:clamp(12.5px,1.6vw,14.5px)">
       <span style="color:#94A3B8">● 未访问</span>　<span style="color:#F59E0B">● 当前</span>
       <span style="color:#22C55E">● 已访问</span>${meta.kind === 'level' ? '　<span style="color:#38BDF8">● 排队中</span>' : ''}
     </div>`;
 
     if (done) {
       const seq = visited.map(v => this.findNode(v).label).join(' · ');
-      html += `<div class="write-result" style="margin-top:8px;padding:6px 14px;line-height:1.6;font-size:clamp(13px,1.8vw,16px)">${meta.name}结果：[${seq}]</div>`;
+      side += `<div class="write-result" style="margin-top:8px;padding:clamp(8px,1.4vw,12px) clamp(14px,2vw,18px);line-height:1.5;font-size:clamp(15px,2.1vw,19px)">${meta.name}结果：[${seq}]</div>`;
     }
-    $('#stage').innerHTML = `<div class="tree-stage">${html}</div>`;
+
+    $('#stage').innerHTML = `<div class="tree-stage" style="display:flex;flex-direction:column;height:100%">
+      ${head}
+      <div style="display:flex;gap:clamp(10px,1.6vw,16px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1.5 1 0;min-width:0;display:flex;flex-direction:column">${svg}</div>
+        <div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center">${side}</div>
+      </div>
+    </div>`;
   },
 
   /* ================= 步骤生成 ================= */

@@ -356,7 +356,7 @@ MOD.pyexpr = {
       draw: () => {
         $('#stage').innerHTML = this.frame('数据类型 · 总览', '准备', '8 种内置数据类型')
           + this.typeGrid(-1, focus, 'cur')
-          + `<div class="annot" style="margin-top:10px">使用 <span class="mono">type(x)</span> 可以返回变量 x 的数据类型，是判断变量类型最常用的方法。</div>`;
+          + `<div class="annot" style="margin-top:4px">使用 <span class="mono">type(x)</span> 可以返回变量 x 的数据类型，是判断变量类型最常用的方法。</div>`;
       }
     });
 
@@ -367,11 +367,10 @@ MOD.pyexpr = {
         draw: () => {
           $('#stage').innerHTML = this.frame('数据类型 · ' + t.name, `第 ${k + 1}/${list.length} 步`, t.name)
             + this.typeGrid(allIdx, focus, focus ? 'done' : null)
-            + `<div class="two-col" style="margin-top:8px">
+            + `<div class="two-col" style="margin-top:4px">
                 <div>${this.codeBlock([t.code1, `<span class="fn">print</span>(<span class="fn">type</span>(x))`], 1)}</div>
                 <div>${this.consoleOut([t.typeStr])}</div>
-              </div>
-              <div class="annot" style="margin-top:8px">${t.desc}</div>`;
+              </div>`;
         }
       });
     });
@@ -674,7 +673,7 @@ MOD.pyexpr = {
               <colgroup><col style="width:14%"><col style="width:36%"><col style="width:50%"></colgroup>
               <thead><tr><th>级别</th><th>运算符</th><th>说明</th></tr></thead>
               <tbody>${this.PREC_ROWS.map(r =>
-                `<tr><td><span class="chip ${r.level <= 3 ? 'cy' : r.level <= 5 ? 'o' : 'dim'}" style="font-size:clamp(10px,1.3vw,12px)">L${r.level}</span></td>
+                `<tr><td><span class="chip ${r.level <= 3 ? 'cy' : r.level <= 5 ? 'o' : 'dim'}" style="font-size:clamp(12px,1.5vw,14px)">L${r.level}</span></td>
                  <td class="op">${esc(r.ops)}</td><td class="l">${r.desc}</td></tr>`).join('')}
               </tbody>
             </table></div>
@@ -801,7 +800,7 @@ MOD.pyexpr = {
       <div class="step-title"><span class="st-dot"></span>${tab ? tab.label : ''}</div>
       <div style="text-align:center;padding:clamp(18px,3.5vw,30px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.9vw,16px);margin-bottom:8px">点击「自动演示」或「下一步」开始浏览</div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">橙色 = 当前项 · 绿色 = 已完成 · 灰色 = 待浏览</div>
+        <div style="font-size:clamp(12.5px,1.6vw,14px)">橙色 = 当前项 · 绿色 = 已完成 · 灰色 = 待浏览</div>
       </div>`;
   },
   generate() {

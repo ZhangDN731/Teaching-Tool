@@ -294,16 +294,22 @@ MOD.excel = {
   /* ---------- 引用复制舞台 ---------- */
   drawRefStage(o){
     const { cfg, srcRef, anchor, L, N, map, visible, phase, targets } = o;
-    const cols = ['A','B','C','D','E'];
+    // 根据复制方向动态裁剪网格范围（只显示涉及的行列，避免大片空行空列）
+    const colMin = Math.min(L.refCol,L.anchorCol,L.tCol(N));
+    const colMax = Math.max(L.refCol,L.anchorCol,L.tCol(N));
+    const rowMin = Math.min(L.refRow,L.anchorRow,L.tRow(N));
+    const rowMax = Math.max(L.refRow,L.anchorRow,L.tRow(N));
+    const cols=[];
+    for(let cc=colMin;cc<=colMax;cc++) cols.push(this.colLetter(cc));
     const targetList = targets.map(t=>t.addr).join('、');
     let html = `<div class="excel-stage">
       <div class="stage-hd"><span>${cfg.title} · 公式复制</span><span class="state">起点 ${anchor} · 向${L.label}复制 ${N} 格：${targetList}</span></div>
       <div class="step-title"><span class="st-dot"></span>${cfg.subtitle}</div>
-      <div class="xl-grid" style="grid-template-columns:38px repeat(5,1fr)">
+      <div class="xl-grid" style="grid-template-columns:38px repeat(${cols.length},1fr)">
         <div class="xl-cell hd"></div>${cols.map(c=>`<div class="xl-cell hd">${c}</div>`).join('')}`;
-    for(let r=1; r<=5; r++){
+    for(let r=rowMin; r<=rowMax; r++){
       html += `<div class="xl-cell hd">${r}</div>`;
-      for(let c=1; c<=5; c++){
+      for(let c=colMin; c<=colMax; c++){
         const cell = this.colLetter(c) + r;
         let cls = '', content = '<span style="color:#E2E8F0">·</span>';
         if(cell === anchor){
@@ -312,6 +318,8 @@ MOD.excel = {
           const t = map[cell];
           if(t.state === 'pending'){ cls = ''; content = '<span style="color:#CBD5E1">?</span>'; }
           else { cls = t.state === 'done' ? 'done' : 'cur'; content = '=' + this.renderRefTarget(srcRef, t.dc, t.dr); }
+        }else{
+          cls = 'empty-cell';
         }
         html += `<div class="xl-cell ${cls}">${content}</div>`;
       }
@@ -364,6 +372,7 @@ MOD.excel = {
       rows += `<tr><td>${t.addr}</td><td>向${L.label}复制 ${t.k} 格</td><td>=${this.renderRefTarget(srcRef, t.dc, t.dr)}</td><td class="note">${t.note}</td></tr>`;
     });
     return `<table class="ref-tbl">
+      <colgroup><col style="width:14%"><col style="width:22%"><col style="width:22%"><col style="width:42%"></colgroup>
       <thead><tr><th>单元格</th><th>复制方向</th><th>复制后公式</th><th>变化说明</th></tr></thead>
       <tbody>${rows}</tbody></table>`;
   },
@@ -463,10 +472,14 @@ MOD.excel = {
   funcGrid(judged){
     const cols = ['A','B','C','D'];
     const byAddr = {};
-    (judged || FUNC_CELLS).forEach(c=>{ byAddr[c.addr] = c; });
+    const srcCells = judged || FUNC_CELLS;
+    srcCells.forEach(c=>{ byAddr[c.addr] = c; });
+    // 仅显示有数据的行（A1:D4 中数据占第 1 行和 C2），避免空行留白
+    let maxRow = 2;
+    srcCells.forEach(c=>{ if(c.type!=='empty'){ const rr=parseInt(c.addr.slice(1),10); if(rr>maxRow) maxRow=rr; } });
     let html = `<div class="xl-grid" style="grid-template-columns:38px repeat(4,1fr)">
       <div class="xl-cell hd"></div>${cols.map(c=>`<div class="xl-cell hd">${c}</div>`).join('')}`;
-    for(let r=1; r<=4; r++){
+    for(let r=1; r<=maxRow; r++){
       html += `<div class="xl-cell hd">${r}</div>`;
       for(let c=1; c<=4; c++){
         const addr = this.colLetter(c) + r;
@@ -544,26 +557,29 @@ MOD.excel = {
         <span class="judge-val">${x.disp}</span>
         <span class="type-tag ${x.type}">${TYPE_META[x.type].label}</span>
         ${x.verdict.counted ? '<span class="chip-ok">计入</span>' : '<span class="chip-no">忽略</span>'}
-        <span style="font-family:var(--font);font-size:clamp(11px,1.4vw,13px);color:var(--text-3)">${x.verdict.reason}</span>
+        <span class="judge-reason">${x.verdict.reason}</span>
       </div>`).join('');
     let html = `<div class="excel-stage">
       <div class="stage-hd"><span>${f.name} ${f.title}</span><span class="state">数据区域 A1:D4</span></div>
-      <div class="step-title"><span class="st-dot"></span>函数名 → 选中区域 → 逐个判断 → 计算过程 → 结果</div>
-      ${this.funcGrid(judged)}
-      <div class="xl-formula">=${f.name}(A1:D4) = <b style="color:#86EFAC" class="write-in">${this.fmtNum(res)}</b></div>
-      <div class="calc-process">
-        <div class="cp-label">逐个判断（绿色 = 计入，灰色删除线 = 忽略）</div>
-        ${judgeRows}
-        <div class="judge-row">
-          <span class="judge-addr">空单元格</span>
-          <span class="judge-val">∅</span>
-          <span class="type-tag empty">空单元格</span>
-          <span class="chip-no">忽略</span>
-          <span style="font-family:var(--font);font-size:clamp(11px,1.4vw,13px);color:var(--text-3)">${emptyAddrs.join('、')}：无内容，所有函数都忽略</span>
+      <div class="func-split">
+        <div class="func-left">
+          ${this.funcGrid(judged)}
+          <div class="xl-formula">=${f.name}(A1:D4) = <b style="color:#86EFAC">${this.fmtNum(res)}</b></div>
+          <div class="write-result">${f.name}(A1:D4) = ${this.fmtNum(res)}</div>
         </div>
-        <div class="cp-sum-line" style="margin-top:10px">${f.process(counted)}</div>
+        <div class="func-right">
+          <div class="cp-label">逐个判断（绿色 = 计入，灰色删除线 = 忽略）</div>
+          ${judgeRows}
+          <div class="judge-row">
+            <span class="judge-addr">空单元格</span>
+            <span class="judge-val">∅</span>
+            <span class="type-tag empty">空单元格</span>
+            <span class="chip-no">忽略</span>
+            <span class="judge-reason">${emptyAddrs.join('、')}：无内容，所有函数都忽略</span>
+          </div>
+          <div class="cp-sum-line">${f.process(counted)}</div>
+        </div>
       </div>
-      <div class="write-result">${f.name}(A1:D4) = ${this.fmtNum(res)}</div>
     </div>`;
     $('#stage').innerHTML = html;
   },
@@ -600,7 +616,7 @@ MOD.excel = {
     $('#stage').innerHTML = `<div class="stage-hd"><span>${labelMap[sub]||'Excel 公式'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:#22C55E">${info.method||''}</b></div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">${hint}</div>
+        <div style="font-size:clamp(13px,1.6vw,15px)">${hint}</div>
       </div>`;
   },
 

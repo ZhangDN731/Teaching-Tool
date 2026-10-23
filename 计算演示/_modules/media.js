@@ -361,7 +361,7 @@ MOD.media = {
         desc:`将连续图像划分为 ${w} × ${h} = <b class="c-op">${this._fmt(pixels)}</b> 个像素（采样点），每个像素用固定位数表示颜色。`,
         body:()=>`
           <div style="display:flex;gap:clamp(12px,2vw,18px);flex-wrap:wrap;align-items:center">
-            <div style="flex:1;min-width:120px;max-width:220px;margin:0 auto">
+            <div style="flex:1;min-width:150px;max-width:320px;margin:0 auto">
               <div style="display:grid;grid-template-columns:repeat(${gridW},1fr);gap:1px;border:1px solid var(--border);border-radius:6px;overflow:hidden">${cells}</div>
               <div class="mm-note" style="text-align:center">${gridW}×${gridH} 示意（实际 ${w}×${h}）</div>
             </div>
@@ -406,7 +406,7 @@ MOD.media = {
     $('#stage').innerHTML=`<div class="stage-hd"><span>${labelMap[sub]||'音视频容量'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:${this.color}">${info.method||''}</b></div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">点击「自动演示」或「下一步」开始手写推导</div>
+        <div style="font-size:clamp(13px,1.6vw,15px)">点击「自动演示」或「下一步」开始手写推导</div>
       </div>`;
   },
   generate(){

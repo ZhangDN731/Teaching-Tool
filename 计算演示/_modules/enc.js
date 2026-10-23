@@ -354,13 +354,11 @@ MOD.enc = {
       if(cur===1){
         const weightRow=weights.map(w=>`<div class="enc-bit">${w}</div>`).join('');
         const bitRow=bin.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('');
-        const divRows=rows.map(rd=>`<div>${rd.n} ÷ 2 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
         return this._card('cur','② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
           `<div class="enc-bitgrid weight">${weightRow}</div>
            <div class="enc-bitgrid">${bitRow}</div>
-           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出，补足 8 位）</div>${divRows}</div>
            <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>
-           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”</div>`);
+           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”（最高位为 0，属 ASCII 范围）</div>`);
       }
       /* 卡片 2：二进制 → 十进制（按权展开求和，展示完整计算过程） */
       if(cur===2){
@@ -400,8 +398,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 1：查 ASCII 表得到 8 位二进制存储码（计算机存储） */
     steps.push({desc:`计算机中字符以 <b>8 位二进制（1 字节）</b>存储；查 ASCII 码表，字符 <b class="c-op">${esc(ch)}</b> 的存储码为 <b class="c-op">${bin}</b>。`,
@@ -414,8 +411,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 2：二进制 → 十进制（按权展开求和，完整过程） */
     steps.push({desc:`二进制按权展开转十进制：${terms.join(' + ')} = <b class="c-op">${code}</b>。`,
@@ -428,8 +424,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 3：十六进制 + 完整链路 */
     steps.push({desc:`二进制按 4 位一组转换为十六进制：${highNib}→<b class="c-op">${hex[0]}</b>，${lowNib}→<b class="c-op">${hex[1]}</b>，得 <b class="c-op">${hex}H</b>。完整链路：“${esc(ch)}” = ${bin}<sub>2</sub> = ${code}<sub>10</sub> = ${hex}H。`,
@@ -723,7 +718,7 @@ MOD.enc = {
     $('#stage').innerHTML=`<div class="stage-hd"><span>${labelMap[sub]||'字符编码'}</span><span class="state">准备就绪</span></div>
       <div style="text-align:center;padding:clamp(16px,3vw,28px) 0;color:#94A3B8">
         <div style="font-size:clamp(13px,1.8vw,16px);margin-bottom:8px">使用 <b style="color:${this.color}">${info.method||''}</b></div>
-        <div style="font-size:clamp(11px,1.4vw,12.5px)">点击「自动演示」或「下一步」开始逐步推导</div>
+        <div style="font-size:clamp(13px,1.6vw,15px)">点击「自动演示」或「下一步」开始逐步推导</div>
       </div>`;
   },
   generate(){

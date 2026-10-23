@@ -41,10 +41,10 @@ body::before{
 
 /* ============ 按钮 / 徽章 ============ */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
   border:1px solid var(--border);background:#fff;color:var(--text-2);
-  padding:clamp(5px,1vw,7px) clamp(9px,1.8vw,13px);border-radius:8px;
-  font-size:clamp(11px,1.4vw,12.5px);font-weight:600;
+  padding:clamp(3px,.7vw,5px) clamp(7px,1.3vw,10px);border-radius:7px;
+  font-size:clamp(10.5px,1.3vw,12px);font-weight:600;
   cursor:pointer;font-family:var(--font);transition:all .15s;text-decoration:none;
 }
 .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
@@ -188,9 +188,9 @@ details.theory .t-body th{background:var(--surface-3);color:var(--accent);font-w
   padding:3px 6px;min-height:26px;font-size:clamp(10px,1.2vw,11px);border-radius:6px;
 }
 .setting select,.setting input{
-  padding:clamp(5px,1vw,7px) clamp(7px,1.2vw,10px);border:1.5px solid var(--border);border-radius:8px;
+  padding:clamp(3px,.7vw,5px) clamp(5px,1vw,8px);border:1.5px solid var(--border);border-radius:7px;
   font-size:clamp(11px,1.4vw,12.5px);font-family:var(--font);background:#fff;outline:none;color:var(--text);
-  min-height:clamp(30px,4vw,36px);transition:border-color .15s;
+  min-height:clamp(26px,3.5vw,32px);transition:border-color .15s;
 }
 .setting select:focus,.setting input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .setting input[type=number]{width:clamp(90px,14vw,120px)}
@@ -209,11 +209,11 @@ details.theory .t-body th{background:var(--surface-3);color:var(--accent);font-w
 #view-demo.active .demo-top{flex:none}
 #view-demo.active details.theory{flex:none;max-height:26vh;overflow:auto}
 #view-demo.active .sub-tabs{flex:none}
-#view-demo.active .panel-card{flex:1;min-height:0;display:flex;flex-direction:column;margin-bottom:0;overflow:hidden}
-#view-demo.active .ctrl{flex:none;margin:4px 0 3px}
-#view-demo.active .stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;margin:2px 0;padding:clamp(4px,0.8vw,8px)}
-#view-demo.active .stepbar{flex:none;margin:3px 0 2px}
-#view-demo.active .explain{flex:none}
+#view-demo.active .panel-card{flex:none;min-height:0;display:flex;flex-direction:column;margin-bottom:0;overflow:hidden;padding:clamp(4px,.8vw,7px) clamp(8px,1.4vw,11px)}
+#view-demo.active .ctrl{flex:none;margin:0}
+#view-demo.active .stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;margin:clamp(4px,.8vw,7px) 0;padding:clamp(6px,1vw,10px)}
+#view-demo.active .stepbar{flex:none;margin:2px 0}
+#view-demo.active .explain{flex:none;max-height:clamp(40px,6vh,56px);overflow:hidden}
 /* 演示模式：外层容器清空内边距，面板卡片压缩留白，保证 100vh 内无文档级溢出 */
 body.demo{overflow:hidden}
 body.demo .wrap{padding:0;max-width:none;margin:0}
@@ -232,63 +232,193 @@ body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
 #stage .graph-stage .legend,#stage .tree-stage .legend{margin-top:1px;line-height:1.4}
 #stage .graph-stage .write-result{margin-top:2px;padding:clamp(5px,.9vw,8px) clamp(14px,2vw,18px)}
 #stage .graph-stage .queue-area{min-height:28px;margin-bottom:3px;padding:clamp(4px,.8vw,7px) clamp(8px,1.3vw,12px)}
-/* 舞台内容适配层：模块内容置于 .stage-fit-inner，由 Engine 测量后等比缩放，允许放大填满舞台 */
-.stage-fit{flex:1;min-height:0;overflow:hidden;display:flex;align-items:stretch;justify-content:center;width:100%}
-.stage-fit-inner{transform-origin:center center;transition:transform .18s ease;width:100%;min-height:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:clamp(6px,1.2vw,12px)}
+/* 舞台内容适配层：模块内容置于 .stage-fit-inner，由 Engine 测量后等比缩放居中 */
+.stage-fit{flex:1;min-height:0;overflow:hidden;position:relative;width:100%}
+.stage-fit-inner{transform-origin:center center;transition:transform .18s ease;width:100%;display:flex;flex-direction:column;align-items:stretch;gap:clamp(6px,1.2vw,12px)}
 /* 弹性铺满：固定标题/标签/图例不伸缩，模块根容器弹性铺满 */
 .stage-fit-inner > .stage-hd,.stage-fit-inner > .step-title,.stage-fit-inner > .annot,
 .stage-fit-inner > .zone-label,.stage-fit-inner > .legend,.stage-fit-inner > .queue-area,.stage-fit-inner > .order-rack{flex:0 0 auto}
-/* 模块根容器铺满舞台，内部内容弹性分布 */
-.stage-fit-inner .base-stage,.stage-fit-inner .enc-card,.stage-fit-inner .enc-flow,.stage-fit-inner .enc-grid,
-.stage-fit-inner .mm-wrap,.stage-fit-inner .mm-step,.stage-fit-inner .ip-row,.stage-fit-inner .ip-info,
-.stage-fit-inner .excel-stage,.stage-fit-inner .xl-grid,.stage-fit-inner .ref-tbl,
-.stage-fit-inner .pystruct-wrap,.stage-fit-inner .ps-code,.stage-fit-inner .ps-cols,.stage-fit-inner .two-col,
-.stage-fit-inner .ds-stack-area,.stage-fit-inner .ds-queue-area,
-.stage-fit-inner .tree-stage,.stage-fit-inner .graph-stage,.stage-fit-inner .svg-box,
-.stage-fit-inner .py-type-grid,.stage-fit-inner .py-cat-grid,.stage-fit-inner .py-fn-card,.stage-fit-inner .py-fn-rack,
+/* 模块根容器铺满舞台，内部内容弹性分布（仅纵向容器） */
+.stage-fit-inner .base-stage,
+.stage-fit-inner .mm-wrap,.stage-fit-inner .excel-stage{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;width:100%}
+.stage-fit-inner .mm-step{flex:none;width:100%;display:flex;flex-direction:column;justify-content:center}
+.stage-fit-inner .pystruct-wrap,.stage-fit-inner .ps-code,
+.stage-fit-inner .tree-stage,.stage-fit-inner .graph-stage{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;width:100%}
+/* 单卡片类按内容自然高度（避免拉伸留白），由 fitStage 统一缩放居中 */
+.stage-fit-inner .enc-card{flex:none;width:100%}
 .stage-fit-inner .write-result,.stage-fit-inner .result-box,.stage-fit-inner .console,.stage-fit-inner .code-block,
-.stage-fit-inner .exp-table,.stage-fit-inner .exp-inline,.stage-fit-inner .d2b-grid,.stage-fit-inner .b2g-list,
-.stage-fit-inner .mm-result,.stage-fit-inner .mm-formula,.stage-fit-inner .mm-conv,.stage-fit-inner .enc-result-strip,
-.stage-fit-inner .enc-bitgrid{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;width:100%}
-/* ===== 全局字体放大：确保计算内容铺满舞台、清晰可读（!important覆盖模块运行时注入样式） ===== */
-#stage{font-size:clamp(15px,2vw,19px) !important}
-#stage .stage-hd{font-size:clamp(14px,1.9vw,18px) !important}
-#stage .step-title{font-size:clamp(14px,1.9vw,18px) !important;padding:clamp(6px,1.2vw,10px) clamp(12px,2vw,18px)}
-#stage .annot{font-size:clamp(13px,1.7vw,17px) !important;line-height:1.7}
-#stage .exp-table{font-size:clamp(14px,1.9vw,18px) !important}
-#stage .exp-table th,#stage .exp-table td{padding:clamp(8px,1.3vw,12px) clamp(10px,1.6vw,16px) !important}
-#stage .exp-inline{font-size:clamp(15px,2vw,20px) !important}
-#stage .group-box .grp{font-size:clamp(16px,2.4vw,24px) !important;padding:clamp(8px,1.4vw,14px) clamp(12px,2vw,20px) !important;min-width:clamp(48px,7vw,72px)}
-#stage .group-box .grp .grp-label{font-size:clamp(10px,1.3vw,13px) !important}
-#stage .write-result{font-size:clamp(20px,3vw,30px) !important;padding:clamp(10px,1.8vw,16px) clamp(16px,2.5vw,24px) !important}
-#stage .code-block{font-size:clamp(14px,1.9vw,18px) !important;line-height:2 !important;padding:clamp(10px,1.6vw,16px) !important}
-#stage .console{font-size:clamp(14px,1.9vw,18px) !important;padding:clamp(10px,1.6vw,16px) !important}
-#stage .tbl{font-size:clamp(13px,1.7vw,17px) !important}
-#stage .tbl th,#stage .tbl td{padding:clamp(8px,1.3vw,12px) clamp(10px,1.6vw,16px) !important}
-#stage .term{font-size:clamp(15px,2vw,20px) !important;padding:clamp(6px,1.1vw,10px) clamp(10px,1.6vw,16px) !important}
-#stage .chip{font-size:clamp(14px,1.9vw,18px) !important;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,18px) !important}
-#stage .fml{font-size:clamp(14px,1.8vw,18px) !important;line-height:2 !important}
-#stage .calc-process{font-size:clamp(15px,2vw,20px) !important;padding:clamp(12px,2vw,18px) !important}
-#stage .bin-grid .bd{font-size:clamp(16px,2.3vw,22px) !important;min-width:clamp(40px,6vw,56px);min-height:clamp(40px,6vw,56px)}
-/* SVG高度放大 */
-#stage .svg-box{max-height:clamp(200px,38vh,380px)}
-#stage .svg-box svg{max-height:clamp(200px,38vh,380px);width:100%;height:auto}
-#stage .tree-stage .svg-box,#stage .graph-stage .svg-box{max-height:clamp(180px,34vh,340px)}
-#stage .tree-stage .svg-box svg,#stage .graph-stage .svg-box svg{max-height:clamp(180px,34vh,340px)}
+.stage-fit-inner .mm-result,.stage-fit-inner .mm-formula,.stage-fit-inner .mm-conv{flex:none;display:flex;flex-direction:column;justify-content:center;width:100%}
+/* grid 容器保持原始grid布局，不被改成flex（IP/Excel/Python网格/字符编码网格/8位二进制） */
+.stage-fit-inner .enc-grid,.stage-fit-inner .ip-row,.stage-fit-inner .ip-info,
+.stage-fit-inner .xl-grid,.stage-fit-inner .py-type-grid,.stage-fit-inner .py-cat-grid,
+.stage-fit-inner .enc-bitgrid{flex:none;width:100%}
+/* 横向结果条保持原始横向 flex（不被改成 column，避免链路竖排） */
+.stage-fit-inner .enc-result-strip{flex:none;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center}
+/* 横向 flex 容器保持原始横向排列（流程条/两栏/代码列/表达式行） */
+.stage-fit-inner .enc-flow,.stage-fit-inner .ps-cols,.stage-fit-inner .two-col,
+.stage-fit-inner .exp-inline,.stage-fit-inner .ref-tbl,.stage-fit-inner .exp-table{flex:none}
+/* 画布/结构区弹性铺满 */
+.stage-fit-inner .svg-box,.stage-fit-inner .ds-stack-area,.stage-fit-inner .ds-queue-area,
+.stage-fit-inner .py-fn-card,.stage-fit-inner .py-fn-rack{flex:1 1 auto;min-height:0;width:100%}
+/* grid布局的容器使用自然高度，不做flex弹性压缩，避免子内容溢出重叠 */
+.stage-fit-inner .d2b-grid{flex:none;display:grid;width:100%}
+.stage-fit-inner .b2g-list{flex:none;display:flex;flex-direction:column;width:100%}
+/* ===== 舞台紧凑排版（固定px，由 fitStage 统一缩放，避免 vw 双重缩放导致内容超高） ===== */
+#stage{font-size:15px !important;line-height:1.45}
+#stage .stage-hd{font-size:16px !important;line-height:1.3;margin:0 0 3px}
+#stage .step-title{font-size:15px !important;line-height:1.3;padding:4px 12px !important;margin:0 0 4px}
+#stage .annot{font-size:14px !important;line-height:1.5 !important;margin:0 0 4px}
+#stage .zone-label{font-size:13px !important;line-height:1.3;margin-bottom:3px}
+#stage .exp-table{font-size:15px !important;margin:2px 0}
+#stage .exp-table th,#stage .exp-table td{padding:4px 8px !important;line-height:1.3}
+#stage .exp-inline{font-size:15px !important;padding:4px 10px !important;line-height:1.4 !important;margin:2px 0;gap:6px !important}
+#stage .group-box{margin:2px 0 !important;gap:10px !important}
+#stage .group-box .grp{font-size:18px !important;padding:6px 12px !important;min-width:52px}
+#stage .group-box .grp .grp-label{font-size:11px !important}
+#stage .write-result{font-size:19px !important;padding:6px 14px !important;line-height:1.4;margin:3px 0}
+#stage .code-block{font-size:14px !important;line-height:1.55 !important;padding:8px 12px !important}
+#stage .console{font-size:14px !important;padding:8px 12px !important;line-height:1.5}
+#stage .tbl{font-size:14px !important}
+#stage .tbl th,#stage .tbl td{padding:4px 8px !important;line-height:1.3}
+#stage .term{font-size:15px !important;padding:4px 10px !important;line-height:1.3}
+#stage .chip{font-size:14px !important;padding:4px 10px !important;line-height:1.2}
+#stage .fml{font-size:14px !important;line-height:1.5 !important}
+#stage .calc-process{font-size:15px !important;padding:8px 12px !important;line-height:1.5}
+#stage .bin-grid .bd{font-size:15px !important;min-width:40px;min-height:38px}
+#stage .legend{font-size:12px !important;line-height:1.4;margin:2px 0}
+#stage .order-chip{font-size:14px !important;padding:3px 10px !important}
+#stage .rule{font-size:14px !important;line-height:1.5;padding:5px 10px !important;margin:2px 0}
+/* 十转二 d2b 紧凑化：让 8 行除法也能铺满矮舞台 */
+#stage .d2b-grid{gap:4px 8px !important;margin:2px 0 !important}
+#stage .d2b-col{gap:2px !important}
+#stage .d2b-row,#stage .d2b-bit{min-height:20px !important;padding:1px 8px !important;font-size:13px !important;line-height:1.2}
+#stage .d2b-row .dv-rank,#stage .d2b-bit .bit-label{font-size:10px !important;padding:0 6px !important}
+#stage .d2b-arrow{min-width:44px !important;gap:1px !important}
+#stage .d2b-arrow .arr-label{font-size:10px !important;line-height:1.1}
+#stage .d2b-arrow .arr-bar{min-height:24px !important;width:20px !important}
+#stage .d2b-arrow .arr-up{font-size:15px !important}
+#stage .d2b-result{font-size:15px !important;padding:3px 10px !important;margin-top:2px !important}
+#stage .d2b-rack{min-height:24px !important;gap:6px !important;margin:1px 0 !important}
+#stage .b2g-list{gap:5px !important;margin:3px 0 !important}
+#stage .b2g-row{font-size:14px !important;padding:4px 12px !important;line-height:1.3}
+#stage .b2g-row .b2g-no{font-size:11px !important;padding:1px 8px !important}
+/* Python 表达式紧凑化 */
+#stage .py-type-grid{gap:4px !important;margin:2px 0 !important}
+#stage .py-tcard{border-radius:10px !important;padding:4px 8px !important}
+#stage .py-tname{font-size:15px !important;margin-bottom:0}
+#stage .py-tval{font-size:14px !important;line-height:1.25}
+#stage .py-ttype{font-size:13px !important;line-height:1.25}
+#stage .py-tdesc{font-size:12px !important;line-height:1.2;margin-top:1px}
+#stage .py-cat-grid{gap:6px !important;margin:2px 0 !important}
+#stage .py-cat-card{border-radius:10px !important;padding:6px 10px !important}
+#stage .py-cat-name{font-size:14px !important}
+#stage .py-cat-method{font-size:13px !important;line-height:1.3}
+#stage .py-fn-card{border-radius:10px !important;padding:5px 10px !important;margin:2px 0 !important}
+#stage .py-fn-name{font-size:15px !important;margin-bottom:1px}
+#stage .py-fn-purpose{font-size:13px !important;line-height:1.35}
+#stage .py-chain{padding:4px 10px !important;margin-top:2px}
+#stage .py-chain-line{font-size:14px !important;line-height:1.5}
+#stage .py-fn-rack{gap:6px !important;margin:2px 0 !important}
+#stage .py-fn-chip{font-size:13px !important;padding:3px 9px !important}
+/* Python 程序结构：舞台左右布局（代码左，变量+控制台右） */
+#ps-code{min-height:58px !important;height:84px !important;line-height:1.45 !important}
+#settingsRowWrap:has(.ps-setting-root){width:100% !important}
+#stage .pystruct-wrap{flex-direction:row !important;flex-wrap:wrap;align-items:stretch;gap:6px !important}
+#stage .pystruct-wrap .stage-hd{width:100%;flex:none;margin:0 0 2px !important}
+#stage .pystruct-wrap .ps-code{flex:1 1 40%;min-width:0;margin:0 !important;font-size:13px !important;line-height:1.5 !important;padding:8px 10px !important;display:flex;flex-direction:column;justify-content:center}
+#stage .pystruct-wrap .ps-cols{flex:1 1 56%;min-width:0;flex-direction:column !important;margin:0 0 0 8px !important;gap:6px !important;align-items:stretch}
+#stage .pystruct-wrap .ps-panel{flex:0 0 auto !important;min-height:0;padding:5px 8px !important;overflow:visible !important}
+#stage .pystruct-wrap .ps-panel:last-child{flex:1 1 auto !important;display:flex;flex-direction:column}
+#stage .pystruct-wrap .ps-panel:last-child .console{flex:1 1 auto}
+#stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:2px !important;font-size:12px !important;flex:none}
+#stage .pystruct-wrap .var-rack{min-height:0 !important;gap:3px !important;flex:none !important;overflow:visible !important}
+#stage .pystruct-wrap .var-pill{padding:3px 9px !important;font-size:13px !important;line-height:1.2}
+#stage .pystruct-wrap .vp-name{min-width:56px !important}
+#stage .pystruct-wrap .ps-console{min-height:40px !important;flex:1 1 auto;padding:5px 9px !important;font-size:13px !important;line-height:1.4;display:flex;flex-direction:column;justify-content:center}
+#stage .pystruct-wrap .ps-banner{width:100%;margin:0 !important}
+#stage .pystruct-wrap .ps-empty{font-size:13px !important;padding:5px 9px !important}
+/* 字符编码 enc 紧凑化 */
+#stage .enc-flow{margin:2px 0 !important;gap:6px !important}
+#stage .enc-flow .enc-node{padding:4px 10px !important;gap:2px !important}
+#stage .enc-flow .enc-nl{font-size:12px !important}
+#stage .enc-flow .enc-nv{font-size:15px !important;letter-spacing:0}
+#stage .enc-card{border-radius:12px !important;padding:8px 14px !important}
+#stage .enc-card .enc-card-hd{margin-bottom:3px !important}
+#stage .enc-big{font-size:19px !important;letter-spacing:1px;margin:3px 0 !important;line-height:1.4}
+#stage .enc-big sub{font-size:11px !important}
+#stage .enc-sub{font-size:12px !important;line-height:1.35}
+#stage .enc-calc{font-size:15px !important;line-height:1.5}
+#stage .enc-bitgrid{gap:4px !important;margin:3px 0 !important}
+#stage .enc-bitgrid .enc-bit{border-radius:7px !important;font-size:16px !important;padding:4px 0 !important}
+#stage .enc-b4{padding:5px !important;gap:3px !important}
+#stage .enc-b4-label{font-size:12px !important;margin-bottom:2px}
+#stage .enc-bitgroup{gap:10px !important;margin:2px 0 !important}
+#stage .enc-result-strip{font-size:16px !important;padding:5px 12px !important;margin-top:2px !important;line-height:1.4}
+#stage .enc-table{font-size:14px !important;margin:2px 0 !important}
+#stage .enc-table th,#stage .enc-table td{padding:3px 6px !important;line-height:1.25}
+#stage .enc-grid{gap:5px !important;margin:2px 0 !important}
+#stage .enc-chip{font-size:15px !important;padding:4px 10px !important}
+#stage .enc-mini{font-size:13px !important;padding:5px 8px !important;line-height:1.4}
+/* 音视频 media 紧凑化 */
+#stage .mm-step{padding:8px 14px !important;border-radius:12px !important}
+#stage .mm-step-hd{margin-bottom:2px !important;font-size:15px !important}
+#stage .mm-step-hd .mm-idx{width:22px !important;height:22px !important;font-size:13px !important}
+#stage .mm-note{font-size:13px !important;line-height:1.4;margin:2px 0 !important}
+#stage .mm-body{font-size:15px !important;line-height:1.5}
+#stage .mm-conv{gap:5px !important;margin:4px 0 !important}
+#stage .mm-conv div{padding:5px 10px !important;font-size:15px !important;line-height:1.4;border-radius:8px !important}
+#stage .mm-result{padding:6px 12px !important;font-size:18px !important;line-height:1.45;margin-top:5px !important;border-radius:10px !important}
+#stage .mm-formula{padding:5px 10px !important;font-size:13px !important;line-height:1.4;margin-top:4px !important}
+#stage .mm-chip{padding:5px 10px !important;font-size:14px !important}
+#stage .mm-chip .mm-chip-l{font-size:12px !important}
+#stage .mm-chips{gap:5px !important;margin:3px 0 !important}
+#stage .mm-num{font-size:19px !important}
+/* Excel 紧凑化 */
+#stage .excel-stage .step-title{margin:1px 0 !important;padding:2px 8px !important;font-size:14px !important}
+#stage .excel-stage .xl-grid{gap:2px !important;margin-bottom:3px !important;font-size:14px !important}
+#stage .excel-stage .xl-grid .xl-cell{min-height:14px !important;padding:2px 4px !important;line-height:1.2 !important;border-radius:6px !important}
+#stage .excel-stage .xl-grid .xl-cell.empty-cell{min-height:14px !important;padding:2px 4px !important}
+#stage .excel-stage .xl-formula{padding:4px 10px !important;font-size:15px !important;margin-bottom:3px !important;line-height:1.35}
+#stage .excel-stage .ref-tbl{margin-top:2px !important;font-size:13px !important}
+#stage .excel-stage .ref-tbl th{padding:2px 8px !important;line-height:1.2}
+#stage .excel-stage .ref-tbl td{padding:2px 8px !important;line-height:1.25}
+#stage .excel-stage .ref-tbl td.note{font-size:11px !important;line-height:1.2}
+#stage .excel-stage .ana-card{padding:5px 10px !important;margin-top:3px !important}
+#stage .excel-stage .ana-card th,#stage .excel-stage .ana-card td{padding:2px 8px !important;line-height:1.25}
+/* 统计函数：左表格结果 + 右逐格判断，左右并排铺满 */
+#stage .func-split{display:flex;gap:14px;flex:1 1 auto;min-height:0;align-items:stretch;width:100%}
+#stage .func-left{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+#stage .func-right{flex:1.2;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+#stage .func-right .cp-label{font-size:12.5px !important;margin-bottom:2px !important;font-weight:700}
+#stage .func-right .judge-row{font-size:12.5px !important;padding:2px 0 !important;gap:6px !important;line-height:1.3}
+#stage .func-right .judge-reason{font-size:12px !important;color:var(--text-3);font-family:var(--font)}
+#stage .func-right .cp-sum-line{font-size:13px !important;margin-top:4px !important;line-height:1.4}
+#stage .func-left .write-result{margin-top:4px !important;padding:6px 10px !important;font-size:16px !important}
+#stage .func-left .xl-formula{margin-bottom:4px !important;text-align:center}
+/* IP 紧凑化 */
+#stage .ip-row{gap:10px !important;margin-bottom:8px !important}
+#stage .ip-row .seg{padding:10px 12px !important;border-radius:10px !important}
+#stage .ip-row .seg .seg-hd{font-size:14px !important;margin-bottom:4px !important}
+#stage .ip-row .seg .val{font-size:22px !important;margin-top:4px !important}
+#stage .ip-info{gap:10px !important;margin-bottom:8px !important}
+#stage .ip-info .ii{padding:8px 12px !important;border-radius:10px !important}
+#stage .ip-info .ii .ii-hd{font-size:13px !important;margin-bottom:3px !important}
+#stage .ip-info .ii .ii-val{font-size:19px !important}
+#stage .ip-result,#stage .write-result.ip{font-size:17px !important;padding:6px 12px !important}
+/* SVG 画布：填满可用空间（不再用高度钳制，交给左右布局和 fitStage） */
+#stage .svg-box{margin-bottom:0;width:100%}
+#stage .svg-box svg{width:100%;height:100%;max-height:none;display:block}
 /* 小高度视口紧凑模式 */
 @media (max-height:800px){
   #view-demo.active .stage{padding:clamp(3px,.6vw,6px) clamp(5px,.9vw,8px)}
   #view-demo.active .ctrl{padding:clamp(3px,.7vw,5px) clamp(6px,1.2vw,9px)}
   #view-demo.active .explain{padding:clamp(3px,.6vw,5px) clamp(6px,1vw,9px);font-size:clamp(12px,1.5vw,14px);line-height:1.45}
   #view-demo.active details.theory{max-height:22vh}
-  /* 树 / 图：压缩画布、序列条、队列、图例与结果条，给舞台让出纵向空间 */
-  #stage .tree-stage .svg-box,#stage .tree-stage .svg-box svg{max-height:clamp(118px,19vh,170px)}
-  #stage .graph-stage .svg-box,#stage .graph-stage .svg-box svg{max-height:clamp(68px,10vh,108px)}
-  #stage .tree-stage .order-rack,#stage .graph-stage .order-rack{min-height:30px;margin-bottom:2px}
-  #stage .tree-stage .order-rack .order-chip,#stage .graph-stage .order-rack .order-chip{padding:3px 10px;font-size:clamp(12px,1.6vw,14px)}
-  #stage .tree-stage .queue-area,#stage .graph-stage .queue-area{min-height:24px;padding:3px 8px}
+  #stage .tree-stage .order-rack,#stage .graph-stage .order-rack{min-height:24px;margin-bottom:2px}
+  #stage .tree-stage .order-rack .order-chip,#stage .graph-stage .order-rack .order-chip{padding:2px 8px;font-size:13px}
+  #stage .tree-stage .queue-area,#stage .graph-stage .queue-area{min-height:22px;padding:2px 6px}
   #stage .tree-stage .zone-label,#stage .graph-stage .zone-label{margin-bottom:2px}
-  #stage .tree-stage .legend,#stage .graph-stage .legend{margin-top:1px;line-height:1.3;font-size:clamp(11.5px,1.4vw,13px)}
+  #stage .tree-stage .legend,#stage .graph-stage .legend{margin-top:1px;line-height:1.3;font-size:12px}
   #stage .tree-stage .write-result,#stage .graph-stage .write-result{margin-top:2px;padding:4px 12px}
   /* 树 / 图设置面板紧凑化（覆盖内联 margin-top） */
   #settingsRow .settings-row{margin-top:3px !important}
@@ -297,8 +427,8 @@ body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
 
 /* 控制条 */
 .ctrl{
-  display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin:6px 0 3px;
-  padding:clamp(5px,1vw,8px) clamp(8px,1.5vw,10px);background:#fff;border:1px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow-x:auto;margin:0;
+  padding:clamp(3px,.6vw,5px) clamp(6px,1vw,8px);background:#fff;border:1px solid var(--border);border-radius:8px;
   -webkit-overflow-scrolling:touch;scrollbar-width:thin;
 }
 .ctrl::-webkit-scrollbar{height:4px}
@@ -735,12 +865,7 @@ body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
 
   <!-- ===== 视图：首页 HOME ===== -->
   <section id="view-home" class="view active">
-    <header class="hero">
-      <div class="capsule"><span class="dot"></span>教学计算演示台 · TEACHING DEMO LAB</div>
-      <h1>一步步看懂<span class="grad">计算的过程</span></h1>
-    </header>
-
-    <div class="filters" id="homeFilters">
+    <div class="filters" id="homeFilters" style="margin-top:clamp(10px,2vw,18px)">
       <button class="filter-btn active" data-f="all">全部</button>
       <button class="filter-btn" data-f="bit">数制与编码</button>
       <button class="filter-btn" data-f="store">存储与容量</button>
@@ -785,7 +910,7 @@ body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
     <!-- 子页面 tab 导航（模块有 subTabs 时显示） -->
     <div class="sub-tabs" id="subTabs" style="display:none"></div>
 
-    <div class="panel-card">
+    <div class="panel-card ctrl-panel">
       <div class="ctrl">
         <div class="inline-setting" id="settingsRowWrap">
           <div class="settings-row" id="settingsRow"></div>
@@ -803,13 +928,13 @@ body.demo .panel-card{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,11px)}
           <button data-ms="2400">0.6×</button><button data-ms="1500" class="active">1×</button><button data-ms="1000">1.5×</button><button data-ms="700">2×</button>
         </div>
       </div>
-      <div class="stage" id="stage"></div>
-      <div class="stepbar">
-        <div class="bar"><i id="stepFill"></i></div>
-        <div class="lbl"><span id="stepLbl">第 0 / 0 步</span><span id="stepDone">已完成 0%</span></div>
-      </div>
-      <div class="explain" id="explainBox"></div>
     </div>
+    <div class="stage" id="stage"></div>
+    <div class="stepbar">
+      <div class="bar"><i id="stepFill"></i></div>
+      <div class="lbl"><span id="stepLbl">第 0 / 0 步</span><span id="stepDone">已完成 0%</span></div>
+    </div>
+    <div class="explain" id="explainBox"></div>
   </section>
 
 </div>
@@ -987,7 +1112,7 @@ const Engine = {
     if(Engine.timer){ clearTimeout(Engine.timer); Engine.timer=null; Engine.auto(); }
   },
 
-  /* 舞台适配：把模块内容包进 .stage-fit/.stage-fit-inner，按舞台可用尺寸等比缩小，保证一屏不溢出 */
+  /* 舞台适配：测量内容自然尺寸后等比缩放，保证一屏完整不溢出 */
   fitStage(secondPass){
     const stage = $('#stage'); if(!stage) return;
     let fit = stage.querySelector(':scope > .stage-fit');
@@ -995,21 +1120,38 @@ const Engine = {
       fit = document.createElement('div'); fit.className='stage-fit';
       stage.appendChild(fit);
     }
+    fit.style.position = 'relative';
     let inner = fit.querySelector(':scope > .stage-fit-inner');
     if(!inner){
       inner = document.createElement('div'); inner.className='stage-fit-inner';
       fit.appendChild(inner);
     }
-    /* 把散落在 fit / stage 里的其他兄弟节点并入内层包裹（兼容模块 innerHTML += 追加的节点） */
+    /* 把散落在 fit / stage 里的其他兄弟节点并入内层包裹 */
     Array.from(fit.children).forEach(c=>{ if(c!==inner) inner.appendChild(c); });
     Array.from(stage.children).forEach(c=>{ if(c!==fit) inner.appendChild(c); });
-    inner.style.transform = '';
     const fw = fit.clientWidth, fh = fit.clientHeight;
     if(fw>0 && fh>0){
-      const sw = inner.scrollWidth || 1, sh = inner.scrollHeight || 1;
-      let scale = Math.min(fw/sw, fh/sh, 2.5);
-      if(!isFinite(scale) || scale>2.5) scale = 2.5;
-      inner.style.transform = `scale(${scale})`;
+      /* 测量：脱离文档流，保持flex布局，直接子元素不flex压缩，获取自然尺寸 */
+      const prevChildren = [];
+      inner.style.cssText = 'position:absolute;left:0;top:0;width:'+fw+'px;height:auto;visibility:hidden;transform:none;';
+      Array.from(inner.children).forEach(c=>{
+        prevChildren.push({el:c, flex:c.style.flex, minH:c.style.minHeight, height:c.style.height});
+        c.style.flex = '0 0 auto';
+        c.style.minHeight = '0';
+        c.style.height = 'auto';
+      });
+      const sw = inner.scrollWidth || 1;
+      const sh = inner.scrollHeight || 1;
+      let scale = Math.min(fw/sw, fh/sh, 3.0);
+      if(!isFinite(scale) || scale>3.0) scale = 3.0;
+      /* 恢复子元素内联样式 */
+      prevChildren.forEach(p=>{
+        p.el.style.flex = p.flex;
+        p.el.style.minHeight = p.minH;
+        p.el.style.height = p.height;
+      });
+      /* 绝对定位居中 + 缩放 */
+      inner.style.cssText = 'position:absolute;left:50%;top:50%;width:'+fw+'px;transform:translate(-50%,-50%) scale('+scale+');transform-origin:center center;';
     }
     if(!secondPass) requestAnimationFrame(()=>Engine.fitStage(true));
   }
@@ -1204,7 +1346,7 @@ const BASE_INPUT_SPEC = {
 };
 const BASE_RAND_OPTS = {
   bin2dec: [['2','2 位'],['3','3 位'],['4','4 位']],
-  dec2bin: [['small','较小数（5~31）'],['medium','中等数（32~99）']],
+  dec2bin: [['small','较小数（5~31）'],['medium','中等数（32~99）'],['large','较大数（100~255）']],
   bin2oct: [['6','6 位'],['9','9 位']],
   oct2bin: [['2','2 位'],['3','3 位']],
   bin2hex: [['8','8 位'],['12','12 位']],
@@ -1315,7 +1457,7 @@ MOD.base = {
         this._digits = s; break;
       }
       case 'dec': {
-        const range = size === 'medium' ? [32, 99] : [5, 31];
+        const range = size === 'large' ? [100, 255] : size === 'medium' ? [32, 99] : [5, 31];
         this._dec = randInt(range[0], range[1]); break;
       }
       case 'oct': {
@@ -1526,11 +1668,9 @@ MOD.base = {
     /* 5. 完成：倒排标注 + 底部结果条 */
     steps.push({desc:`余数逆序排列：${rems.slice().reverse().join('')}，即 <b class="c-op">${ans}</b>₂。`,
       draw:()=>{
-        const rackHtml = rems.slice().reverse().map((r,t)=>`<span class="grp done">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
-          <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="d2b-rack"><span class="d2b-rack-cap">二进制结果（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
+          <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取（自下而上 ↑）</div>
           ${renderGrid('done',-1)}
           <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
@@ -1950,13 +2090,11 @@ MOD.enc = {
       if(cur===1){
         const weightRow=weights.map(w=>`<div class="enc-bit">${w}</div>`).join('');
         const bitRow=bin.split('').map(b=>`<div class="enc-bit ${b==='1'?'one':'zero'}">${b}</div>`).join('');
-        const divRows=rows.map(rd=>`<div>${rd.n} ÷ 2 = ${rd.q} <span style="color:var(--orange);font-weight:700">余 ${rd.r}</span></div>`).join('');
         return this._card('cur','② 8 位二进制 · 计算机存储','查 ASCII 表得到存储码 · 1 字节 = 8 位二进制',
           `<div class="enc-bitgrid weight">${weightRow}</div>
            <div class="enc-bitgrid">${bitRow}</div>
-           <div class="enc-mini"><div class="enc-h">除 2 取余（余数从下往上逆序读出，补足 8 位）</div>${divRows}</div>
            <div class="enc-big">${bin}<sub style="font-size:.45em;color:var(--text-3)">二进制 · 1 字节</sub></div>
-           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”</div>`);
+           <div class="enc-sub">计算机内部以这 8 位二进制存储字符 “${esc(ch)}”（最高位为 0，属 ASCII 范围）</div>`);
       }
       /* 卡片 2：二进制 → 十进制（按权展开求和，展示完整计算过程） */
       if(cur===2){
@@ -1996,8 +2134,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 1：查 ASCII 表得到 8 位二进制存储码（计算机存储） */
     steps.push({desc:`计算机中字符以 <b>8 位二进制（1 字节）</b>存储；查 ASCII 码表，字符 <b class="c-op">${esc(ch)}</b> 的存储码为 <b class="c-op">${bin}</b>。`,
@@ -2010,8 +2147,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 2：二进制 → 十进制（按权展开求和，完整过程） */
     steps.push({desc:`二进制按权展开转十进制：${terms.join(' + ')} = <b class="c-op">${code}</b>。`,
@@ -2024,8 +2160,7 @@ MOD.enc = {
           this._flowNode('十六进制','',this._state(3,cur))].join('');
         $('#stage').innerHTML=`<div class="stage-hd"><span>字符 → ASCII 码值</span><span class="state">${stateLabels[cur]}</span></div>
           <div class="enc-flow">${flow}</div>
-          ${renderCard(cur)}
-          <div class="enc-result-strip locked">完整转换链路将在最后一步汇总显示</div>`;
+          ${renderCard(cur)}`;
       }});
     /* 步骤 3：十六进制 + 完整链路 */
     steps.push({desc:`二进制按 4 位一组转换为十六进制：${highNib}→<b class="c-op">${hex[0]}</b>，${lowNib}→<b class="c-op">${hex[1]}</b>，得 <b class="c-op">${hex}H</b>。完整链路：“${esc(ch)}” = ${bin}<sub>2</sub> = ${code}<sub>10</sub> = ${hex}H。`,
@@ -3626,16 +3761,22 @@ MOD.excel = {
   /* ---------- 引用复制舞台 ---------- */
   drawRefStage(o){
     const { cfg, srcRef, anchor, L, N, map, visible, phase, targets } = o;
-    const cols = ['A','B','C','D','E'];
+    // 根据复制方向动态裁剪网格范围（只显示涉及的行列，避免大片空行空列）
+    const colMin = Math.min(L.refCol,L.anchorCol,L.tCol(N));
+    const colMax = Math.max(L.refCol,L.anchorCol,L.tCol(N));
+    const rowMin = Math.min(L.refRow,L.anchorRow,L.tRow(N));
+    const rowMax = Math.max(L.refRow,L.anchorRow,L.tRow(N));
+    const cols=[];
+    for(let cc=colMin;cc<=colMax;cc++) cols.push(this.colLetter(cc));
     const targetList = targets.map(t=>t.addr).join('、');
     let html = `<div class="excel-stage">
       <div class="stage-hd"><span>${cfg.title} · 公式复制</span><span class="state">起点 ${anchor} · 向${L.label}复制 ${N} 格：${targetList}</span></div>
       <div class="step-title"><span class="st-dot"></span>${cfg.subtitle}</div>
-      <div class="xl-grid" style="grid-template-columns:38px repeat(5,1fr)">
+      <div class="xl-grid" style="grid-template-columns:38px repeat(${cols.length},1fr)">
         <div class="xl-cell hd"></div>${cols.map(c=>`<div class="xl-cell hd">${c}</div>`).join('')}`;
-    for(let r=1; r<=5; r++){
+    for(let r=rowMin; r<=rowMax; r++){
       html += `<div class="xl-cell hd">${r}</div>`;
-      for(let c=1; c<=5; c++){
+      for(let c=colMin; c<=colMax; c++){
         const cell = this.colLetter(c) + r;
         let cls = '', content = '<span style="color:#E2E8F0">·</span>';
         if(cell === anchor){
@@ -3798,10 +3939,14 @@ MOD.excel = {
   funcGrid(judged){
     const cols = ['A','B','C','D'];
     const byAddr = {};
-    (judged || FUNC_CELLS).forEach(c=>{ byAddr[c.addr] = c; });
+    const srcCells = judged || FUNC_CELLS;
+    srcCells.forEach(c=>{ byAddr[c.addr] = c; });
+    // 仅显示有数据的行（A1:D4 中数据占第 1 行和 C2），避免空行留白
+    let maxRow = 2;
+    srcCells.forEach(c=>{ if(c.type!=='empty'){ const rr=parseInt(c.addr.slice(1),10); if(rr>maxRow) maxRow=rr; } });
     let html = `<div class="xl-grid" style="grid-template-columns:38px repeat(4,1fr)">
       <div class="xl-cell hd"></div>${cols.map(c=>`<div class="xl-cell hd">${c}</div>`).join('')}`;
-    for(let r=1; r<=4; r++){
+    for(let r=1; r<=maxRow; r++){
       html += `<div class="xl-cell hd">${r}</div>`;
       for(let c=1; c<=4; c++){
         const addr = this.colLetter(c) + r;
@@ -3879,26 +4024,29 @@ MOD.excel = {
         <span class="judge-val">${x.disp}</span>
         <span class="type-tag ${x.type}">${TYPE_META[x.type].label}</span>
         ${x.verdict.counted ? '<span class="chip-ok">计入</span>' : '<span class="chip-no">忽略</span>'}
-        <span style="font-family:var(--font);font-size:clamp(12.5px,1.6vw,14px);color:var(--text-3)">${x.verdict.reason}</span>
+        <span class="judge-reason">${x.verdict.reason}</span>
       </div>`).join('');
     let html = `<div class="excel-stage">
       <div class="stage-hd"><span>${f.name} ${f.title}</span><span class="state">数据区域 A1:D4</span></div>
-      <div class="step-title"><span class="st-dot"></span>函数名 → 选中区域 → 逐个判断 → 计算过程 → 结果</div>
-      ${this.funcGrid(judged)}
-      <div class="xl-formula">=${f.name}(A1:D4) = <b style="color:#86EFAC" class="write-in">${this.fmtNum(res)}</b></div>
-      <div class="calc-process">
-        <div class="cp-label">逐个判断（绿色 = 计入，灰色删除线 = 忽略）</div>
-        ${judgeRows}
-        <div class="judge-row">
-          <span class="judge-addr">空单元格</span>
-          <span class="judge-val">∅</span>
-          <span class="type-tag empty">空单元格</span>
-          <span class="chip-no">忽略</span>
-          <span style="font-family:var(--font);font-size:clamp(12.5px,1.6vw,14px);color:var(--text-3)">${emptyAddrs.join('、')}：无内容，所有函数都忽略</span>
+      <div class="func-split">
+        <div class="func-left">
+          ${this.funcGrid(judged)}
+          <div class="xl-formula">=${f.name}(A1:D4) = <b style="color:#86EFAC">${this.fmtNum(res)}</b></div>
+          <div class="write-result">${f.name}(A1:D4) = ${this.fmtNum(res)}</div>
         </div>
-        <div class="cp-sum-line" style="margin-top:10px">${f.process(counted)}</div>
+        <div class="func-right">
+          <div class="cp-label">逐个判断（绿色 = 计入，灰色删除线 = 忽略）</div>
+          ${judgeRows}
+          <div class="judge-row">
+            <span class="judge-addr">空单元格</span>
+            <span class="judge-val">∅</span>
+            <span class="type-tag empty">空单元格</span>
+            <span class="chip-no">忽略</span>
+            <span class="judge-reason">${emptyAddrs.join('、')}：无内容，所有函数都忽略</span>
+          </div>
+          <div class="cp-sum-line">${f.process(counted)}</div>
+        </div>
       </div>
-      <div class="write-result">${f.name}(A1:D4) = ${this.fmtNum(res)}</div>
     </div>`;
     $('#stage').innerHTML = html;
   },
@@ -4320,8 +4468,7 @@ MOD.pyexpr = {
             + `<div class="two-col" style="margin-top:4px">
                 <div>${this.codeBlock([t.code1, `<span class="fn">print</span>(<span class="fn">type</span>(x))`], 1)}</div>
                 <div>${this.consoleOut([t.typeStr])}</div>
-              </div>
-              <div class="annot" style="margin-top:4px">${t.desc}</div>`;
+              </div>`;
         }
       });
     });
@@ -4763,695 +4910,6 @@ MOD.pyexpr = {
     }
   }
 };
-;;;
-
-/* ================================================================
- * ⑦ Python 程序结构（顺序 · 分支 · 循环）
- * ================================================================ */
-/* ================================================================
- * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
- * ================================================================ */
-/* ================================================================
- * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
- * ================================================================ */
-/* ================================================================
- * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
- * ================================================================ */
-/* ================================================================
- * Python 程序结构（顺序 · 分支 · for 循环 · while 循环）
- * 支持用户在代码框中自定义 Python 代码，内置轻量解释器模拟器：
- * 赋值 / print / if-elif-else / for range / while / 算术·比较·逻辑运算
- * ================================================================ */
-
-/* 模块专属样式：仅作用于 #stage 画布；大屏字号放大，变量面板纵向排列 */
-if (!document.getElementById('mod-pystruct-css')) {
-  document.head.insertAdjacentHTML('beforeend', `<style id="mod-pystruct-css">
-  #stage .pystruct-wrap{width:100%;display:flex;flex-direction:column;min-width:0}
-  #stage .pystruct-wrap .ps-code{font-size:clamp(13px,1.8vw,16px);line-height:1.6;padding:clamp(6px,1vw,9px) clamp(10px,1.5vw,14px);width:100%;min-width:0;box-sizing:border-box;overflow-x:auto}
-  #stage .pystruct-wrap .ps-cols{display:flex;gap:clamp(8px,1.4vw,14px);flex-wrap:nowrap;margin-top:clamp(4px,.8vw,7px);width:100%;min-width:0}
-  #stage .pystruct-wrap .ps-panel{flex:1 1 0;min-width:0;overflow:hidden;display:flex;flex-direction:column}
-  #stage .pystruct-wrap .ps-panel .zone-label{margin-bottom:4px;flex:none;font-size:clamp(12px,1.5vw,14px)}
-  #stage .pystruct-wrap .var-rack{flex-direction:column;align-items:stretch;gap:clamp(5px,.8vw,8px);margin:0;min-height:clamp(42px,5vh,56px);width:100%;min-width:0;overflow:hidden}
-  #stage .pystruct-wrap .var-pill{display:flex;flex-direction:row;align-items:center;gap:clamp(6px,1vw,10px);width:100%;box-sizing:border-box;min-width:0;overflow:hidden;flex-wrap:nowrap;padding:clamp(7px,1.1vw,10px) clamp(9px,1.4vw,13px);font-size:clamp(13px,1.8vw,16px)}
-  #stage .pystruct-wrap .vp-name{color:var(--accent);font-weight:700;flex:none;min-width:clamp(56px,7vw,82px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #stage .pystruct-wrap .vp-eq{color:var(--text-3);flex:none}
-  #stage .pystruct-wrap .vp-val{font-family:var(--mono);font-weight:700;color:var(--text);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-break:normal}
-  #stage .pystruct-wrap .vp-type{font-size:clamp(12px,1.5vw,13.5px);color:var(--text-3);background:var(--surface-3);border-radius:6px;padding:2px clamp(7px,1vw,10px);font-family:var(--mono);flex:none;flex-shrink:0;white-space:nowrap;min-width:0}
-  #stage .pystruct-wrap .var-pill.hot{animation:psHotFlash .7s ease 2}
-  #stage .pystruct-wrap .var-pill.var-new{animation:psPopIn .3s ease}
-  @keyframes psHotFlash{0%,100%{background:#fff;border-color:var(--border)}50%{background:var(--orange-soft);border-color:var(--orange)}}
-  @keyframes psPopIn{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
-  #stage .pystruct-wrap .ps-console{font-size:clamp(13px,1.8vw,16px);min-height:clamp(42px,5vh,56px);width:100%;min-width:0;box-sizing:border-box;overflow:hidden}
-  #stage .pystruct-wrap .ps-console .cl{display:block;white-space:pre-wrap;word-break:break-word;overflow:hidden}
-  #stage .pystruct-wrap .ps-banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:clamp(6px,1vw,9px) 0 0;font-size:clamp(13px,1.7vw,16px);width:100%}
-  #stage .pystruct-wrap .ps-cond{background:var(--orange-soft);border:1px solid var(--orange);color:#B45309;border-radius:9px;padding:clamp(5px,.9vw,8px) clamp(10px,1.5vw,14px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-loop{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:9px;padding:clamp(5px,.9vw,8px) clamp(10px,1.5vw,14px);font-family:var(--mono);font-weight:700}
-  #stage .pystruct-wrap .ps-empty{opacity:.4;font-size:clamp(13px,1.7vw,16px);padding:clamp(8px,1.3vw,12px);width:100%;box-sizing:border-box}
-  /* 仅在本模块设置项存在时约束外层控制条，避免 flex-shrink:0 导致横向溢出 */
-  #settingsRowWrap:has(.ps-setting-root){flex:0 0 auto;width:clamp(320px,52vw,640px);min-width:0;max-width:100%}
-  #settingsRow:has(.ps-setting-root){display:flex;flex-direction:column;gap:8px;width:100%;min-width:0;max-width:100%}
-  #ps-code{font-family:var(--mono);font-size:clamp(13px,1.8vw,16px);line-height:1.7;width:100%;min-width:0;box-sizing:border-box;display:block;min-height:clamp(96px,13vw,128px);padding:clamp(8px,1.3vw,11px);border:1.5px solid var(--border);border-radius:10px;outline:none;resize:vertical;background:#fff;color:var(--text)}
-  #ps-code:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-  </style>`);
-}
-
-MOD.pystruct = {
-  name: 'Python程序结构', sub: '顺序结构 · 分支结构 · 循环结构',
-  badge: '代码 · 流程', tag: '代码', cat: 'code',
-  color: '#F97316', soft: '#FFF7ED', type: '顺序 · if 分支 · for/while 循环',
-  desc: '在代码框中编写 Python 代码，内置模拟器逐步执行：顺序结构逐行执行、分支结构按条件选择路径、循环结构重复执行代码块；变量状态与控制台输出实时可见。',
-  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4M10 17h4M7 10v4M17 10v4"/></svg>',
-  setDesc: '可直接修改代码框中的示例，或点击预设按钮切换结构；改动后自动生成演示步骤。',
-  stageDesc: '蓝色高亮 = 当前执行行，灰色 = 已执行，半透明 = 被跳过；变量面板常驻显示，橙色闪烁 = 刚变化。',
-  initDesc: '点击「自动演示」或「下一步」，逐步观看程序执行过程；可在上方代码框中自定义 Python 代码。',
-  currentSub: 'seq',
-  subTabs: [
-    { id: 'seq', label: '顺序结构', method: '逐行执行' },
-    { id: 'if', label: '分支结构', method: 'if-else' },
-    { id: 'for', label: 'for 循环', method: 'range 遍历' },
-    { id: 'while', label: 'while 循环', method: '条件循环' }
-  ],
-  PRESETS: {
-    seq: `a = 5
-b = 3
-c = a + b
-print(c)`,
-    if: `a = 10
-if a > 5:
-    print('big')
-else:
-    print('small')`,
-    for: `s = 0
-for i in range(3):
-    s = s + i
-print(s)`,
-    while: `a = 0
-while a < 3:
-    a = a + 1
-print(a)`
-  },
-  _code: '',
-  _run: null,
-  steps: [],
-  canRegenerate: true,
-
-  theory() {
-    return `<div class="rule"><b>顺序结构</b>：代码从上到下依次执行，是最基本的程序结构，没有分支，也没有跳转。</div>
-    <div class="rule"><b>分支结构</b>：用 <span class="mono">if / elif / else</span> 根据条件选择执行不同的代码块，条件为 True 才执行对应分支。</div>
-    <div class="rule"><b>循环结构</b>：<span class="mono">for</span> 遍历序列（如 <span class="mono">range</span>），<span class="mono">while</span> 在条件为 True 时重复执行代码块，条件为 False 时退出。</div>
-    <div class="rule"><b>缩进</b>：Python 用缩进来表示代码块归属，同一代码块缩进必须一致（本示例统一缩进 4 个空格）。</div>
-    <div class="rule"><b>print()</b>：输出函数，把内容显示到控制台；逗号分隔多个输出项，输出时以空格隔开。</div>
-    <div class="rule"><b>自定义代码</b>：可直接在代码框中修改示例，或点击预设按钮切换结构；支持赋值、print、if/elif/else、for range、while 与基本算术、比较、逻辑运算。</div>`;
-  },
-
-  settingsHTML() {
-    const code = this._code || this.PRESETS[this.currentSub] || this.PRESETS.seq;
-    const labelMap = { seq: '顺序结构', if: '分支结构', for: 'for 循环', while: 'while 循环' };
-    const presetBtns = Object.keys(this.PRESETS).map(k =>
-      `<button class="btn" type="button" data-preset="${k}">${labelMap[k]}</button>`).join('');
-    return `<div class="ps-setting-root" style="flex:1 1 auto;min-width:0;width:100%;display:flex;flex-direction:column;gap:8px">
-      <div class="setting" style="width:100%">
-        <label>自定义 Python 代码（可直接修改，自动生成演示步骤）</label>
-        <textarea id="ps-code" rows="4" spellcheck="false">${esc(code)}</textarea>
-      </div>
-      <div class="inline-setting" style="width:100%;min-width:0;margin-right:0">
-        <div class="setting" style="width:100%">
-          <label>预设示例 / 操作</label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-            ${presetBtns}
-            <button class="btn primary" type="button" id="ps-run">执行演示</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  },
-  afterSettings() {
-    const ta = $('#ps-code');
-    if (ta) {
-      ta.oninput = () => { this._code = ta.value; };
-      ta.onchange = () => { this._code = ta.value; Engine.reload(); };
-    }
-    $$('[data-preset]').forEach(b => b.onclick = () => {
-      this._code = this.PRESETS[b.dataset.preset];
-      this.currentSub = b.dataset.preset;
-      Engine.reload();
-    });
-    /* 同步子页面 tab 高亮（reload 不会重建 tab 条） */
-    $$('#subTabs .sub-tab').forEach(x => x.classList.toggle('active', x.dataset.sub === this.currentSub));
-    const run = $('#ps-run');
-    if (run) run.onclick = () => {
-      this._code = ta ? ta.value : this._code;
-      Engine.regenerate();
-      Engine.reset();
-      Engine.auto();
-    };
-  },
-  onSubChange(sub) {
-    this._code = this.PRESETS[sub] || this._code;
-  },
-
-  /* ==================== 基础工具 ==================== */
-  tf(v) { return v ? 'True' : 'False'; },
-  truthy(v) { return v !== false && v !== null && v !== 0 && v !== '' && !Number.isNaN(v); },
-  typeOf(v) {
-    if (v === null) return 'None';
-    if (typeof v === 'boolean') return 'bool';
-    if (typeof v === 'string') return 'str';
-    if (Number.isInteger(v)) return 'int';
-    return 'float';
-  },
-  fmtVal(v) {
-    if (typeof v === 'boolean') return v ? 'True' : 'False';
-    if (v === null) return 'None';
-    if (typeof v === 'string') return `"${v}"`;
-    if (Number.isInteger(v)) return String(v);
-    return String(Math.round(v * 100000) / 100000);
-  },
-  rawVal(v) {
-    if (typeof v === 'string') return v;
-    return this.fmtVal(v);
-  },
-  _cmp(a, op, b) {
-    switch (op) {
-      case '==': return a === b; case '!=': return a !== b;
-      case '>': return a > b; case '<': return a < b;
-      case '>=': return a >= b; case '<=': return a <= b;
-    }
-    throw new Error('不支持的比较运算符：' + op);
-  },
-  _arith(a, op, b) {
-    switch (op) {
-      case '+': return a + b; case '-': return a - b; case '*': return a * b;
-      case '/': return a / b; case '//': return Math.floor(a / b);
-      case '%': return a % b; case '**': return Math.pow(a, b);
-    }
-    throw new Error('不支持的算术运算符：' + op);
-  },
-
-  /* ==================== 表达式解析与求值 ==================== */
-  _tokenize(src) {
-    const s = String(src).trim();
-    const toks = [];
-    let i = 0;
-    while (i < s.length) {
-      const c = s[i];
-      if (/\s/.test(c)) { i++; continue; }
-      if (c === '"' || c === "'") {
-        const q = c; let j = i + 1, buf = '';
-        while (j < s.length && s[j] !== q) { buf += s[j]; j++; }
-        if (j >= s.length) throw new Error('字符串引号不配对');
-        toks.push({ t: 'str', v: buf }); i = j + 1; continue;
-      }
-      let m = s.slice(i).match(/^\d+(\.\d+)?/);
-      if (m) { toks.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
-      m = s.slice(i).match(/^[A-Za-z_][A-Za-z0-9_]*/);
-      if (m) { toks.push({ t: 'id', v: m[0] }); i += m[0].length; continue; }
-      const two = s.slice(i, i + 2);
-      if (['//', '**', '==', '!=', '<=', '>='].includes(two)) { toks.push({ t: 'op', v: two }); i += 2; continue; }
-      if ('+-*/%<>(),'.includes(c)) { toks.push({ t: 'op', v: c }); i++; continue; }
-      throw new Error(`无法识别的符号：${c}`);
-    }
-    return toks;
-  },
-  evalExpr(src, vars) {
-    const toks = this._tokenize(src);
-    if (!toks.length) throw new Error('表达式为空');
-    let p = 0;
-    const peek = () => toks[p];
-    const next = () => toks[p++];
-    const eat = op => { const k = peek(); if (k && k.t === 'op' && k.v === op) { p++; return true; } return false; };
-
-    const parseOr = () => {
-      let v = parseAnd();
-      while (peek() && peek().t === 'id' && peek().v === 'or') { next(); v = this.truthy(v) || this.truthy(parseAnd()); }
-      return v;
-    };
-    const parseAnd = () => {
-      let v = parseNot();
-      while (peek() && peek().t === 'id' && peek().v === 'and') { next(); v = this.truthy(v) && this.truthy(parseNot()); }
-      return v;
-    };
-    const parseNot = () => {
-      if (peek() && peek().t === 'id' && peek().v === 'not') { next(); return !this.truthy(parseNot()); }
-      return parseCmp();
-    };
-    const parseCmp = () => {
-      let v = parseAdd();
-      while (peek() && peek().t === 'op' && ['==', '!=', '>', '<', '>=', '<='].includes(peek().v)) {
-        const op = next().v; const r = parseAdd(); v = this._cmp(v, op, r);
-      }
-      return v;
-    };
-    const parseAdd = () => {
-      let v = parseMul();
-      while (peek() && peek().t === 'op' && (peek().v === '+' || peek().v === '-')) {
-        const op = next().v; const r = parseMul(); v = op === '+' ? v + r : v - r;
-      }
-      return v;
-    };
-    const parseMul = () => {
-      let v = parseUnary();
-      while (peek() && peek().t === 'op' && ['*', '/', '//', '%', '**'].includes(peek().v)) {
-        const op = next().v; const r = parseUnary(); v = this._arith(v, op, r);
-      }
-      return v;
-    };
-    const parseUnary = () => {
-      if (peek() && peek().t === 'op' && (peek().v === '-' || peek().v === '+')) {
-        const op = next().v; const v = parseUnary(); return op === '-' ? -v : v;
-      }
-      return parseAtom();
-    };
-    const parseAtom = () => {
-      const k = next();
-      if (!k) throw new Error('表达式不完整，请检查括号与运算符');
-      if (k.t === 'num') return k.v;
-      if (k.t === 'str') return k.v;
-      if (k.t === 'id') {
-        if (k.v === 'True') return true;
-        if (k.v === 'False') return false;
-        if (k.v === 'None') return null;
-        if (eat('(')) {
-          if (!eat(')')) { parseOr(); while (eat(',')) parseOr(); if (!eat(')')) throw new Error('括号不匹配'); }
-          throw new Error(`不支持的函数调用：${k.v}()`);
-        }
-        if (k.v in vars) return vars[k.v];
-        throw new Error(`变量 ${k.v} 未定义`);
-      }
-      if (k.t === 'op' && k.v === '(') { const v = parseOr(); if (!eat(')')) throw new Error('括号不匹配'); return v; }
-      throw new Error('表达式中存在无法识别的符号');
-    };
-
-    const root = parseOr();
-    if (p < toks.length) throw new Error('表达式格式不正确');
-    return root;
-  },
-  /* 把表达式中的变量替换为当前值，生成可读的代入文本，如 a + b → 5 + 3 */
-  substExpr(src, vars) {
-    return this._tokenize(src).map(k => {
-      if (k.t === 'id' && k.v in vars) return this.fmtVal(vars[k.v]);
-      if (k.t === 'str') return `'${k.v}'`;
-      return k.v;
-    }).join(' ');
-  },
-  evalRange(args, vars) {
-    let start = 0, stop = 0, step = 1;
-    if (args.length === 1) stop = this.evalExpr(args[0], vars);
-    else if (args.length === 2) { start = this.evalExpr(args[0], vars); stop = this.evalExpr(args[1], vars); }
-    else if (args.length === 3) { start = this.evalExpr(args[0], vars); stop = this.evalExpr(args[1], vars); step = this.evalExpr(args[2], vars); }
-    else throw new Error('range 参数个数应为 1~3 个');
-    const arr = [];
-    if (step > 0) { for (let v = start; v < stop; v += step) arr.push(v); }
-    else { for (let v = start; v > stop; v += step) arr.push(v); }
-    return arr;
-  },
-  /* 按顶层逗号拆分 print 参数（忽略字符串与括号内的逗号） */
-  splitArgs(s) {
-    const out = []; let depth = 0, buf = '', q = null;
-    for (let i = 0; i < s.length; i++) {
-      const c = s[i];
-      if (q) { buf += c; if (c === q) q = null; continue; }
-      if (c === '"' || c === "'") { q = c; buf += c; continue; }
-      if (c === '(' || c === '[') depth++;
-      if (c === ')' || c === ']') depth--;
-      if (c === ',' && depth === 0) { out.push(buf.trim()); buf = ''; continue; }
-      buf += c;
-    }
-    if (buf.trim()) out.push(buf.trim());
-    return out;
-  },
-
-  /* ==================== 代码高亮 ==================== */
-  highlightLine(text) {
-    let out = ''; const s = text; let i = 0; let q = null;
-    while (i < s.length) {
-      const c = s[i];
-      if (!q && c === '#') { out += `<span class="cm">${esc(s.slice(i))}</span>`; break; }
-      if (c === ' ' || c === '\t') { out += c; i++; continue; }
-      if (c === '"' || c === "'") {
-        q = c; let j = i + 1, buf = '';
-        while (j < s.length && s[j] !== q) { buf += s[j]; j++; }
-        out += `<span class="str">${q}${esc(buf)}${q}</span>`; q = null; i = j + 1; continue;
-      }
-      if (/[0-9]/.test(c)) {
-        let j = i, num = '';
-        while (j < s.length && /[0-9.]/.test(s[j])) { num += s[j]; j++; }
-        out += `<span class="num">${num}</span>`; i = j; continue;
-      }
-      if (/[A-Za-z_]/.test(c)) {
-        let j = i, id = '';
-        while (j < s.length && /[A-Za-z0-9_]/.test(s[j])) { id += s[j]; j++; }
-        if (id === 'print' || id === 'range') out += `<span class="fn">${id}</span>`;
-        else if (['if', 'elif', 'else', 'for', 'in', 'while', 'and', 'or', 'not', 'True', 'False', 'None'].includes(id)) out += `<span class="kw">${id}</span>`;
-        else out += esc(id);
-        i = j; continue;
-      }
-      out += esc(c); i++;
-    }
-    return out;
-  },
-
-  /* ==================== 轻量解释器：把代码编译为步骤快照 ==================== */
-  buildRun(code) {
-    const self = this;
-    if (!code || !code.trim()) throw new Error('代码框为空：请先输入 Python 代码，或点击预设示例按钮。');
-    const rawLines = code.split(/\r?\n/);
-    const stripInlineComment = line => {
-      let q = null;
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (q) { if (c === q) q = null; continue; }
-        if (c === '"' || c === "'") { q = c; continue; }
-        if (c === '#') return line.slice(0, i);
-      }
-      return line;
-    };
-    const meta = rawLines.map((raw, idx) => {
-      const cleaned = stripInlineComment(raw);
-      const text = cleaned.trim();
-      const lead = raw.match(/^[ \t]*/)[0];
-      const indent = lead.replace(/\t/g, '    ').length;
-      return { raw, text, indent, idx, blank: text === '', comment: raw.trim().startsWith('#') };
-    });
-    const execLines = meta.filter(m => !m.blank && !m.comment);
-    if (!execLines.length) throw new Error('代码中没有可执行语句。');
-
-    /* ---------- 解析为带缩进层级的语句树 ---------- */
-    let pi = 0;
-    function parseBlock(minIndent) {
-      const out = [];
-      while (pi < execLines.length && execLines[pi].indent > minIndent) {
-        const ln = execLines[pi];
-        const t = ln.text;
-        if (/^if\b/.test(t)) out.push(parseIf(ln));
-        else if (/^for\b/.test(t)) out.push(parseFor(ln));
-        else if (/^while\b/.test(t)) out.push(parseWhile(ln));
-        else { out.push({ kind: 'stmt', line: ln }); pi++; }
-      }
-      return out;
-    }
-    function parseIf(header) {
-      const cond = header.text.replace(/^if\s+/, '').replace(/:\s*$/, '').trim();
-      if (!cond) throw new Error(`第 ${header.idx + 1} 行：if 后缺少条件表达式`);
-      const branches = [{ cond, line: header, body: [] }];
-      pi++;
-      branches[0].body = parseBlock(header.indent);
-      while (pi < execLines.length && execLines[pi].indent === header.indent) {
-        const t = execLines[pi].text;
-        if (/^elif\b/.test(t)) {
-          const c = t.replace(/^elif\s+/, '').replace(/:\s*$/, '').trim();
-          const l = execLines[pi];
-          pi++;
-          branches.push({ cond: c, line: l, body: parseBlock(l.indent) });
-        } else if (/^else\s*:?\s*$/.test(t)) {
-          const l = execLines[pi];
-          pi++;
-          branches.push({ cond: null, line: l, body: parseBlock(l.indent) });
-          break;
-        } else break;
-      }
-      return { kind: 'if', branches };
-    }
-    function parseFor(header) {
-      const m = header.text.match(/^for\s+([A-Za-z_]\w*)\s+in\s+range\s*\(([^)]*)\)\s*:?\s*$/);
-      if (!m) throw new Error(`第 ${header.idx + 1} 行：for 语句格式应为 for 变量 in range(起, 止):`);
-      pi++;
-      const body = parseBlock(header.indent);
-      return { kind: 'for', line: header, var: m[1], args: m[2].split(',').map(x => x.trim()).filter(Boolean), body };
-    }
-    function parseWhile(header) {
-      const cond = header.text.replace(/^while\s+/, '').replace(/:\s*$/, '').trim();
-      if (!cond) throw new Error(`第 ${header.idx + 1} 行：while 后缺少条件表达式`);
-      pi++;
-      const body = parseBlock(header.indent);
-      return { kind: 'while', line: header, cond, body };
-    }
-    const tree = parseBlock(-1);
-    if (pi < execLines.length) throw new Error(`第 ${execLines[pi].idx + 1} 行：缩进层级有误，请检查代码块缩进`);
-
-    /* ---------- 执行并录制步骤快照 ---------- */
-    const vars = {};
-    const out = [];
-    const done = new Set();
-    const skip = new Set();
-    const steps = [];
-    let prevSnapVars = {};
-    const sameVal = (a, b) => (typeof a === 'object' ? JSON.stringify(a) === JSON.stringify(b) : a === b);
-
-    const snapshot = extra => {
-      const hot = [], fresh = [];
-      Object.keys(vars).forEach(k => {
-        if (!(k in prevSnapVars)) fresh.push(k);
-        else if (!sameVal(prevSnapVars[k], vars[k])) hot.push(k);
-      });
-      const s = Object.assign({
-        cur: -1, done: [...done], skip: [...skip],
-        vars: JSON.parse(JSON.stringify(vars)), hot, fresh,
-        out: [...out], cond: null, loop: null, desc: ''
-      }, extra);
-      prevSnapVars = JSON.parse(JSON.stringify(vars));
-      steps.push(s);
-    };
-
-    function skipStmt(st) {
-      skip.add(st.line.idx);
-      if (st.body) st.body.forEach(skipStmt);
-    }
-    function execBlock(stmts) { stmts.forEach(execStmt); }
-    function execStmt(st) {
-      if (st.kind === 'if') execIf(st);
-      else if (st.kind === 'for') execFor(st);
-      else if (st.kind === 'while') execWhile(st);
-      else execSimple(st.line);
-    }
-
-    function execSimple(line) {
-      const t = line.text;
-      /* print 输出语句 */
-      const pm = t.match(/^print\s*\((.*)\)\s*$/s);
-      if (pm) {
-        const vals = self.splitArgs(pm[1]).map(p => self.evalExpr(p, vars));
-        const text = vals.map(v => self.rawVal(v)).join(' ');
-        out.push(text);
-        done.add(line.idx);
-        snapshot({ cur: line.idx, desc: `第 ${line.idx + 1} 行：调用 print 输出 <b class="c-op">${esc(text)}</b>。` });
-        return;
-      }
-      /* 复合赋值 += -= *= /= */
-      const am = t.match(/^([A-Za-z_]\w*)\s*(\+=|-=|\*=|\/=)\s*(.+)$/);
-      if (am) {
-        const name = am[1], op = am[2], rhs = am[3];
-        if (!(name in vars)) throw new Error(`第 ${line.idx + 1} 行：变量 ${name} 尚未赋值，不能使用 ${op}`);
-        const old = vars[name], rv = self.evalExpr(rhs, vars);
-        let nv;
-        if (op === '+=') nv = old + rv;
-        else if (op === '-=') nv = old - rv;
-        else if (op === '*=') nv = old * rv;
-        else nv = old / rv;
-        vars[name] = nv;
-        done.add(line.idx);
-        snapshot({
-          cur: line.idx,
-          desc: `第 ${line.idx + 1} 行：<b class="c-op">${esc(name)} ${op} ${esc(rhs)}</b>，即 ${esc(name)} = ${esc(self.fmtVal(old))} ${op.slice(0, 1)} ${esc(self.fmtVal(rv))} = <b class="c-op">${esc(self.fmtVal(nv))}</b>。`
-        });
-        return;
-      }
-      /* 普通赋值 = */
-      const sm = t.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/);
-      if (sm) {
-        const name = sm[1], rhs = sm[2];
-        const val = self.evalExpr(rhs, vars);
-        const isSimple = !/[+\-*/%()]/.test(rhs);
-        const subst = isSimple ? null : self.substExpr(rhs, vars);
-        vars[name] = val;
-        done.add(line.idx);
-        const desc = isSimple
-          ? `第 ${line.idx + 1} 行：赋值 <b class="c-op">${esc(name)} = ${esc(self.fmtVal(val))}</b>。`
-          : `第 ${line.idx + 1} 行：计算 <b class="c-op">${esc(name)} = ${esc(rhs)} = ${esc(subst)} = ${esc(self.fmtVal(val))}</b>。`;
-        snapshot({ cur: line.idx, desc });
-        return;
-      }
-      /* 裸表达式（仅做语法校验） */
-      self.evalExpr(t, vars);
-      done.add(line.idx);
-      snapshot({ cur: line.idx, desc: `第 ${line.idx + 1} 行：执行语句 <b class="c-op">${esc(t)}</b>。` });
-    }
-
-    function execIf(st) {
-      let chosen = -1;
-      st.branches.forEach((br, bi) => {
-        if (chosen >= 0) { skipStmt({ line: br.line, body: br.body }); return; }
-        if (br.cond === null) {
-          done.add(br.line.idx);
-          snapshot({ cur: br.line.idx, desc: `前面条件均不成立，进入 else 分支。` });
-          chosen = bi;
-          execBlock(br.body);
-          return;
-        }
-        const ev = self.evalExpr(br.cond, vars);
-        const truth = self.truthy(ev);
-        const sub = self.substExpr(br.cond, vars);
-        if (truth) {
-          done.add(br.line.idx);
-          snapshot({
-            cur: br.line.idx,
-            cond: `${sub} = ${self.tf(truth)}`,
-            desc: `第 ${br.line.idx + 1} 行：判断条件 <b class="c-op">${esc(br.cond)}</b> → ${esc(sub)} = <b class="c-op">${self.tf(truth)}</b>，条件成立，执行该分支。`
-          });
-          chosen = bi;
-          execBlock(br.body);
-        } else {
-          skip.add(br.line.idx);
-          br.body.forEach(skipStmt);
-          snapshot({
-            cur: br.line.idx,
-            cond: `${sub} = ${self.tf(truth)}`,
-            desc: `第 ${br.line.idx + 1} 行：判断条件 <b class="c-op">${esc(br.cond)}</b> → ${esc(sub)} = <b class="c-op">${self.tf(truth)}</b>，条件不成立，跳过该分支。`
-          });
-        }
-      });
-    }
-
-    function execFor(st) {
-      const arr = self.evalRange(st.args, vars);
-      const total = arr.length;
-      arr.forEach((v, k) => {
-        vars[st.var] = v;
-        done.add(st.line.idx);
-        snapshot({
-          cur: st.line.idx,
-          loop: `第 ${k + 1}/${total} 轮 · 循环变量 ${st.var} = ${self.fmtVal(v)}`,
-          desc: `第 ${st.line.idx + 1} 行：进入第 ${k + 1}/${total} 轮循环，<b class="c-op">${esc(st.var)} = ${esc(self.fmtVal(v))}</b>。`
-        });
-        execBlock(st.body);
-      });
-      if (total === 0) {
-        done.add(st.line.idx);
-        snapshot({ cur: st.line.idx, loop: 'range 为空，循环体执行 0 轮', desc: `range 序列为空，循环体不执行。` });
-      }
-    }
-
-    function execWhile(st) {
-      let iter = 0;
-      for (;;) {
-        if (iter > 100) throw new Error('while 循环已超过 100 轮，可能是死循环，演示已终止，请检查循环条件。');
-        const ev = self.evalExpr(st.cond, vars);
-        const truth = self.truthy(ev);
-        const sub = self.substExpr(st.cond, vars);
-        done.add(st.line.idx);
-        snapshot({
-          cur: st.line.idx,
-          cond: `${sub} = ${self.tf(truth)}`,
-          desc: truth
-            ? `第 ${st.line.idx + 1} 行：条件 <b class="c-op">${esc(st.cond)}</b> → ${esc(sub)} = <b class="c-op">True</b>，进入循环体。`
-            : `第 ${st.line.idx + 1} 行：条件 <b class="c-op">${esc(st.cond)}</b> → ${esc(sub)} = <b class="c-op">False</b>，退出循环。`
-        });
-        if (!truth) break;
-        execBlock(st.body);
-        iter++;
-      }
-    }
-
-    execBlock(tree);
-    snapshot({ cur: -1, desc: `程序执行完毕：共输出 ${out.length} 行结果，变量状态已全部记录在左侧监控面板。` });
-    return { meta, steps };
-  },
-
-  /* ==================== 画布渲染 ==================== */
-  _labelMap: {
-    seq: '顺序结构 · 逐行执行',
-    if: '分支结构 · if-elif-else 判断',
-    for: 'for 循环 · range 遍历',
-    while: 'while 循环 · 条件循环'
-  },
-  codeBlock(meta, snap) {
-    const doneSet = snap.done, skipSet = snap.skip;
-    return meta.map(m => {
-      if (m.blank) return `<div class="l" style="padding:0 8px;opacity:.35"> </div>`;
-      let cls = '', style = 'padding:0 8px';
-      if (snap.cur === m.idx) cls = 'cur';
-      else if (doneSet.indexOf(m.idx) >= 0) cls = 'done';
-      else if (skipSet.indexOf(m.idx) >= 0) style = 'padding:0 8px;opacity:.3';
-      const body = m.comment ? `<span class="cm">${esc(m.raw)}</span>` : this.highlightLine(m.raw);
-      return `<div class="l ${cls}" style="${style}">${body}</div>`;
-    }).join('');
-  },
-  varPanel(vars, hot, fresh) {
-    const keys = Object.keys(vars);
-    if (!keys.length) return `<div class="ps-empty">（尚未执行，暂无变量）</div>`;
-    return keys.map(k => {
-      const v = vars[k];
-      const cls = hot.indexOf(k) >= 0 ? 'hot' : (fresh.indexOf(k) >= 0 ? 'var-new' : '');
-      return `<div class="var-pill ${cls}">
-        <span class="vp-name">${esc(k)}</span>
-        <span class="vp-eq">=</span>
-        <span class="vp-val">${this.fmtVal(v)}</span>
-        <span class="vp-type">${this.typeOf(v)}</span>
-      </div>`;
-    }).join('');
-  },
-  consoleOut(out) {
-    if (!out.length) return `<span style="opacity:.4">（暂无输出）</span>`;
-    return out.map(l => `<div class="cl write-in">${esc(l)}</div>`).join('');
-  },
-  renderStep(i) {
-    const run = this._run;
-    const s = run.steps[i];
-    const label = this._labelMap[this.currentSub] || 'Python 程序执行';
-    $('#stage').innerHTML = `<div class="pystruct-wrap">
-      <div class="stage-hd" style="margin-bottom:4px"><span>${label}</span><span class="state">第 ${i + 1}/${run.steps.length} 步</span></div>
-      <div class="code-block ps-code">${this.codeBlock(run.meta, s)}</div>
-      ${s.cond ? `<div class="ps-banner"><span class="ps-cond">条件：${esc(s.cond)}</span></div>` : ''}
-      ${s.loop ? `<div class="ps-banner"><span class="ps-loop">${esc(s.loop)}</span></div>` : ''}
-      <div class="ps-cols">
-        <div class="ps-panel">
-          <div class="zone-label">变量监控面板（实时）</div>
-          <div class="var-rack">${this.varPanel(s.vars, s.hot, s.fresh)}</div>
-        </div>
-        <div class="ps-panel">
-          <div class="zone-label">控制台输出</div>
-          <div class="console ps-console">${this.consoleOut(s.out)}</div>
-        </div>
-      </div>
-    </div>`;
-  },
-  initStage() {
-    const code = this._code || this.PRESETS[this.currentSub] || this.PRESETS.seq;
-    this._code = code;
-    const meta = code.split(/\r?\n/).map((raw, idx) => ({
-      raw, text: raw.trim(), idx, blank: raw.trim() === '', comment: raw.trim().startsWith('#')
-    }));
-    const label = this._labelMap[this.currentSub] || 'Python 程序执行';
-    $('#stage').innerHTML = `<div class="pystruct-wrap">
-      <div class="stage-hd" style="margin-bottom:4px"><span>${label}</span><span class="state">准备就绪</span></div>
-      <div class="code-block ps-code">${meta.map(m =>
-        `<div class="l" style="padding:0 8px">${m.blank ? ' ' : this.highlightLine(m.raw)}</div>`).join('')}</div>
-      <div class="ps-cols">
-        <div class="ps-panel">
-          <div class="zone-label">变量监控面板（实时）</div>
-          <div class="var-rack"><div class="ps-empty">（点击「下一步」或「自动演示」开始执行）</div></div>
-        </div>
-        <div class="ps-panel">
-          <div class="zone-label">控制台输出</div>
-          <div class="console ps-console"><span style="opacity:.4">（暂无输出）</span></div>
-        </div>
-      </div>
-    </div>`;
-  },
-  generate() {
-    const code = (this._code || this.PRESETS[this.currentSub] || '').trim();
-    this._code = code;
-    const run = this.buildRun(code);
-    this._run = run;
-    this.steps = run.steps.map((s, i) => ({
-      desc: s.desc,
-      draw: () => this.renderStep(i)
-    }));
-  }
-};
-;;;
-
-
 ;;;
 
 /* ================================================================
@@ -6412,7 +5870,20 @@ MOD.stack = {
 
     $('#stage').innerHTML=`<div class="stage-hd"><span>${meta.title}</span><span class="state">${stateTxt}</span></div>
       <div class="step-title" style="margin-bottom:4px"><span class="st-dot"></span>${meta.rule}</div>
-      <div class="annot" style="margin:0 0 4px;line-height:1.55">${meta.hint}</div>
+      <div class="annot" style="margin:0 0 4px;line-height:1.5">${meta.hint}</div>
+      ${meta.axis==='v' ? `
+      <div style="display:flex;gap:clamp(12px,2vw,20px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1 1 50%;min-width:0;display:flex;flex-direction:column">
+          <div class="zone-label" style="margin-bottom:4px">${meta.labels.top}在上（开放操作端） · ${meta.labels.bottom}在下（封闭端）</div>
+          ${this._ghostV(meta)}
+          <div class="ds-stack-area" style="flex:1;min-height:120px">${this._stackChips(meta)}</div>
+        </div>
+        <div style="flex:1 1 50%;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <div class="zone-label" style="margin-bottom:0">操作日志（共 ${this._stepNo} 步）</div>
+          <div class="ds-log" style="margin-top:2px;line-height:1.5;flex:1;overflow:hidden">${logHtml}</div>
+          ${exprHtml?`<div class="zone-label" style="margin-bottom:0">最近操作表达式</div><div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>`:''}
+        </div>
+      </div>` : `
       ${structureHtml}
       <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:6px">
         <div style="flex:1 1 280px;min-width:230px">
@@ -6423,9 +5894,32 @@ MOD.stack = {
           <div class="zone-label" style="margin-bottom:0">最近操作表达式</div>
           <div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>
         </div>`:''}
-      </div>
+      </div>`}
       ${warnHtml}`;
     Engine.fitStage();
+  },
+
+  /* 栈结构辅助：ghost行和chips */
+  _ghostV(meta){
+    if(this._last&&this._last.kind==='remove'&&this._last.side==='top'){
+      return `<div class="ds-ghost-v-row"><div class="ds-ghost-v">
+        <span class="ghost-tag">弹出 ↑</span>
+        <div class="chip o ds-chip-v ds-out-up">${esc(this._last.val)}</div>
+      </div></div>`;
+    }
+    return '<div class="ds-ghost-v-row"></div>';
+  },
+  _stackChips(meta){
+    const size=this._data.length;
+    if(size===0) return `<div class="ds-empty">${meta.empty}</div>`;
+    return this._data.map((v,i)=>{
+      const isTop=i===size-1, isBottom=i===0;
+      const isCur=this._last&&this._last.kind==='insert'&&this._last.side==='top'&&isTop;
+      const cls=isCur?'o':'g', anim=isCur?' write-in':'';
+      const topTag=isTop?`<span class="side-tag side-top">${meta.labels.top} · 操作端</span>`:'';
+      const botTag=isBottom&&size>1?`<span class="side-tag side-bottom">${meta.labels.bottom}</span>`:'';
+      return `<div class="chip ds-chip-v ${cls}${anim}">${esc(v)}${topTag}${botTag}</div>`;
+    }).join('');
   },
 
   /* ---------- 栈结构（纵向 · 底封闭顶开放） ---------- */
@@ -6783,19 +6277,19 @@ MOD.tree = {
     const queue = opts.queue || [], vis = new Set(visited);
     const t = this._t;
 
-    let html = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
+    let head = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
       <span>二叉树 · ${meta.name}</span><span class="state">${vis.size}/${t.nodes.length}</span></div>`;
-    html += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
+    head += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
       <span class="st-dot"></span>${done ? '遍历完成' : '节点访问状态'}</div>`;
-    html += `<div class="svg-box" style="margin-bottom:4px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%">`;
+    let svg = `<div class="svg-box" style="margin-bottom:0;display:flex;justify-content:center;background:var(--surface-2);flex:1;min-height:0;overflow:hidden">
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">`;
 
     t.nodes.forEach(n => {
       [n.left, n.right].forEach(c => {
         if (c == null) return;
         const m = this.findNode(c);
         const both = vis.has(n.id) && vis.has(c);
-        html += `<line x1="${n.x}" y1="${n.y}" x2="${m.x}" y2="${m.y}"
+        svg += `<line x1="${n.x}" y1="${n.y}" x2="${m.x}" y2="${m.y}"
           stroke="${both ? '#22C55E' : '#E2E8F0'}" stroke-width="3" stroke-linecap="round"/>`;
       });
     });
@@ -6812,58 +6306,66 @@ MOD.tree = {
         queued: { f: '#E0F2FE', s: '#38BDF8', t: '#0369A1' }
       }[state];
       if (state === 'cur')
-        html += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
-      html += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
-      html += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.label)}</text>`;
+        svg += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
+      svg += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
+      svg += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.label)}</text>`;
     });
-    html += `</svg></div>`;
+    svg += `</svg></div>`;
 
+    let side = '';
     if (!done) {
-      html += `<div class="exp-inline" style="margin:4px 0 8px;padding:4px 10px;line-height:1.6">`;
+      side += `<div class="exp-inline" style="margin:0 0 6px;padding:6px 10px;line-height:1.5">`;
       if (curId == null) {
-        html += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
+        side += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
       } else {
         const node = this.findNode(curId);
-        html += `<span class="op">当前操作</span><span class="term cur">访问 ${esc(node.label)}</span>`;
-        if (opts.role) html += `<span class="op">· ${opts.role}</span>`;
-        if (opts.extra) html += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
+        side += `<span class="op">当前</span><span class="term cur">访问 ${esc(node.label)}</span>`;
+        if (opts.role) side += `<span class="op">· ${opts.role}</span>`;
+        if (opts.extra) side += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
       }
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:2px">`;
+    side += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:6px;flex-wrap:wrap">`;
     if (visited.length === 0) {
-      html += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
+      side += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
     } else {
       visited.forEach((id, i) => {
         const n = this.findNode(id);
         const cls = done ? 'chip-done' : (id === curId ? 'chip-cur' : 'chip-done');
-        html += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
+        side += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
       });
     }
-    html += `</div>`;
+    side += `</div>`;
 
     if (meta.kind === 'level') {
-      html += `<div class="zone-label">队列（队首 → 队尾）</div>
-        <div class="queue-area" style="min-height:24px;padding:3px 8px;gap:5px;overflow:visible;margin-bottom:2px">`;
-      if (queue.length === 0) html += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空队列）</span>`;
+      side += `<div class="zone-label">队列（队首 → 队尾）</div>
+        <div class="queue-area" style="min-height:24px;padding:4px 8px;gap:5px;overflow:visible;margin-bottom:6px;flex-wrap:wrap">`;
+      if (queue.length === 0) side += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空队列）</span>`;
       else queue.forEach((id, i) => {
         const n = this.findNode(id);
-        html += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
+        side += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);animation-delay:${i * 0.08}s">${esc(n.label)}</span>`;
       });
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="legend" style="margin-top:2px;line-height:1.4;font-size:clamp(12.5px,1.6vw,14.5px)">
+    side += `<div class="legend" style="margin-top:2px;line-height:1.6;font-size:clamp(12.5px,1.6vw,14.5px)">
       <span style="color:#94A3B8">● 未访问</span>　<span style="color:#F59E0B">● 当前</span>
       <span style="color:#22C55E">● 已访问</span>${meta.kind === 'level' ? '　<span style="color:#38BDF8">● 排队中</span>' : ''}
     </div>`;
 
     if (done) {
       const seq = visited.map(v => this.findNode(v).label).join(' · ');
-      html += `<div class="write-result" style="margin-top:8px;padding:clamp(8px,1.4vw,12px) clamp(14px,2vw,18px);line-height:1.6;font-size:clamp(15px,2.1vw,19px)">${meta.name}结果：[${seq}]</div>`;
+      side += `<div class="write-result" style="margin-top:8px;padding:clamp(8px,1.4vw,12px) clamp(14px,2vw,18px);line-height:1.5;font-size:clamp(15px,2.1vw,19px)">${meta.name}结果：[${seq}]</div>`;
     }
-    $('#stage').innerHTML = `<div class="tree-stage">${html}</div>`;
+
+    $('#stage').innerHTML = `<div class="tree-stage" style="display:flex;flex-direction:column;height:100%">
+      ${head}
+      <div style="display:flex;gap:clamp(10px,1.6vw,16px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1.5 1 0;min-width:0;display:flex;flex-direction:column">${svg}</div>
+        <div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center">${side}</div>
+      </div>
+    </div>`;
   },
 
   /* ================= 步骤生成 ================= */
@@ -7080,30 +6582,22 @@ MOD.graph = {
 
   settingsHTML() {
     return `
-      <div class="settings-row">
+      <div class="settings-row" style="flex-wrap:wrap;gap:6px 10px">
         <div class="inline-setting"><div class="setting"><label>顶点名称</label>
-          <input type="text" id="gf-v" placeholder="如 E" style="width:clamp(80px,12vw,110px)"></div></div>
+          <input type="text" id="gf-v" placeholder="如 E" style="width:clamp(70px,9vw,100px)"></div></div>
         <div class="inline-setting"><button class="btn primary" id="gf-addv">添加顶点</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
         <div class="inline-setting"><div class="setting"><label>边权重（可空）</label>
-          <input type="number" id="gf-w" placeholder="如 3" style="width:clamp(80px,12vw,110px)"></div></div>
+          <input type="number" id="gf-w" placeholder="如 3" style="width:clamp(70px,9vw,100px)"></div></div>
         <div class="inline-setting"><button class="btn" id="gf-adde">连接选中两顶点</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
-        <div class="inline-setting"><div class="setting"><label>顶点 1</label>
-          <input type="text" id="gf-a" placeholder="如 A" style="width:clamp(70px,10vw,100px)"></div></div>
-        <div class="inline-setting"><div class="setting"><label>顶点 2</label>
-          <input type="text" id="gf-b" placeholder="如 D" style="width:clamp(70px,10vw,100px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>顶点1</label>
+          <input type="text" id="gf-a" placeholder="A" style="width:clamp(56px,7vw,80px)"></div></div>
+        <div class="inline-setting"><div class="setting"><label>顶点2</label>
+          <input type="text" id="gf-b" placeholder="D" style="width:clamp(56px,7vw,80px)"></div></div>
         <div class="inline-setting"><div class="setting"><label>权重</label>
-          <input type="number" id="gf-w2" placeholder="可空" style="width:clamp(64px,9vw,96px)"></div></div>
+          <input type="number" id="gf-w2" placeholder="空" style="width:clamp(52px,6vw,72px)"></div></div>
         <div class="inline-setting"><button class="btn" id="gf-pair">按名称加边</button></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
-        <div class="inline-setting"><div class="setting"><label>遍历起点</label><select id="gf-start" style="min-width:80px"></select></div></div>
-        <div class="inline-setting"><div class="setting"><label>终点（最短路径）</label><select id="gf-end" style="min-width:80px"></select></div></div>
-      </div>
-      <div class="settings-row" style="margin-top:6px">
+        <div class="inline-setting"><div class="setting"><label>起点</label><select id="gf-start" style="min-width:64px"></select></div></div>
+        <div class="inline-setting"><div class="setting"><label>终点</label><select id="gf-end" style="min-width:64px"></select></div></div>
         <div class="inline-setting"><button class="btn" id="gf-preset">示例图</button></div>
         <div class="inline-setting"><button class="btn ghost" id="gf-clear">清空画布</button></div>
         <div class="inline-setting"><button class="btn primary" id="gf-startbtn">开始遍历</button></div>
@@ -7363,12 +6857,12 @@ MOD.graph = {
     const g = this._g;
     const pathSet = opts.pathKeys || new Set();
 
-    let html = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
+    let head = `<div class="stage-hd" style="margin-bottom:4px;line-height:1.2;font-size:clamp(12px,1.6vw,14px)">
       <span>无向图 · ${meta.name}</span><span class="state">${vis.size}/${g.nodes.length}</span></div>`;
-    html += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
+    head += `<div class="step-title" style="margin-bottom:4px;padding:3px 10px;line-height:1.3">
       <span class="st-dot"></span>${done ? '遍历完成' : '顶点访问状态'}</div>`;
-    html += `<div class="svg-box" style="margin-bottom:4px;display:flex;justify-content:center;background:var(--surface-2)">
-      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%">`;
+    let svg = `<div class="svg-box" style="margin-bottom:0;display:flex;justify-content:center;background:var(--surface-2);flex:1;min-height:0;overflow:hidden">
+      <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">`;
 
     g.edges.forEach(e => {
       const a = this.node(e.a), b = this.node(e.b);
@@ -7379,10 +6873,10 @@ MOD.graph = {
       if (inPath) { stroke = '#22C55E'; width = 6; }
       else if (isCur) { stroke = '#F59E0B'; width = 5; }
       else if (both) { stroke = '#22C55E'; }
-      html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"/>`;
+      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"/>`;
       if (e.w != null && e.w !== '') {
         const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-        html += `<g transform="translate(${mx},${my})">
+        svg += `<g transform="translate(${mx},${my})">
           <rect x="-20" y="-15" width="40" height="26" rx="10" fill="#fff" stroke="${inPath ? '#22C55E' : '#CBD5E1'}" stroke-width="1.5"/>
           <text text-anchor="middle" y="4" font-size="clamp(12px,1.5vw,14px)" font-weight="700" fill="${inPath ? '#16A34A' : '#334155'}">${esc(e.w)}</text></g>`;
       }
@@ -7400,64 +6894,75 @@ MOD.graph = {
         waiting: { f: '#E0F2FE', s: '#38BDF8', t: '#0369A1' }
       }[state];
       if (state === 'cur')
-        html += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
-      if (g.start === n.id) html += `<text x="${n.x}" y="${n.y - 40}" text-anchor="middle" font-size="13" font-weight="700" fill="#4F6BFF">起点</text>`;
-      if (meta.kind === 'path' && g.end === n.id && g.end !== g.start) html += `<text x="${n.x}" y="${n.y - 40}" text-anchor="end" font-size="13" font-weight="700" fill="#8B5CF6" dx="18">终点</text>`;
-      html += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
-      html += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.id)}</text>`;
+        svg += `<circle cx="${n.x}" cy="${n.y}" r="36" fill="#F59E0B" opacity="0.15" style="animation:pop .3s ease-out"/>`;
+      if (g.start === n.id) svg += `<text x="${n.x}" y="${n.y - 40}" text-anchor="middle" font-size="13" font-weight="700" fill="#4F6BFF">起点</text>`;
+      if (meta.kind === 'path' && g.end === n.id && g.end !== g.start) svg += `<text x="${n.x}" y="${n.y - 40}" text-anchor="end" font-size="13" font-weight="700" fill="#8B5CF6" dx="18">终点</text>`;
+      svg += `<circle cx="${n.x}" cy="${n.y}" r="26" fill="${st.f}" stroke="${st.s}" stroke-width="3"/>`;
+      svg += `<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="clamp(13px,1.8vw,17px)" font-weight="700" fill="${st.t}">${esc(n.id)}</text>`;
     });
-    html += `</svg></div>`;
+    svg += `</svg></div>`;
 
+    let side = '';
     if (!done && meta.kind !== 'path') {
-      html += `<div class="exp-inline" style="margin:4px 0 8px;padding:4px 10px;line-height:1.6">`;
+      side += `<div class="exp-inline" style="margin:0 0 6px;padding:6px 10px;line-height:1.5">`;
       if (curId == null) {
-        html += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
+        side += `<span class="op">规则</span><span class="term done">${this.typeChars(meta.rule)}</span><span class="caret pen"></span>`;
       } else {
-        html += `<span class="op">${meta.ds}操作</span><span class="term cur">${meta.opVerb} ${esc(curId)}</span>`;
-        if (opts.extra) html += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
+        side += `<span class="op">${meta.ds}操作</span><span class="term cur">${meta.opVerb} ${esc(curId)}</span>`;
+        if (opts.extra) side += `<span class="op">→</span><span class="term done">${opts.extra}</span>`;
       }
-      html += `</div>`;
+      side += `</div>`;
     }
 
-    html += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:2px">`;
+    side += `<div class="zone-label">访问序列</div><div class="order-rack" style="margin-bottom:6px;flex-wrap:wrap">`;
     if (visited.length === 0) {
-      html += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
+      side += `<span style="color:#CBD5E1;font-size:clamp(12px,1.6vw,14px)">（尚未访问）</span>`;
     } else {
       visited.forEach((id, i) => {
         const cls = done ? 'chip-done' : (id === curId ? 'chip-cur' : 'chip-done');
-        html += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(id)}</span>`;
+        side += `<span class="order-chip ${cls} write-in" style="animation-delay:${i * 0.08}s">${esc(id)}</span>`;
       });
     }
-    html += `</div>`;
+    side += `</div>`;
 
     if (meta.kind === 'bfs' || meta.kind === 'dfs') {
-      html += `<div class="zone-label">${meta.dsLabel}</div>
-        <div class="queue-area" style="min-height:24px;padding:3px 8px;gap:5px;overflow:visible;margin-bottom:2px">`;
-      if (waiting.length === 0) html += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空${meta.ds}）</span>`;
+      side += `<div class="zone-label">${meta.dsLabel}</div>
+        <div class="queue-area" style="min-height:24px;padding:4px 8px;gap:5px;overflow:visible;margin-bottom:6px;flex-wrap:wrap">`;
+      if (waiting.length === 0) side += `<span style="color:#94A3B8;font-size:clamp(12px,1.5vw,14px)">（空${meta.ds}）</span>`;
       else waiting.forEach((id, i) => {
         const mark = meta.kind === 'bfs'
           ? (i === 0 ? '头' : (i === waiting.length - 1 ? '尾' : ''))
           : (i === waiting.length - 1 ? '顶' : '');
         const tag = mark ? `<span style="font-size:10px;color:#fff;margin-left:3px;font-weight:700">${mark}</span>` : '';
         const topStyle = meta.kind === 'dfs' && i === waiting.length - 1 ? 'background:#8B5CF6;border:1.5px solid #8B5CF6;' : '';
-        html += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);${topStyle}animation-delay:${i * 0.08}s">${esc(id)}${tag}</span>`;
+        side += `<span class="chip cy write-in" style="padding:clamp(5px,1vw,8px) clamp(11px,1.6vw,14px);font-size:clamp(13px,1.7vw,15px);${topStyle}animation-delay:${i * 0.08}s">${esc(id)}${tag}</span>`;
       });
-      html += `</div>`;
+      side += `</div>`;
     }
 
     if (meta.kind === 'path' && opts.dist) {
-      html += `<div class="zone-label">距离表（当前最短估计距离）</div>
-        <div class="tbl-wrap" style="margin-bottom:8px;overflow-x:auto"><table class="tbl" style="table-layout:fixed">
+      if (done) {
+        side += `<div class="zone-label">最终最短距离</div><div class="order-rack" style="margin-bottom:4px;flex-wrap:wrap;gap:5px">`;
+        g.nodes.forEach(n => {
+          const d = opts.dist[n.id];
+          const onPath = opts.path && opts.path.includes(n.id);
+          side += `<span class="order-chip ${onPath?'chip-cur':'chip-done'}" style="font-size:clamp(12px,1.6vw,14px)">${esc(n.id)}：${d === Infinity ? '∞' : d}</span>`;
+        });
+        side += `</div>`;
+      } else {
+        side += `<div class="zone-label">距离表（当前最短估计距离）</div>
+        <div class="tbl-wrap" style="margin-bottom:4px;overflow:hidden"><table class="tbl" style="table-layout:fixed;font-size:13px;width:100%">
         <thead><tr><th style="width:34%">顶点</th><th style="width:33%">距离</th><th style="width:33%">状态</th></tr></thead><tbody>`;
-      g.nodes.forEach(n => {
-        const d = opts.dist[n.id];
-        const stText = vis.has(n.id) ? '已确定' : (d === Infinity ? '待访问' : '候选');
-        html += `<tr><td>${esc(n.id)}</td><td>${d === Infinity ? '∞' : d}</td><td>${stText}</td></tr>`;
-      });
-      html += `</tbody></table></div>`;
+        g.nodes.forEach(n => {
+          const d = opts.dist[n.id];
+          const stText = vis.has(n.id) ? '已确定' : (d === Infinity ? '待访问' : '候选');
+          side += `<tr><td>${esc(n.id)}</td><td>${d === Infinity ? '∞' : d}</td><td>${stText}</td></tr>`;
+        });
+        side += `</tbody></table></div>`;
+      }
     }
 
-    html += `<div class="legend" style="margin-top:2px;line-height:1.4;font-size:clamp(12.5px,1.6vw,14.5px)">
+    side += `<div class="legend" style="margin-top:2px;line-height:1.6;font-size:clamp(12.5px,1.6vw,14.5px)">
       <span style="color:#94A3B8">● 未访问</span>　<span style="color:#F59E0B">● 当前</span>
       <span style="color:#22C55E">● 已访问</span>${meta.kind !== 'path' ? `　<span style="color:#38BDF8">● ${meta.ds}中待访问</span>` : '　<span style="color:#22C55E">● 最短路径</span>'}
     </div>`;
@@ -7465,17 +6970,25 @@ MOD.graph = {
     if (done) {
       if (meta.kind === 'path') {
         if (opts.path && opts.path.length) {
-          html += `<div class="write-result" style="margin-top:3px;padding:clamp(4px,.7vw,6px) clamp(12px,1.8vw,16px);line-height:1.35;font-size:clamp(14px,1.9vw,17px)">
-            最短路径 ${esc(g.start)} → ${esc(g.end)}：<b class="c-op">${opts.path.join(' → ')}</b>，总权重 = <b class="c-op">${opts.total}</b></div>`;
+          side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.5;font-size:clamp(13px,1.8vw,16px);text-align:center;white-space:nowrap">
+            <div style="font-weight:700;margin-bottom:2px">最短路径 ${esc(g.start)} → ${esc(g.end)}</div>
+            <div style="font-size:clamp(14px,2vw,18px)"><b class="c-op">${opts.path.join(' → ')}</b>　·　总权重 <b class="c-op">${opts.total}</b></div></div>`;
         } else {
-          html += `<div class="write-result" style="margin-top:3px;padding:clamp(4px,.7vw,6px) clamp(12px,1.8vw,16px);line-height:1.35;font-size:clamp(14px,1.9vw,17px)">从 ${esc(g.start)} 无法到达 ${esc(g.end)}</div>`;
+          side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.4;font-size:clamp(13px,1.8vw,16px);text-align:center">从 ${esc(g.start)} 无法到达 ${esc(g.end)}</div>`;
         }
       } else {
-        html += `<div class="write-result" style="margin-top:3px;padding:clamp(4px,.7vw,6px) clamp(12px,1.8vw,16px);line-height:1.35;font-size:clamp(14px,1.9vw,17px)">
+        side += `<div class="write-result" style="margin-top:6px;padding:clamp(6px,1.1vw,10px) clamp(12px,1.8vw,16px);line-height:1.4;font-size:clamp(13px,1.8vw,16px)">
           ${meta.name}结果：[${visited.join(' · ')}]</div>`;
       }
     }
-    $('#stage').innerHTML = `<div class="graph-stage">${html}</div>`;
+
+    $('#stage').innerHTML = `<div class="graph-stage" style="display:flex;flex-direction:column;height:100%">
+      ${head}
+      <div style="display:flex;gap:clamp(10px,1.6vw,16px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1.5 1 0;min-width:0;display:flex;flex-direction:column">${svg}</div>
+        <div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden">${side}</div>
+      </div>
+    </div>`;
   },
 
   /* ================= 步骤生成 ================= */

@@ -274,7 +274,20 @@ MOD.stack = {
 
     $('#stage').innerHTML=`<div class="stage-hd"><span>${meta.title}</span><span class="state">${stateTxt}</span></div>
       <div class="step-title" style="margin-bottom:4px"><span class="st-dot"></span>${meta.rule}</div>
-      <div class="annot" style="margin:0 0 4px;line-height:1.55">${meta.hint}</div>
+      <div class="annot" style="margin:0 0 4px;line-height:1.5">${meta.hint}</div>
+      ${meta.axis==='v' ? `
+      <div style="display:flex;gap:clamp(12px,2vw,20px);flex:1;min-height:0;align-items:stretch">
+        <div style="flex:1 1 50%;min-width:0;display:flex;flex-direction:column">
+          <div class="zone-label" style="margin-bottom:4px">${meta.labels.top}在上（开放操作端） · ${meta.labels.bottom}在下（封闭端）</div>
+          ${this._ghostV(meta)}
+          <div class="ds-stack-area" style="flex:1;min-height:120px">${this._stackChips(meta)}</div>
+        </div>
+        <div style="flex:1 1 50%;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <div class="zone-label" style="margin-bottom:0">操作日志（共 ${this._stepNo} 步）</div>
+          <div class="ds-log" style="margin-top:2px;line-height:1.5;flex:1;overflow:hidden">${logHtml}</div>
+          ${exprHtml?`<div class="zone-label" style="margin-bottom:0">最近操作表达式</div><div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>`:''}
+        </div>
+      </div>` : `
       ${structureHtml}
       <div style="display:flex;gap:clamp(10px,1.6vw,14px);flex-wrap:wrap;align-items:stretch;margin-top:6px">
         <div style="flex:1 1 280px;min-width:230px">
@@ -285,9 +298,32 @@ MOD.stack = {
           <div class="zone-label" style="margin-bottom:0">最近操作表达式</div>
           <div class="exp-inline" style="margin-top:2px;min-height:28px">${exprHtml}</div>
         </div>`:''}
-      </div>
+      </div>`}
       ${warnHtml}`;
     Engine.fitStage();
+  },
+
+  /* 栈结构辅助：ghost行和chips */
+  _ghostV(meta){
+    if(this._last&&this._last.kind==='remove'&&this._last.side==='top'){
+      return `<div class="ds-ghost-v-row"><div class="ds-ghost-v">
+        <span class="ghost-tag">弹出 ↑</span>
+        <div class="chip o ds-chip-v ds-out-up">${esc(this._last.val)}</div>
+      </div></div>`;
+    }
+    return '<div class="ds-ghost-v-row"></div>';
+  },
+  _stackChips(meta){
+    const size=this._data.length;
+    if(size===0) return `<div class="ds-empty">${meta.empty}</div>`;
+    return this._data.map((v,i)=>{
+      const isTop=i===size-1, isBottom=i===0;
+      const isCur=this._last&&this._last.kind==='insert'&&this._last.side==='top'&&isTop;
+      const cls=isCur?'o':'g', anim=isCur?' write-in':'';
+      const topTag=isTop?`<span class="side-tag side-top">${meta.labels.top} · 操作端</span>`:'';
+      const botTag=isBottom&&size>1?`<span class="side-tag side-bottom">${meta.labels.bottom}</span>`:'';
+      return `<div class="chip ds-chip-v ${cls}${anim}">${esc(v)}${topTag}${botTag}</div>`;
+    }).join('');
   },
 
   /* ---------- 栈结构（纵向 · 底封闭顶开放） ---------- */

@@ -137,7 +137,7 @@ MOD.base = {
         this._digits = s; break;
       }
       case 'dec': {
-        const range = size === 'medium' ? [32, 99] : [5, 31];
+        const range = size === 'large' ? [100, 255] : size === 'medium' ? [32, 99] : [5, 31];
         this._dec = randInt(range[0], range[1]); break;
       }
       case 'oct': {
@@ -348,11 +348,9 @@ MOD.base = {
     /* 5. 完成：倒排标注 + 底部结果条 */
     steps.push({desc:`余数逆序排列：${rems.slice().reverse().join('')}，即 <b class="c-op">${ans}</b>₂。`,
       draw:()=>{
-        const rackHtml = rems.slice().reverse().map((r,t)=>`<span class="grp done">${r}<span class="grp-label">${this._rankName(t,R)}</span></span>`).join('');
         $('#stage').innerHTML = this._stage(`
           ${this._head(label,'完成')}
-          <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取</div>
-          <div class="d2b-rack"><span class="d2b-rack-cap">二进制结果（最高位 → 最低位）</span><div class="group-box">${rackHtml}</div></div>
+          <div class="step-title"><span class="st-dot"></span>竖式除法 · 余数逆序读取（自下而上 ↑）</div>
           ${renderGrid('done',-1)}
           <div class="d2b-result">${dec}<sub>十进制</sub> = ${ans}<sub>二进制</sub></div>`);
       }});
